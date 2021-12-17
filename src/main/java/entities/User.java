@@ -47,4 +47,9 @@ public class User extends GeneralUser {
     public boolean removeFromFavorites(FavoriteBeer beer) {
         return favorites.remove(beer);
     }
+
+    @Override
+    public boolean isStandard() {
+        return true;
+    }
 }

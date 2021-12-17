@@ -1,6 +1,6 @@
 package entities;
 
-public class GeneralUser {
+public abstract class GeneralUser {
     protected int userID;
     protected String email;
     protected String username;
@@ -47,4 +47,6 @@ public class GeneralUser {
     public void setType(int type) {
         this.type = type;
     }
+
+    public abstract boolean isStandard();
 }

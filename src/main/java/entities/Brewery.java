@@ -45,4 +45,9 @@ public class Brewery extends GeneralUser {
     public boolean deleteBeer(Integer beer) {
         return beers.remove(beer);
     }
+
+    @Override
+    public boolean isStandard() {
+        return false;
+    }
 }

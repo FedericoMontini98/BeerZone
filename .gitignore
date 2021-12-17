@@ -23,11 +23,7 @@
 hs_err_pid*
 
 .idea
-.*
-
-/.idea/
 
 # Default ignored files
-/.idea/shelf/*.xml
 /workspace.xml
 /test/

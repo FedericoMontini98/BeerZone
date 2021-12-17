@@ -21,9 +21,10 @@ public class BeerZoneGUI {
     }
 
     /*
-     *  starting page with login and register buttons
-     */
-    public static void prepareLogRegister(JFrame frame){
+    *
+    */
+    private void setStandardUserButton(JFrame frame){
+        JButton btn = new JButton("Login as Standard User");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.ipady = 10;
@@ -31,27 +32,53 @@ public class BeerZoneGUI {
         gbc.insets.bottom = 40;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        JButton btn = new JButton("Login as Standard User");
         frame.getContentPane().add(btn, gbc);
+    }
 
+    /*
+     *
+     */
+    private void setBreweryManagerButton(JFrame frame){
+        JButton btn = new JButton("Login as Brewery Manager");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.ipady = 10;
+        gbc.ipadx = 10;
+        gbc.insets.bottom = 40;
         gbc.gridx = 3;
         gbc.gridy = 0;
-        btn = new JButton("Login as Brewery Manager");
         btn.addActionListener(e -> {
         });
         frame.getContentPane().add(btn, gbc);
+    }
 
-        gbc.gridx = 2;
-        gbc.gridy = 1;
+    /*
+     *
+     */
+    private void setRegisterButton(JFrame frame){
+        JButton btn = new JButton("Register");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.ipady = 10;
         gbc.ipadx = 100;
         gbc.insets.left = gbc.insets.right = 10;
-        btn = new JButton("Register");
+        gbc.gridx = 2;
+        gbc.gridy = 1;
         btn.addActionListener(e -> {
             frame.getContentPane().removeAll();
             frame.repaint();
             prepareRegisterSection(frame);
         });
         frame.getContentPane().add(btn, gbc);
+    }
+
+    /*
+     *  starting page with login and register buttons
+     */
+    public void prepareLogRegister(JFrame frame){
+        setStandardUserButton(frame);
+        setBreweryManagerButton(frame);
+        setRegisterButton(frame);
     }
 
     public void createAndShowGUI(){

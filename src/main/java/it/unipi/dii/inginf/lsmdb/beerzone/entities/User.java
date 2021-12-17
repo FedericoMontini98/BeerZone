@@ -1,6 +1,4 @@
-package entities;
-
-import entities.GeneralUser;
+package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import java.util.ArrayList;
 import java.util.Date;

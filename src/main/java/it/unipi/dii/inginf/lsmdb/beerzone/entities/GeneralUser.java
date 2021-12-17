@@ -1,4 +1,4 @@
-package entities;
+package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 public abstract class GeneralUser {
     protected int userID;

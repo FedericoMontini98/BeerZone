@@ -10,19 +10,128 @@ public class BeerZoneGUI {
     /*
      * Brewery manager section
      */
-    public void BreweryManagerSection(JFrame frame, String[] inputData){
+    public void BreweryManagerSection(JFrame frame/*, String[] inputData*/){
         frame.setTitle("BeerZone - BREWERY MANAGER");
         frame.setLayout(new GridLayout(1,2));
-        JPanel jp = new JPanel();
-        jp.setBorder(BorderFactory.createLineBorder(Color.black));
-        jp.setBackground(backgroundColor);
-        frame.getContentPane().add(jp);
-        jp = new JPanel();
-        jp.setBorder(BorderFactory.createLineBorder(Color.black));
-        jp.setBackground(backgroundColor);
-        frame.getContentPane().add(jp);
+
+        JPanel ljp = new JPanel();
+        JPanel rjp = new JPanel();
+        rjp.setLayout(new GridBagLayout());
+        ljp.setLayout(new GridBagLayout());
+        JButton b1 = new JButton("Add beer");
+        b1.addActionListener(e -> generateAddBeerMenu(rjp, frame));
+        JButton b2 = new JButton("Browse Beer");
+        b1.addActionListener(e -> generateBrowseBeerMenu(rjp));
+        JButton b3 = new JButton("Extract Brewery Statistics");
+        b1.addActionListener(e -> generateBreweryStatisticsMenu(rjp));
+        setLeftBreweryManagerButton(b1, b2, b3, ljp);
+        ljp.setBorder(BorderFactory.createLineBorder(Color.black));
+        ljp.setBackground(backgroundColor);
+        frame.getContentPane().add(ljp);
+
+        rjp.setBorder(BorderFactory.createLineBorder(Color.black));
+        rjp.setBackground(backgroundColor);
+        frame.getContentPane().add(rjp);
 
         frame.setVisible(true);
+    }
+
+    private void generateBreweryStatisticsMenu(JPanel containerPanel) {
+
+    }
+
+    private void generateBrowseBeerMenu(JPanel containerPanel) {
+
+    }
+
+    private void generateAddBeerMenu(JPanel containerPanel, JFrame frame) {
+        JTextField[] inputs = new JTextField[5];
+        createInputField("Beer Name", containerPanel, 1, inputs);
+        JComboBox cb = createInputStyle(containerPanel);
+        createInputRecipe(containerPanel);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private void createInputRecipe(JPanel containerPanel) {
+        JPanel recipePanel = new JPanel();
+        GridBagConstraints gbc = new GridBagConstraints();
+        recipePanel.setLayout(new GridBagLayout());
+        JTextField tf = new JTextField("Recipe Section");
+        tf.setEditable(false);
+        tf.setBorder(createEmptyBorder());
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets.right = 30;
+        gbc.insets.top = 10;
+        gbc.ipadx = 20;
+        gbc.ipady = 5;
+        recipePanel.add(tf, gbc);
+        tf = new JTextField("Value");
+        tf.setEditable(false);
+        tf.setBorder(createEmptyBorder());
+        gbc.gridx = 1;
+        gbc.insets.right = 0;
+        recipePanel.add(tf, gbc);
+        String[] choices = {"Choose an option", "Option 1", "Option 2", "..."};
+        final JComboBox<String> cb = new JComboBox<>(choices);
+        cb.setVisible(true);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        recipePanel.add(cb, gbc);
+        JButton btn = new JButton("Confirm Description");
+        gbc.gridy = 2;
+        recipePanel.add(btn, gbc);
+        JTextField rv = new JTextField();
+        gbc.gridheight = 2;
+        gbc.gridy = 1;
+        gbc.gridx = 1;
+        gbc.ipadx = 100;
+        gbc.ipady = 60;
+        recipePanel.add(rv, gbc);
+        gbc.gridheight = 1;
+        gbc.ipadx = 0;
+        gbc.ipady = 0;
+        gbc.insets.top = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        containerPanel.add(recipePanel, gbc);
+    }
+
+    private JComboBox createInputStyle(JPanel containerPanel) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(20, 30, 0, 20);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        JTextField description = new JTextField("Style");
+        description.setBorder(createEmptyBorder());
+        description.setEditable(false);
+        containerPanel.add(description, gbc);
+        String[] choices = {"Choose an option", "Option 1", "Option 2", "..."};
+        final JComboBox<String> cb = new JComboBox<>(choices);
+        cb.setVisible(true);
+        gbc.insets = new Insets(20, 0, 0, 20);
+        gbc.gridx = 1;
+        containerPanel.add(cb, gbc);
+        return cb;
+    }
+
+    private void setLeftBreweryManagerButton(JButton b1, JButton b2, JButton b3, JPanel jp) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.ipadx = 99;
+        gbc.ipady = 30;
+        gbc.insets.bottom = 40;
+        jp.add(b1, gbc);
+        gbc.ipadx = 75;
+        gbc.gridy = 1;
+        jp.add(b2, gbc);
+        gbc.insets.bottom = 0;
+        gbc.ipadx = 0;
+        gbc.gridy = 2;
+        jp.add(b3, gbc);
     }
 
     public void StandardUserSection(JFrame frame, String[] inputData){
@@ -116,7 +225,7 @@ public class BeerZoneGUI {
                 frame.repaint();
                 //Data ready for being saved
                 if(inputData[0].equals("Brewery manager"))
-                    BreweryManagerSection(frame, inputData);
+                    BreweryManagerSection(frame/*, inputData*/);
                 else
                     StandardUserSection(frame, inputData);
             }
@@ -229,7 +338,7 @@ public class BeerZoneGUI {
         frame.getContentPane().setBackground(backgroundColor);
         GridBagLayout lay = new GridBagLayout();
         frame.setLayout(lay);
-        prepareLogRegister(frame);
+        BreweryManagerSection(frame);
 
         frame.setVisible(true);
     }

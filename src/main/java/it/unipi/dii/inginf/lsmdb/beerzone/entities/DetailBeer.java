@@ -1,10 +1,11 @@
-package entities;
+package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import java.util.ArrayList;
 
 public class DetailBeer extends Beer {
     private ArrayList<Integer> breweries;
     private int beerScore;
+    private int numRating;
     private String style;
     private String method;
     private double batch;

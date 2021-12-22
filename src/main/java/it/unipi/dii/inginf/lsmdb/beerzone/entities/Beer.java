@@ -1,4 +1,4 @@
-package entities;
+package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 public class Beer {
     protected int beerID;

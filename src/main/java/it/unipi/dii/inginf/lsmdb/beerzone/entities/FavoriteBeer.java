@@ -1,4 +1,4 @@
-package entities;
+package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import java.util.Date;
 

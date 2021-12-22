@@ -22,6 +22,11 @@ public class Neo4jManager {
                                     AuthTokens.basic(user,password));
     }
 
+    public void close()
+    {
+        driver.close();
+    }
+
     /* Function used to add a specific Beer (Given its ID) to the list of favorites of a specific User (Given its
     * Username). This function has to be available only if the beer isn't already in the favorites list */
     public boolean addFavorite(String Username, String BeerID){
@@ -48,8 +53,8 @@ public class Neo4jManager {
     *  favorites */
     public boolean removeFavorite(String Username, String BeerID){
         try(Session session = driver.session()){
-            session.run("MATCH (U:User {Name: $Username})-[F:Favorites]-(B:Beer {Name: $BeerID) \n" +
-                            "DELETE r",
+            session.run("MATCH (U:User {username: $Username})-[F:Favorites]-(B:Beer {id: $BeerID}) \n" +
+                            "DELETE F",
                         parameters( "Username", Username, "BeerID", BeerID));
             return true;
         }
@@ -63,7 +68,7 @@ public class Neo4jManager {
     *  Both to reviews and User's files */
     public boolean AddStandardUser(String Username){
         try(Session session = driver.session()){
-            session.run("CREATE (U:User{name: $Username})",parameters("Username",Username));
+            session.run("CREATE (U:User{username: $Username})",parameters("Username",Username));
             return true;
         }
         catch(Exception e){
@@ -72,5 +77,84 @@ public class Neo4jManager {
         }
     }
 
+    /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
+     *  Both to reviews and beer's files */
+    public boolean AddBeer (String BeerID){
+        try(Session session = driver.session()){
+            session.run("CREATE (B:Beer{id: $BeerID})",parameters("BeerID",BeerID));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
+     * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
+     * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
+    public boolean addReview(String Username, String BeerID){
+        try(Session session = driver.session()){
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+            String str = formatter.format(date);
+            session.run("MATCH\n" +
+                            "  (B:Beer),\n" +
+                            "  (U:User)\n" +
+                            "WHERE U.username = $Username AND B.id = $BeerID'\n" +
+                            "CREATE (U)-[R:Reviewed{InDate:$Date}]->(B)\n",
+                    parameters( "Username", Username, "BeerID", BeerID,"Date", str));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
+     * This function has to be available only if the beer has been reviewed from this user */
+    public boolean removeReview(String Username, String BeerID){
+        try(Session session = driver.session()){
+            session.run("MATCH (U:User {username: $Username})-[R:Reviewed]-(B:Beer {id: $BeerID}) \n" +
+                            "DELETE R",
+                    parameters( "Username", Username, "BeerID", BeerID));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* Function used to add the relationship of "SameStyle" between two beers.
+    *  It's used to suggest beers based on the common styles between the beers that can be suggested and the beers
+    *  in their favorites */
+    public boolean addSameStyle(String firstBeerID,String secondBeerID){
+        try(Session session = driver.session()){
+            // To be Continued
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* Function used to remove the relationship of "SameStyle" between two beers. Ask the group if it is useful*/
+    public boolean removeSameStyle(String firstBeerID,String secondBeerID){
+        try(Session session = driver.session()){
+            // To be Continued
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* Missing functions yet:
+    *   1. Delete Beer
+    *   2. Delete User
+    *   ... ? */
 }

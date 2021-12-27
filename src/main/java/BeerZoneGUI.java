@@ -2,8 +2,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
+import java.util.Arrays;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -14,6 +14,9 @@ public class BeerZoneGUI {
     private final Integer PASSWORD_ROW = 3;
     private final Integer PASS_CONFIRMATION_ROW = 4;
     private final Integer LOCATION_ROW = 5;
+
+    private final Integer STANDARD_USER = 0;
+    private final Integer BREWERY_MANAGER = 1;
 
     private final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
@@ -34,7 +37,9 @@ public class BeerZoneGUI {
         b2.addActionListener(e -> generateBrowseBeerMenu(rjp, frame, inputData));
         JButton b3 = new JButton("Extract Brewery Statistics");
         b3.addActionListener(e -> generateBreweryStatisticsMenu(rjp, frame, inputData));
-        setLeftBreweryManagerButton(b1, b2, b3, ljp);
+        JButton b4 = new JButton("Logout");
+        b4.addActionListener(e -> {Arrays.fill(inputData, null);prepareLogRegister(frame);});
+        setLeftBreweryManagerButton(b1, b2, b3, b4, ljp);
         ljp.setBorder(BorderFactory.createLineBorder(Color.black));
         ljp.setBackground(BACKGROUND_COLOR);
         frame.getContentPane().add(ljp);
@@ -46,16 +51,19 @@ public class BeerZoneGUI {
         frame.setVisible(true);
     }
 
-    private void setLeftBreweryManagerButton(JButton b1, JButton b2, JButton b3, JPanel jp) {
+    private void setLeftBreweryManagerButton(JButton b1, JButton b2, JButton b3, JButton b4, JPanel jp) {
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),99,30);
         jp.add(b1, gbc);
         gbc.ipadx = 75;
         gbc.gridy = 1;
         jp.add(b2, gbc);
-        gbc = new GridBagConstraints(0,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,30);
+        gbc.gridy = 2;
+        gbc.ipadx = 3;
         jp.add(b3, gbc);
+        gbc = new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),110,30);
+        jp.add(b4, gbc);
     }
 
     private void generateBreweryStatisticsMenu(JPanel containerPanel, JFrame frame, String[] inputData) {
@@ -120,17 +128,25 @@ public class BeerZoneGUI {
 
     private void generateBrowseBeerMenu(JPanel containerPanel, JFrame frame, String[] inputData) {
         containerPanel.removeAll();
-        JCheckBox ownBeers = new JCheckBox("Select Own Beers",false);
-        ownBeers.setBackground(BACKGROUND_COLOR);
-        ownBeers.addItemListener(itemEvent -> {
-            boolean test = ownBeers.isSelected();
-            if(test)
-                System.out.println("Selected");
-            else
-                System.out.println("Deselected");
+        if(inputData[0].equals("Standard User")) {
+            JCheckBox ownBeers = new JCheckBox("Select Own Beers", false);
+            ownBeers.setBackground(BACKGROUND_COLOR);
+            ownBeers.addItemListener(itemEvent -> {
+                boolean test = ownBeers.isSelected();
+                //select the correct list
+            });
+            containerPanel.add(ownBeers, new GridBagConstraints(0, 0, 2, 1, 0, 0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0), 0, 0));
+        }
+        JTextField beerInput = new JTextField();
+        containerPanel.add(beerInput, new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 80, 20, 0),200,10));
+        JButton submitChoice = new JButton("Submit");
+        submitChoice.addActionListener(e -> {
+            beerInput.setText("");
         });
-        containerPanel.add(ownBeers, new GridBagConstraints(0,0,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        containerPanel.add(submitChoice, new GridBagConstraints(1,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
         JTable browseTable = new JTable();
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
@@ -158,9 +174,48 @@ public class BeerZoneGUI {
         browseTable.getColumnModel().getColumn(2).setPreferredWidth(100);
         browseTable.getColumnModel().getColumn(3).setPreferredWidth(30);
         browseTable.setRowHeight(30);
+        browseTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getClickCount() == 2){
+                    System.out.println(browseTable.getValueAt(browseTable.getSelectedRow(), 0));
+                    //Beer b = selectBeer(browseTable.getValueAt(browseTable.getSelectedRow(),0));
+                    //createBeerPage(b);
+                    createBeerPage(containerPanel, frame);
+                }
+            }
+        });
         JScrollPane jsc = new JScrollPane(browseTable);
-        containerPanel.add(jsc, new GridBagConstraints(0,1,2,1,0,0,
+        containerPanel.add(jsc, new GridBagConstraints(0,2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private void createBeerPage(JPanel containerPanel, JFrame frame) {
+        containerPanel.removeAll();
+        JTextField description = new JTextField("Beer Name");
+        description.setBackground(BACKGROUND_COLOR);
+        description.setBorder(createEmptyBorder());
+        description.setEditable(false);
+        containerPanel.add(description, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
+        description = new JTextField("Style");
+        description.setBackground(BACKGROUND_COLOR);
+        description.setBorder(createEmptyBorder());
+        containerPanel.add(description, new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
+        description = new JTextField("Rating");
+        description.setBackground(BACKGROUND_COLOR);
+        description.setBorder(createEmptyBorder());
+        containerPanel.add(description, new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
+        description = new JTextField("Num. of Ratings");
+        description.setBackground(BACKGROUND_COLOR);
+        description.setBorder(createEmptyBorder());
+        containerPanel.add(description, new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        createInputRecipe(containerPanel, 4);
         frame.repaint();
         frame.setVisible(true);
     }
@@ -170,7 +225,7 @@ public class BeerZoneGUI {
         JTextField[] inputs = new JTextField[5];
         createInputField("Beer Name", containerPanel, 1, inputs);
         JComboBox cb = createInputStyle(containerPanel);
-        createInputRecipe(containerPanel);
+        createInputRecipe(containerPanel, 3);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         btn.addActionListener(e->{
@@ -182,7 +237,7 @@ public class BeerZoneGUI {
         frame.setVisible(true);
     }
 
-    private void createInputRecipe(JPanel containerPanel) {
+    private void createInputRecipe(JPanel containerPanel, int panelRow) {
         JPanel recipePanel = new JPanel();
         recipePanel.setBackground(BACKGROUND_COLOR_RECIPE);
         recipePanel.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -202,14 +257,18 @@ public class BeerZoneGUI {
         gbc = new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),20,5);
         recipePanel.add(cb, gbc);
-        JButton btn = new JButton("Confirm");
+        JButton btn = new JButton();
+        if(panelRow == 3)
+            btn.setText("Confirm");
+        else
+            btn.setText("Show Section");
         gbc.gridy = 4;
         recipePanel.add(btn, gbc);
         JTextField rv = new JTextField();
         gbc = new GridBagConstraints(0,2,1,2,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),220,80);
         recipePanel.add(rv, gbc);
-        gbc = new GridBagConstraints(0,3,2,1,0,0,
+        gbc = new GridBagConstraints(0,panelRow,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),50,0);
         containerPanel.add(recipePanel, gbc);
     }
@@ -232,7 +291,7 @@ public class BeerZoneGUI {
         return cb;
     }
 
-    public void StandardUserSection(JFrame frame, String[] inputData){
+    public void standardUserSection(JFrame frame, String[] inputData){
         frame.setTitle("BeerZone - STANDARD USER");
         frame.setLayout(new GridLayout(1,2));
         JPanel ljp = new JPanel();
@@ -240,12 +299,14 @@ public class BeerZoneGUI {
         ljp.setLayout(new GridBagLayout());
         rjp.setLayout(new GridBagLayout());
         JButton b1 = new JButton("Browse Favorites");
-        b1.addActionListener(e -> generateAddBeerMenu(rjp, frame, inputData));
+        b1.addActionListener(e -> browseUserFavorites(rjp, frame, inputData));
         JButton b2 = new JButton("View Suggestions");
-        b2.addActionListener(e -> generateBreweryStatisticsMenu(rjp, frame, inputData));
+        b2.addActionListener(e -> userSuggestions(rjp, frame, inputData));
         JButton b3 = new JButton("Browse Beer");
         b3.addActionListener(e -> generateBrowseBeerMenu(rjp, frame, inputData));
-        setLeftStandardUserButton(b1, b2, b3, ljp);
+        JButton b4 = new JButton("Logout");
+        b4.addActionListener(e -> {Arrays.fill(inputData, null); prepareLogRegister(frame);});
+        setLeftStandardUserButton(b1, b2, b3, b4, ljp);
         ljp.setBorder(BorderFactory.createLineBorder(Color.black));
         ljp.setBackground(BACKGROUND_COLOR);
         frame.getContentPane().add(ljp);
@@ -256,16 +317,31 @@ public class BeerZoneGUI {
         frame.setVisible(true);
     }
 
-    private void setLeftStandardUserButton(JButton b1, JButton b2, JButton b3, JPanel jp) {
+    private void browseUserFavorites(JPanel rjp, JFrame frame, String[] inputData) {
+        rjp.removeAll();
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private void userSuggestions(JPanel rjp, JFrame frame, String[] inputData) {
+        rjp.removeAll();
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private void setLeftStandardUserButton(JButton b1, JButton b2, JButton b3, JButton b4, JPanel jp) {
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),22,30);
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30);
         jp.add(b1, gbc);
         gbc.ipadx = 22;
         gbc.gridy = 1;
         jp.add(b2, gbc);
-        gbc = new GridBagConstraints(0,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),50,30);
+        gbc.ipadx = 50;
+        gbc.gridy = 2;
         jp.add(b3, gbc);
+        gbc = new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
+        jp.add(b4, gbc);
     }
 
     /*
@@ -275,6 +351,11 @@ public class BeerZoneGUI {
         JButton btn = new JButton("Login as Standard User");
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),10,10);
+        btn.addActionListener(e -> {
+            frame.getContentPane().removeAll();
+            frame.repaint();
+            prepareLoginSection(frame, STANDARD_USER);
+        });
         frame.getContentPane().add(btn, gbc);
     }
 
@@ -286,8 +367,103 @@ public class BeerZoneGUI {
         GridBagConstraints gbc = new GridBagConstraints(3,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),10,10);
         btn.addActionListener(e -> {
+            frame.getContentPane().removeAll();
+            frame.repaint();
+            prepareLoginSection(frame, BREWERY_MANAGER);
         });
         frame.getContentPane().add(btn, gbc);
+    }
+
+    private void prepareLoginSection(JFrame frame, Integer userType) {
+        if(userType == STANDARD_USER)
+            frame.setTitle("BeerZone - STANDARD USER LOGIN");
+        else
+            frame.setTitle("BeerZone - BREWERY MANAGER LOGIN");
+
+        String[] inputData = new String[2];
+        JTextField[] inputs = new JTextField[2];
+        frame.setLayout(new GridBagLayout());
+        JPanel jp = new JPanel();
+        GridBagConstraints gbc = new GridBagConstraints();
+        frame.getContentPane().add(jp, gbc);
+        jp.setLayout(new GridBagLayout());
+        createLoginInputField(jp, inputs);
+        JButton loginButton = new JButton("Login");
+        loginButton.addActionListener(e -> {
+            Boolean correctData = readInputs(inputs, inputData);
+            if(correctData) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                //Data ready for being saved
+                if(userType == BREWERY_MANAGER)
+                    breweryManagerSection(frame, inputData);
+                else
+                    standardUserSection(frame, inputData);
+            }
+            else
+                System.out.println("Missing or incorrect data");
+        });
+        gbc.gridy = 2;
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0,0,20,0);
+        gbc.gridwidth = 1;
+        jp.add(loginButton, gbc);
+
+        JButton returnButton = new JButton("Go Back");
+        returnButton.addActionListener(e -> {
+            prepareLogRegister(frame);
+        });
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.insets = new Insets(0,0,20,0);
+        gbc.gridwidth = 1;
+        jp.add(returnButton, gbc);
+        frame.setVisible(true);
+    }
+
+    private void createLoginInputField(JPanel jp, JTextField[] inputs) {
+        JTextField description = new JTextField("Username");
+        description.setBorder(createEmptyBorder());
+        description.setEditable(false);
+        jp.add(description, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 20, 20, 30),0, 0));
+        JTextField inputText = new JTextField();
+        jp.add(inputText, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 0, 20, 20),100, 0));
+        inputs[0] = inputText;
+
+        description = new JTextField("Password");
+        description.setBorder(createEmptyBorder());
+        description.setEditable(false);
+        jp.add(description, new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 20, 20, 0),0, 0));
+        JPasswordField pw = new JPasswordField();
+        jp.add(pw, new GridBagConstraints(1,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 20, 20),100, 0));
+        inputs[1] = pw;
+    }
+
+    private Boolean readInputs(JTextField[] inputs, String[] inputData) {
+        boolean correctData = true;
+
+        for(int i = 0; i < inputs.length; i++){
+            if(!inputs[i].getText().equals("")) {
+                inputData[i] = inputs[i].getText();
+                inputs[i].setBackground(Color.WHITE);
+            }
+            else {
+                inputs[i].setBackground(new Color(255, 87, 112));
+                correctData = false;
+            }
+        }
+
+        if(correctData){
+            //ask database for user existance
+            //if(user doesn't exist)
+            //  correctData = false
+        }
+
+        return correctData;
     }
 
     /*
@@ -330,14 +506,21 @@ public class BeerZoneGUI {
                 if(inputData[0].equals("Brewery manager"))
                     breweryManagerSection(frame, inputData);
                 else
-                    StandardUserSection(frame, inputData);
+                    standardUserSection(frame, inputData);
             }
             else
                     System.out.println("Missing data");
         });
         gbc.gridy = 6;
-        gbc.insets = new Insets(0,140,20,0);
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0,0,20,0);
         jp.add(registerButton, gbc);
+        JButton returnButton = new JButton("Go Back");
+        returnButton.addActionListener(e -> {
+            prepareLogRegister(frame);
+        });
+        gbc.gridx = 0;
+        jp.add(returnButton, gbc);
         frame.setVisible(true);
     }
 
@@ -430,9 +613,14 @@ public class BeerZoneGUI {
      *  starting page with login and register buttons
      */
     public void prepareLogRegister(JFrame frame){
+        frame.getContentPane().removeAll();
+        frame.setLayout(new GridBagLayout());
+        frame.setTitle("BeerZone");
         setStandardUserButton(frame);
         setBreweryManagerButton(frame);
         setRegisterButton(frame);
+        frame.repaint();
+        frame.setVisible(true);
     }
 
     public void createAndShowGUI(){
@@ -440,8 +628,6 @@ public class BeerZoneGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
-        GridBagLayout lay = new GridBagLayout();
-        frame.setLayout(lay);
         prepareLogRegister(frame);
         //breweryManagerSection(frame);
 

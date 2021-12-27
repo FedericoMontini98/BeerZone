@@ -1,36 +1,28 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import org.bson.Document;
+
 import java.util.ArrayList;
 
-public class Brewery extends GeneralUser {
-    private String city;
-    private String state;
+public class Brewery {
+    private final GeneralUser brewery;
     private ArrayList<Integer> beers;
 
-    public Brewery(int id, String email, String username, String password, String city, String state) {
-        super(id, email, username, password, 1);
-        this.city = city;
-        this.state = state;
+    /* _id is from database, if -1 is a new brewery */
+    public Brewery(int _id, String email, String username, String password, String location) {
+        brewery = new GeneralUser(_id, email, username, password, location, 1);
     }
 
-    public String getCity() {
-        return city;
+    public Brewery(String email, String username, String password, String location) {
+        this(-1, email, username, password, location);
     }
 
-    public String getState() {
-        return state;
+    public Brewery(GeneralUser user) {
+        brewery = user;
     }
 
     public ArrayList<Integer> getBeers() {
         return beers;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 
     public void setBeers(ArrayList<Integer> beers) {
@@ -46,8 +38,9 @@ public class Brewery extends GeneralUser {
         return beers.remove(beer);
     }
 
-    @Override
-    public boolean isStandard() {
-        return false;
+    public Document getBrewery() {
+        return brewery.getUser().append("beers", new ArrayList<Integer>());
+        //  adding or not an empty Array for beerlist?
     }
+
 }

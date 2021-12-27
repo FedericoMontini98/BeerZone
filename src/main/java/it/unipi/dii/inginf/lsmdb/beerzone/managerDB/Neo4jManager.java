@@ -101,7 +101,7 @@ public class Neo4jManager {
             session.run("MATCH\n" +
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
-                            "WHERE U.username = $Username AND B.id = $BeerID'\n" +
+                            "WHERE U.username = $Username AND B.id = $BeerID\n" +
                             "CREATE (U)-[R:Reviewed{InDate:$Date}]->(B)\n",
                     parameters( "Username", Username, "BeerID", BeerID,"Date", str));
             return true;
@@ -132,7 +132,13 @@ public class Neo4jManager {
     *  in their favorites */
     public boolean addSameStyle(String firstBeerID,String secondBeerID){
         try(Session session = driver.session()){
-            // To be Continued
+            session.run("MATCH\n" +
+                                "(B1:Beer),\n" +
+                                "(B2:Beer)\n " +
+                            "WHERE B1.id = $BeerID AND B2.id = $BeerID \n" +
+                            "CREATE (B1)-[S:SameStyle]->(B2)\n" +
+                            "CREATE (B2)-[S:SameStyle]->(B1)\n",
+                    parameters( "firstBeerID", firstBeerID, "secondBeerID", secondBeerID));
             return true;
         }
         catch(Exception e){
@@ -141,10 +147,11 @@ public class Neo4jManager {
         }
     }
 
-    /* Function used to remove the relationship of "SameStyle" between two beers. Ask the group if it is useful*/
-    public boolean removeSameStyle(String firstBeerID,String secondBeerID){
+    public boolean removeBeer(String beerID){
         try(Session session = driver.session()){
-            // To be Continued
+            session.run("MATCH (B {id: $beerID})\n" +
+                            "DETACH DELETE B",
+                    parameters( "beerID", beerID));
             return true;
         }
         catch(Exception e){
@@ -153,8 +160,16 @@ public class Neo4jManager {
         }
     }
 
-    /* Missing functions yet:
-    *   1. Delete Beer
-    *   2. Delete User
-    *   ... ? */
+    public boolean removeUser(String username){
+        try(Session session = driver.session()){
+            session.run("MATCH (U {id: $username})\n" +
+                            "DETACH DELETE U",
+                    parameters( "username", username));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

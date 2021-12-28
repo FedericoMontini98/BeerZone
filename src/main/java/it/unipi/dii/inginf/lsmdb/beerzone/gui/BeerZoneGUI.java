@@ -334,16 +334,53 @@ public class BeerZoneGUI {
         JTextField[] inputs = new JTextField[5];
         frame.setLayout(new GridBagLayout());
         JPanel jp = new JPanel();
-        GridBagConstraints gbc = new GridBagConstraints();
-        frame.getContentPane().add(jp, gbc);
         jp.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        frame.getContentPane().add(jp, gbc);
+
         JComboBox<String> cbInput = createInputUserType(jp);
+        createRegisterInputSection(jp, inputs);
+
+        JButton registerButton = new JButton("Register");
+        prepareRegisterButton(registerButton, cbInput, inputs, inputData, frame);
+        gbc.gridy = 6;
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0,0,20,0);
+        jp.add(registerButton, gbc);
+
+        JButton returnButton = new JButton("Go Back");
+        returnButton.addActionListener(e -> prepareLogRegister(frame));
+        gbc.gridx = 0;
+        jp.add(returnButton, gbc);
+
+        frame.setVisible(true);
+    }
+
+    /**
+     * function used to create the JTextFiled inputs sections
+     *
+     * @param jp: JPanel that contains the register components
+     * @param inputs: array that contains the JTextFields in the register section
+     */
+    private static void createRegisterInputSection(JPanel jp, JTextField[] inputs) {
         createRegisterInputField("Username", jp, 1, inputs);
         createRegisterInputField("E-mail", jp, 2, inputs);
         createRegisterInputField("Password", jp, 3, inputs);
         createRegisterInputField("Repeat password", jp, 4, inputs);
         createRegisterInputField("Location", jp, 5, inputs);
-        JButton registerButton = new JButton("Register");
+    }
+
+    /**
+     * function used to set the register button functionalities
+     *
+     * @param registerButton: register button
+     * @param cbInput: JComboBox used to select the user type
+     * @param inputs: JTextFields containing register informations
+     * @param inputData: array to be filled with the values in the JTextFields inside the inputs vector and the one inside cbInput
+     * @param frame: frame used by the application
+     */
+    private static void prepareRegisterButton(JButton registerButton, JComboBox<String> cbInput, JTextField[] inputs, String[] inputData, JFrame frame) {
         registerButton.addActionListener(e -> {
             Boolean correctData = readRegisterInputs(cbInput, inputs, inputData);
             if(correctData) {
@@ -356,17 +393,8 @@ public class BeerZoneGUI {
                     StandardUserGUI.standardUserSection(frame, inputData);
             }
             else
-                    System.out.println("Missing data");
+                System.out.println("Missing data");
         });
-        gbc.gridy = 6;
-        gbc.gridx = 1;
-        gbc.insets = new Insets(0,0,20,0);
-        jp.add(registerButton, gbc);
-        JButton returnButton = new JButton("Go Back");
-        returnButton.addActionListener(e -> prepareLogRegister(frame));
-        gbc.gridx = 0;
-        jp.add(returnButton, gbc);
-        frame.setVisible(true);
     }
 
     /**

@@ -39,19 +39,25 @@ public class StandardUserGUI {
         JPanel rjp = new JPanel();
         ljp.setLayout(new GridBagLayout());
         rjp.setLayout(new GridBagLayout());
+
         btnArray[0] = new JButton("Browse Favorites");
         btnArray[0].addActionListener(e -> browseUserFavorites(rjp, frame, inputData));
+
         btnArray[1] = new JButton("View Suggestions");
         btnArray[1].addActionListener(e -> userSuggestions(rjp, frame, inputData));
+
         btnArray[2] = new JButton("Browse Beer");
         btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER));
+
         btnArray[3] = new JButton("Logout");
         btnArray[3].addActionListener(e -> {
             Arrays.fill(inputData, null); BeerZoneGUI.prepareLogRegister(frame);});
+
         setLeftStandardUserButton(btnArray, ljp);
         ljp.setBorder(BorderFactory.createLineBorder(Color.black));
         ljp.setBackground(BACKGROUND_COLOR);
         frame.getContentPane().add(ljp);
+
         rjp.setBorder(BorderFactory.createLineBorder(Color.black));
         rjp.setBackground(BACKGROUND_COLOR);
         frame.getContentPane().add(rjp);

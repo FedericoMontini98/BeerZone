@@ -47,7 +47,7 @@ public class BreweryManagerGUI {
         btnArray[0] = new JButton("Add beer");
         btnArray[0].addActionListener(e -> generateAddBeerMenu(rjp, frame, inputData));
         btnArray[1] = new JButton("Browse Beer");
-        btnArray[1].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, BREWERY_MANAGER));
+        btnArray[1].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, BREWERY_MANAGER, inputData));
         btnArray[2] = new JButton("Extract Brewery Statistics");
         btnArray[2].addActionListener(e -> generateBreweryStatisticsMenu(rjp, frame, inputData));
         btnArray[3] = new JButton("Logout");

@@ -1,134 +1,39 @@
+package it.unipi.dii.inginf.lsmdb.beerzone.gui;
+
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
-
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class BeerZoneGUI {
     private final Integer USERTYPE_ROW = 0;
-    private final Integer USERNAME_ROW = 1;
+    private static final Integer USERNAME_ROW = 1;
     private final Integer EMAIL_ROW = 2;
-    private final Integer PASSWORD_ROW = 3;
-    private final Integer PASS_CONFIRMATION_ROW = 4;
-    private final Integer LOCATION_ROW = 5;
+    private static final Integer PASSWORD_ROW = 3;
+    private static final Integer PASS_CONFIRMATION_ROW = 4;
+    private static final Integer LOCATION_ROW = 5;
 
-    private final Integer STANDARD_USER = 0;
-    private final Integer BREWERY_MANAGER = 1;
+    private static final Integer STANDARD_USER = 0;
+    private static final Integer BREWERY_MANAGER = 1;
 
-    private final Color BACKGROUND_COLOR = new Color(255, 170, 3);
-    private final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
-    /*
-     * Brewery manager section
+    private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
+    private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
+
+    /**
+     * function that creates the table that allows the user to search the beers
+     *
+     * @param containerPanel: panel containing the table
+     * @param frame: frame used by the application
+     * @param userType: type of user  that is using the application
      */
-    public void breweryManagerSection(JFrame frame, String[] inputData){
-        frame.setTitle("BeerZone - BREWERY MANAGER");
-        frame.setLayout(new GridLayout(1,2));
-
-        JPanel ljp = new JPanel();
-        JPanel rjp = new JPanel();
-        rjp.setLayout(new GridBagLayout());
-        ljp.setLayout(new GridBagLayout());
-        JButton b1 = new JButton("Add beer");
-        b1.addActionListener(e -> generateAddBeerMenu(rjp, frame, inputData));
-        JButton b2 = new JButton("Browse Beer");
-        b2.addActionListener(e -> generateBrowseBeerMenu(rjp, frame, inputData));
-        JButton b3 = new JButton("Extract Brewery Statistics");
-        b3.addActionListener(e -> generateBreweryStatisticsMenu(rjp, frame, inputData));
-        JButton b4 = new JButton("Logout");
-        b4.addActionListener(e -> {Arrays.fill(inputData, null);prepareLogRegister(frame);});
-        setLeftBreweryManagerButton(b1, b2, b3, b4, ljp);
-        ljp.setBorder(BorderFactory.createLineBorder(Color.black));
-        ljp.setBackground(BACKGROUND_COLOR);
-        frame.getContentPane().add(ljp);
-
-        rjp.setBorder(BorderFactory.createLineBorder(Color.black));
-        rjp.setBackground(BACKGROUND_COLOR);
-        frame.getContentPane().add(rjp);
-
-        frame.setVisible(true);
-    }
-
-    private void setLeftBreweryManagerButton(JButton b1, JButton b2, JButton b3, JButton b4, JPanel jp) {
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),99,30);
-        jp.add(b1, gbc);
-        gbc.ipadx = 75;
-        gbc.gridy = 1;
-        jp.add(b2, gbc);
-        gbc.gridy = 2;
-        gbc.ipadx = 3;
-        jp.add(b3, gbc);
-        gbc = new GridBagConstraints(0,3,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),110,30);
-        jp.add(b4, gbc);
-    }
-
-    private void generateBreweryStatisticsMenu(JPanel containerPanel, JFrame frame, String[] inputData) {
+    public static void generateBrowseBeerMenu(JPanel containerPanel, JFrame frame, Integer userType) {
         containerPanel.removeAll();
-        Object[][] data = {{"Look", "--"}, {"Smell", "--"}, {"Taste", "--"}, {"Feel", "--"}};
-        String[] colHeader = {"Feature", "Score"};
-        JTextField breweryStatsTitle = new JTextField(inputData[USERNAME_ROW]);
-        breweryStatsTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        breweryStatsTitle.setBackground(BACKGROUND_COLOR);
-        breweryStatsTitle.setBorder(createEmptyBorder());
-        containerPanel.add(breweryStatsTitle, new GridBagConstraints(0,0,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 80, 0),0,0));
-
-        JTextField responseField = new JTextField("Not yet computed");
-        responseField.setHorizontalAlignment(JTextField.CENTER);
-        responseField.setBackground(BACKGROUND_COLOR);
-        responseField.setBorder(createEmptyBorder());
-        containerPanel.add(responseField, new GridBagConstraints(1,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
-
-        JButton breweryStatsBtn = new JButton("Compute brewery score");
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
-        breweryStatsBtn.addActionListener(e->{
-            responseField.setText("4.5/5");
-        });
-
-        JTable breweryStatsTable = new JTable(data, colHeader);
-        DefaultTableModel tableModel = new DefaultTableModel(){
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    //all cells false
-                    return false;
-                }
-        };
-        String[] col1 = {"Look", "Smell", "Taste", "Feel"};
-        String[] col2 = {"--", "--", "--", "--"};
-        tableModel.addColumn("Feature", col1);
-        tableModel.addColumn("Score", col2);
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment( JLabel.CENTER );
-        breweryStatsTable.setModel(tableModel);
-        breweryStatsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        breweryStatsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-        JScrollPane jsc = new JScrollPane(breweryStatsTable);
-        jsc.setPreferredSize(new Dimension(300, 87));
-        containerPanel.add(jsc, new GridBagConstraints(0,3,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-
-        breweryStatsBtn = new JButton("Compute average score for features");
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,2,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),0,0));
-        breweryStatsBtn.addActionListener(e->{
-            breweryStatsTable.getModel().setValueAt("4",0,1);
-            breweryStatsTable.getModel().setValueAt("5",1,1);
-            breweryStatsTable.getModel().setValueAt("2",2,1);
-            breweryStatsTable.getModel().setValueAt("3",3,1);
-        });
-        frame.repaint();
-        frame.setVisible(true);
-    }
-
-    private void generateBrowseBeerMenu(JPanel containerPanel, JFrame frame, String[] inputData) {
-        containerPanel.removeAll();
-        if(inputData[0].equals("Standard User")) {
+        if(userType == BREWERY_MANAGER) {
             JCheckBox ownBeers = new JCheckBox("Select Own Beers", false);
             ownBeers.setBackground(BACKGROUND_COLOR);
             ownBeers.addItemListener(itemEvent -> {
@@ -138,6 +43,7 @@ public class BeerZoneGUI {
             containerPanel.add(ownBeers, new GridBagConstraints(0, 0, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0), 0, 0));
         }
+
         JTextField beerInput = new JTextField();
         containerPanel.add(beerInput, new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 80, 20, 0),200,10));
@@ -145,9 +51,27 @@ public class BeerZoneGUI {
         submitChoice.addActionListener(e -> {
             beerInput.setText("");
         });
+
         containerPanel.add(submitChoice, new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
+
         JTable browseTable = new JTable();
+        prepareBrowseTable(browseTable, containerPanel, frame);
+        JScrollPane jsc = new JScrollPane(browseTable);
+        containerPanel.add(jsc, new GridBagConstraints(0,2,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /**
+     * function that creates the table inside the "browse beers" section
+     *
+     * @param browseTable: table containing beers
+     * @param containerPanel: panel containing browseTable
+     * @param frame: frame used by the application
+     */
+    private static void prepareBrowseTable(JTable browseTable, JPanel containerPanel, JFrame frame) {
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -185,14 +109,15 @@ public class BeerZoneGUI {
                 }
             }
         });
-        JScrollPane jsc = new JScrollPane(browseTable);
-        containerPanel.add(jsc, new GridBagConstraints(0,2,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-        frame.repaint();
-        frame.setVisible(true);
     }
 
-    private void createBeerPage(JPanel containerPanel, JFrame frame) {
+    /**
+     * function that creates the page containing all the information of a specific beer
+     *
+     * @param containerPanel: panel containing the beer information
+     * @param frame: frame used by the application
+     */
+    private static void createBeerPage(JPanel containerPanel, JFrame frame) {
         containerPanel.removeAll();
         JTextField description = new JTextField("Beer Name");
         description.setBackground(BACKGROUND_COLOR);
@@ -215,29 +140,18 @@ public class BeerZoneGUI {
         description.setBorder(createEmptyBorder());
         containerPanel.add(description, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-        createInputRecipe(containerPanel, 4);
+        createRecipeSection(containerPanel, 4);
         frame.repaint();
         frame.setVisible(true);
     }
 
-    private void generateAddBeerMenu(JPanel containerPanel, JFrame frame, String[] inputData) {
-        containerPanel.removeAll();
-        JTextField[] inputs = new JTextField[5];
-        createInputField("Beer Name", containerPanel, 1, inputs);
-        JComboBox cb = createInputStyle(containerPanel);
-        createInputRecipe(containerPanel, 3);
-        JButton btn = new JButton("Add Beer to Brewery");
-        btn.setFont(new Font("Arial", Font.BOLD, 16));
-        btn.addActionListener(e->{
-
-        });
-        containerPanel.add(btn, new GridBagConstraints(0,5,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
-        frame.repaint();
-        frame.setVisible(true);
-    }
-
-    private void createInputRecipe(JPanel containerPanel, int panelRow) {
+    /**
+     * function that creates the recipe of a beer
+     *
+     * @param containerPanel: panel containing the beer information
+     * @param panelRow: row where the panel will be located
+     */
+    public static void createRecipeSection(JPanel containerPanel, int panelRow) {
         JPanel recipePanel = new JPanel();
         recipePanel.setBackground(BACKGROUND_COLOR_RECIPE);
         recipePanel.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -273,108 +187,13 @@ public class BeerZoneGUI {
         containerPanel.add(recipePanel, gbc);
     }
 
-    private JComboBox createInputStyle(JPanel containerPanel) {
-        GridBagConstraints gbc = new GridBagConstraints(0,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 30, 0, 20),0,0);
-        JTextField description = new JTextField("Style");
-        description.setFont(new Font("Arial", Font.PLAIN, 15));
-        description.setBackground(BACKGROUND_COLOR);
-        description.setBorder(createEmptyBorder());
-        description.setEditable(false);
-        containerPanel.add(description, gbc);
-        String[] choices = {"Choose an option", "Option 1", "Option 2", "..."};
-        final JComboBox<String> cb = new JComboBox<>(choices);
-        cb.setVisible(true);
-        gbc.insets = new Insets(20, 0, 0, 20);
-        gbc.gridx = 1;
-        containerPanel.add(cb, gbc);
-        return cb;
-    }
-
-    public void standardUserSection(JFrame frame, String[] inputData){
-        frame.setTitle("BeerZone - STANDARD USER");
-        frame.setLayout(new GridLayout(1,2));
-        JPanel ljp = new JPanel();
-        JPanel rjp = new JPanel();
-        ljp.setLayout(new GridBagLayout());
-        rjp.setLayout(new GridBagLayout());
-        JButton b1 = new JButton("Browse Favorites");
-        b1.addActionListener(e -> browseUserFavorites(rjp, frame, inputData));
-        JButton b2 = new JButton("View Suggestions");
-        b2.addActionListener(e -> userSuggestions(rjp, frame, inputData));
-        JButton b3 = new JButton("Browse Beer");
-        b3.addActionListener(e -> generateBrowseBeerMenu(rjp, frame, inputData));
-        JButton b4 = new JButton("Logout");
-        b4.addActionListener(e -> {Arrays.fill(inputData, null); prepareLogRegister(frame);});
-        setLeftStandardUserButton(b1, b2, b3, b4, ljp);
-        ljp.setBorder(BorderFactory.createLineBorder(Color.black));
-        ljp.setBackground(BACKGROUND_COLOR);
-        frame.getContentPane().add(ljp);
-        rjp.setBorder(BorderFactory.createLineBorder(Color.black));
-        rjp.setBackground(BACKGROUND_COLOR);
-        frame.getContentPane().add(rjp);
-
-        frame.setVisible(true);
-    }
-
-    private void browseUserFavorites(JPanel rjp, JFrame frame, String[] inputData) {
-        rjp.removeAll();
-        frame.repaint();
-        frame.setVisible(true);
-    }
-
-    private void userSuggestions(JPanel rjp, JFrame frame, String[] inputData) {
-        rjp.removeAll();
-        frame.repaint();
-        frame.setVisible(true);
-    }
-
-    private void setLeftStandardUserButton(JButton b1, JButton b2, JButton b3, JButton b4, JPanel jp) {
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30);
-        jp.add(b1, gbc);
-        gbc.ipadx = 22;
-        gbc.gridy = 1;
-        jp.add(b2, gbc);
-        gbc.ipadx = 50;
-        gbc.gridy = 2;
-        jp.add(b3, gbc);
-        gbc = new GridBagConstraints(0,3,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
-        jp.add(b4, gbc);
-    }
-
-    /*
-    *
-    */
-    private void setStandardUserButton(JFrame frame){
-        JButton btn = new JButton("Login as Standard User");
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),10,10);
-        btn.addActionListener(e -> {
-            frame.getContentPane().removeAll();
-            frame.repaint();
-            prepareLoginSection(frame, STANDARD_USER);
-        });
-        frame.getContentPane().add(btn, gbc);
-    }
-
-    /*
+    /**
+     * function that prepares the login section of the application
      *
+     * @param frame: frame used by the application
+     * @param userType: type of user (standard or brewery manager) that is requesting to log in
      */
-    private void setBreweryManagerButton(JFrame frame){
-        JButton btn = new JButton("Login as Brewery Manager");
-        GridBagConstraints gbc = new GridBagConstraints(3,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),10,10);
-        btn.addActionListener(e -> {
-            frame.getContentPane().removeAll();
-            frame.repaint();
-            prepareLoginSection(frame, BREWERY_MANAGER);
-        });
-        frame.getContentPane().add(btn, gbc);
-    }
-
-    private void prepareLoginSection(JFrame frame, Integer userType) {
+    public static void prepareLoginSection(JFrame frame, Integer userType) {
         if(userType == STANDARD_USER)
             frame.setTitle("BeerZone - STANDARD USER LOGIN");
         else
@@ -389,16 +208,40 @@ public class BeerZoneGUI {
         jp.setLayout(new GridBagLayout());
         createLoginInputField(jp, inputs);
         JButton loginButton = new JButton("Login");
+        createLoginButton(loginButton, inputs, inputData, userType, frame, jp);
+
+        JButton returnButton = new JButton("Go Back");
+        returnButton.addActionListener(e -> prepareLogRegister(frame));
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.insets = new Insets(0,0,20,0);
+        gbc.gridwidth = 1;
+        jp.add(returnButton, gbc);
+        frame.setVisible(true);
+    }
+
+    /**
+     * functioon that creates the button used to log in
+     *
+     * @param loginButton: login button
+     * @param inputs: array that contains the JTextField objects inside jp
+     * @param inputData: array that will be filled with the values inside the JTextFields in the inputs array
+     * @param userType: type of user that request to log in
+     * @param frame: frame used by the application
+     * @param jp: JPanel that contains the login components
+     */
+    private static void createLoginButton(JButton loginButton, JTextField[] inputs, String[] inputData, Integer userType, JFrame frame, JPanel jp) {
+        GridBagConstraints gbc = new GridBagConstraints();
         loginButton.addActionListener(e -> {
-            Boolean correctData = readInputs(inputs, inputData);
+            Boolean correctData = readLoginInputs(inputs, inputData);
             if(correctData) {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //Data ready for being saved
                 if(userType == BREWERY_MANAGER)
-                    breweryManagerSection(frame, inputData);
+                    BreweryManagerGUI.breweryManagerSection(frame, inputData);
                 else
-                    standardUserSection(frame, inputData);
+                    StandardUserGUI.standardUserSection(frame, inputData);
             }
             else
                 System.out.println("Missing or incorrect data");
@@ -408,20 +251,15 @@ public class BeerZoneGUI {
         gbc.insets = new Insets(0,0,20,0);
         gbc.gridwidth = 1;
         jp.add(loginButton, gbc);
-
-        JButton returnButton = new JButton("Go Back");
-        returnButton.addActionListener(e -> {
-            prepareLogRegister(frame);
-        });
-        gbc.gridy = 2;
-        gbc.gridx = 0;
-        gbc.insets = new Insets(0,0,20,0);
-        gbc.gridwidth = 1;
-        jp.add(returnButton, gbc);
-        frame.setVisible(true);
     }
 
-    private void createLoginInputField(JPanel jp, JTextField[] inputs) {
+    /**
+     * function that creates the input section components
+     *
+     * @param jp: JPanel that contains the login components
+     * @param inputs: array that contains the JTextField objects inside jp
+     */
+    private static void createLoginInputField(JPanel jp, JTextField[] inputs) {
         JTextField description = new JTextField("Username");
         description.setBorder(createEmptyBorder());
         description.setEditable(false);
@@ -443,7 +281,14 @@ public class BeerZoneGUI {
         inputs[1] = pw;
     }
 
-    private Boolean readInputs(JTextField[] inputs, String[] inputData) {
+    /**
+     * function that reads the user's login informations and validates them
+     *
+     * @param inputs: array containing the JTextField inside the login section
+     * @param inputData: array to be filled with the values in the JTextFields inside the inputs vector
+     * @return correctData: value representing the correctness of the data
+     */
+    private static Boolean readLoginInputs(JTextField[] inputs, String[] inputData) {
         boolean correctData = true;
 
         for(int i = 0; i < inputs.length; i++){
@@ -466,10 +311,12 @@ public class BeerZoneGUI {
         return correctData;
     }
 
-    /*
+    /**
+     * function that prepares the register button
      *
+     * @param frame: frame used by the application
      */
-    private void setRegisterButton(JFrame frame){
+    private static void setRegisterButton(JFrame frame){
         JButton btn = new JButton("Register");
         GridBagConstraints gbc = new GridBagConstraints(2,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 10, 0, 10),100,10);
@@ -481,7 +328,12 @@ public class BeerZoneGUI {
         frame.getContentPane().add(btn, gbc);
     }
 
-    private void prepareRegisterSection(JFrame frame) {
+    /**
+     * function that prepares the register section
+     *
+     * @param frame: frame used by the application
+     */
+    private static void prepareRegisterSection(JFrame frame) {
         frame.setTitle("BeerZone - REGISTER");
         String[] inputData = new String[6];
         JTextField[] inputs = new JTextField[5];
@@ -491,22 +343,22 @@ public class BeerZoneGUI {
         frame.getContentPane().add(jp, gbc);
         jp.setLayout(new GridBagLayout());
         JComboBox cbInput = createInputUserType(jp);
-        createInputField("Username", jp, 1, inputs);
-        createInputField("E-mail", jp, 2, inputs);
-        createInputField("Password", jp, 3, inputs);
-        createInputField("Repeat password", jp, 4, inputs);
-        createInputField("Location", jp, 5, inputs);
+        createRegisterInputField("Username", jp, 1, inputs);
+        createRegisterInputField("E-mail", jp, 2, inputs);
+        createRegisterInputField("Password", jp, 3, inputs);
+        createRegisterInputField("Repeat password", jp, 4, inputs);
+        createRegisterInputField("Location", jp, 5, inputs);
         JButton registerButton = new JButton("Register");
         registerButton.addActionListener(e -> {
-            Boolean correctData = readInputs(cbInput, inputs, inputData);
+            Boolean correctData = readRegisterInputs(cbInput, inputs, inputData);
             if(correctData) {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //Data ready for being saved
                 if(inputData[0].equals("Brewery manager"))
-                    breweryManagerSection(frame, inputData);
+                    BreweryManagerGUI.breweryManagerSection(frame, inputData);
                 else
-                    standardUserSection(frame, inputData);
+                    StandardUserGUI.standardUserSection(frame, inputData);
             }
             else
                     System.out.println("Missing data");
@@ -524,7 +376,15 @@ public class BeerZoneGUI {
         frame.setVisible(true);
     }
 
-    private Boolean readInputs(JComboBox cbInput, JTextField[] inputs, String[] inputData) {
+    /**
+     * function that reads the user's register informations and validates them
+     *
+     * @param cbInput: component that contains the user type
+     * @param inputs: array containing the JTextField inside the register section
+     * @param inputData: array to be filled with the values in the JTextFields inside the inputs vector and the one inside cbInput
+     * @return correctData: value representing the correctness of the data
+     */
+    private static Boolean readRegisterInputs(JComboBox cbInput, JTextField[] inputs, String[] inputData) {
         boolean correctData = true;
         if(!cbInput.getSelectedItem().toString().equals("Choose an option")) {
             inputData[0] = cbInput.getSelectedItem().toString();
@@ -555,7 +415,13 @@ public class BeerZoneGUI {
         return correctData;
     }
 
-    private JComboBox createInputUserType(JPanel panel) {
+    /**
+     * function that create the combo box used by the user to select the user type
+     *
+     * @param panel: panel that contains the JComboBox
+     * @return cb: JComboBox used to select the user type
+     */
+    private static JComboBox createInputUserType(JPanel panel) {
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 30, 0, 20),0,0);
         JTextField description = new JTextField("User type");
@@ -572,7 +438,15 @@ public class BeerZoneGUI {
         return cb;
     }
 
-    private void createInputField(String type, JPanel panel, Integer row, JTextField[] inputs) {
+    /**
+     * function that creates the input fields for the register section
+     *
+     * @param type: description of the input field
+     * @param panel: panel that contains the input field
+     * @param row: row in which the input box will be located
+     * @param inputs: array that contains the JTextField objects inside panel
+     */
+    private static void createRegisterInputField(String type, JPanel panel, Integer row, JTextField[] inputs) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         if(row == LOCATION_ROW)
@@ -609,20 +483,26 @@ public class BeerZoneGUI {
         }
     }
 
-    /*
-     *  starting page with login and register buttons
+
+    /**
+     * funnction that creates the login and register buttons
+     *
+     * @param frame: frame used by the application
      */
-    public void prepareLogRegister(JFrame frame){
+    public static void prepareLogRegister(JFrame frame){
         frame.getContentPane().removeAll();
         frame.setLayout(new GridBagLayout());
         frame.setTitle("BeerZone");
-        setStandardUserButton(frame);
-        setBreweryManagerButton(frame);
+        StandardUserGUI.setStandardUserButton(frame);
+        BreweryManagerGUI.setBreweryManagerButton(frame);
         setRegisterButton(frame);
         frame.repaint();
         frame.setVisible(true);
     }
 
+    /**
+     * function that initialize the frame used by the application
+     */
     public void createAndShowGUI(){
         JFrame frame = new JFrame("BeerZone");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

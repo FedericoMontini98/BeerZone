@@ -1,19 +1,16 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class BeerZoneGUI {
-    private final Integer USERTYPE_ROW = 0;
+    /*private final Integer USERTYPE_ROW = 0;
     private static final Integer USERNAME_ROW = 1;
-    private final Integer EMAIL_ROW = 2;
+    private final Integer EMAIL_ROW = 2;*/
     private static final Integer PASSWORD_ROW = 3;
     private static final Integer PASS_CONFIRMATION_ROW = 4;
     private static final Integer LOCATION_ROW = 5;
@@ -48,9 +45,7 @@ public class BeerZoneGUI {
         containerPanel.add(beerInput, new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 80, 20, 0),200,10));
         JButton submitChoice = new JButton("Submit");
-        submitChoice.addActionListener(e -> {
-            beerInput.setText("");
-        });
+        submitChoice.addActionListener(e -> beerInput.setText(""));
 
         containerPanel.add(submitChoice, new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 20, 0),0,0));
@@ -342,7 +337,7 @@ public class BeerZoneGUI {
         GridBagConstraints gbc = new GridBagConstraints();
         frame.getContentPane().add(jp, gbc);
         jp.setLayout(new GridBagLayout());
-        JComboBox cbInput = createInputUserType(jp);
+        JComboBox<String> cbInput = createInputUserType(jp);
         createRegisterInputField("Username", jp, 1, inputs);
         createRegisterInputField("E-mail", jp, 2, inputs);
         createRegisterInputField("Password", jp, 3, inputs);
@@ -368,9 +363,7 @@ public class BeerZoneGUI {
         gbc.insets = new Insets(0,0,20,0);
         jp.add(registerButton, gbc);
         JButton returnButton = new JButton("Go Back");
-        returnButton.addActionListener(e -> {
-            prepareLogRegister(frame);
-        });
+        returnButton.addActionListener(e -> prepareLogRegister(frame));
         gbc.gridx = 0;
         jp.add(returnButton, gbc);
         frame.setVisible(true);
@@ -384,7 +377,7 @@ public class BeerZoneGUI {
      * @param inputData: array to be filled with the values in the JTextFields inside the inputs vector and the one inside cbInput
      * @return correctData: value representing the correctness of the data
      */
-    private static Boolean readRegisterInputs(JComboBox cbInput, JTextField[] inputs, String[] inputData) {
+    private static Boolean readRegisterInputs(JComboBox<String> cbInput, JTextField[] inputs, String[] inputData) {
         boolean correctData = true;
         if(!cbInput.getSelectedItem().toString().equals("Choose an option")) {
             inputData[0] = cbInput.getSelectedItem().toString();
@@ -421,7 +414,7 @@ public class BeerZoneGUI {
      * @param panel: panel that contains the JComboBox
      * @return cb: JComboBox used to select the user type
      */
-    private static JComboBox createInputUserType(JPanel panel) {
+    private static JComboBox<String> createInputUserType(JPanel panel) {
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 30, 0, 20),0,0);
         JTextField description = new JTextField("User type");

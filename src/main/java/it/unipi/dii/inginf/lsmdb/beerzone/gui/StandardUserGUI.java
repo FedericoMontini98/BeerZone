@@ -7,7 +7,6 @@ import java.util.Arrays;
 public class StandardUserGUI {
     private static final Integer STANDARD_USER = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
-    private final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
 
     /**
      * function used to create the button that allows to login as a standard user
@@ -61,9 +60,9 @@ public class StandardUserGUI {
     }
 
     /**
-     * @param rjp
-     * @param frame
-     * @param inputData
+     * @param rjp:
+     * @param frame:
+     * @param inputData:
      */
     private static void browseUserFavorites(JPanel rjp, JFrame frame, String[] inputData) {
         rjp.removeAll();
@@ -72,9 +71,9 @@ public class StandardUserGUI {
     }
 
     /**
-     * @param rjp
-     * @param frame
-     * @param inputData
+     * @param rjp:
+     * @param frame:
+     * @param inputData:
      */
     private static void userSuggestions(JPanel rjp, JFrame frame, String[] inputData) {
         rjp.removeAll();

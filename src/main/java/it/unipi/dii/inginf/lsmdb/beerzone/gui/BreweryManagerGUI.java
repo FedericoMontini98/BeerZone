@@ -224,9 +224,7 @@ public class BreweryManagerGUI {
     private static void prepareBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel, JTextField responseField) {
         containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
-        breweryStatsBtn.addActionListener(e->{
-            responseField.setText("4.5/5");
-        });
+        breweryStatsBtn.addActionListener(e -> responseField.setText("4.5/5"));
     }
 
     /**

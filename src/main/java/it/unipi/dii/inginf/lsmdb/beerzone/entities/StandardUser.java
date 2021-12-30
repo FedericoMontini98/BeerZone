@@ -1,25 +1,31 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import org.bson.Document;
+
 import java.util.ArrayList;
 import java.util.Date;
 
-public class User extends GeneralUser {
+public class StandardUser{
+    private final GeneralUser user;
     private int age;
-    private String location;
     private ArrayList<FavoriteBeer> favorites;
 
-    public User(int id, String email, String username, String password, int age, String location) {
-        super(id, email, username, password, 0);
+    public StandardUser(int id, String email, String username, String password, int age, String location) {
+        user = new GeneralUser(id, email, username, password, location, 0);
         this.age = age;
-        this.location = location;
+    }
+
+    public StandardUser(String email, String username, String password, int age, String location) {
+        this(-1, email, username, password, age, location);
+    }
+
+    public StandardUser(GeneralUser user, int age) {
+        this.user = user;
+        this.age = age;
     }
 
     public int getAge() {
         return age;
-    }
-
-    public String getLocation() {
-        return location;
     }
 
     public ArrayList<FavoriteBeer> getFavorites() {
@@ -28,10 +34,6 @@ public class User extends GeneralUser {
 
     public void setAge(int age) {
         this.age = age;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public void setFavorites(ArrayList<FavoriteBeer> favorites) {
@@ -46,8 +48,8 @@ public class User extends GeneralUser {
         return favorites.remove(beer);
     }
 
-    @Override
-    public boolean isStandard() {
-        return true;
+    public Document getUser() {
+        return user.getUser().append("age", age);
     }
+
 }

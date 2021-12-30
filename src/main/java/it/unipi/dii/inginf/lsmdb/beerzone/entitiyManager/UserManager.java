@@ -1,16 +1,13 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Accumulators.*;
-import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
 
@@ -24,13 +21,13 @@ public class UserManager {
         users = mongoManager.getCollection("users");
     }
 
-    public void addBrewery(String username, String password, String email, String location) {
-        Document doc = new Brewery(email, username, password, location).getBrewery();
+    public void addBrewery(String username, String password, String email, String location, String types) {
+        Document doc = new Brewery(email, username, password, location, types).getBreweryDoc(false);
         registerUser(doc);
     }
 
     public void addUser(String username, String password, String email, String location, int age) {
-        Document doc = new StandardUser(email, username, password, age, location).getUser();
+        Document doc = new StandardUser(email, username, password, age, location).getUserDoc(false);
         registerUser(doc);
     }
 
@@ -40,6 +37,21 @@ public class UserManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    public boolean login(String email, String password) {
+        boolean ok = false;
+        try {
+            Document userDoc = users.find(eq("email", email)).first();
+            if (userDoc == null || userDoc.isEmpty())
+                return false;
+
+            ok = new GeneralUser(userDoc).checkPassword(password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ok;
     }
 
     public void deleteUser(String email) {

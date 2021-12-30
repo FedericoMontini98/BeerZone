@@ -10,18 +10,23 @@ public class StandardUser{
     private int age;
     private ArrayList<FavoriteBeer> favorites;
 
-    public StandardUser(int id, String email, String username, String password, int age, String location) {
+    public StandardUser(String id, String email, String username, String password, int age, String location) {
         user = new GeneralUser(id, email, username, password, location, 0);
         this.age = age;
     }
 
     public StandardUser(String email, String username, String password, int age, String location) {
-        this(-1, email, username, password, age, location);
+        this(null, email, username, password, age, location);
     }
 
     public StandardUser(GeneralUser user, int age) {
         this.user = user;
         this.age = age;
+    }
+
+    public StandardUser(Document doc) {
+        this.user = new GeneralUser(doc);
+        this.age = doc.getInteger("age");
     }
 
     public int getAge() {
@@ -48,8 +53,8 @@ public class StandardUser{
         return favorites.remove(beer);
     }
 
-    public Document getUser() {
-        return user.getUser().append("age", age);
+    public Document getUserDoc(boolean update) {
+        return user.getUserDoc(update).append("age", age);
     }
 
 }

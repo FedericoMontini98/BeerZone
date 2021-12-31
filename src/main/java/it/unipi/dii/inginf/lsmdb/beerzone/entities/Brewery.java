@@ -26,6 +26,10 @@ public class Brewery {
         this.beers = doc.getList("beers", Integer.class);
     }
 
+    public String getTypes() {
+        return types;
+    }
+
     public List<Integer> getBeers() {
         return beers;
     }

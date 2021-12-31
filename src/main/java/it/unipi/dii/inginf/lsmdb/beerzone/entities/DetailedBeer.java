@@ -30,19 +30,19 @@ public class DetailedBeer extends Beer {
         super(beerID, beerName, style, abv, score);
     }
 
-    public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String brewery,
-                        String state, String country, String availability, String notes,
-                        String url, String retired, String method, String og, String fg, String ibu,
+    public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String score,
+                        @Nullable String brewery, String state, String country, String availability, String notes,
+                        @Nullable  String url, String retired, String method, String og, String fg, String ibu,
                         @Nullable String color, @Nullable String phMash,
                         String fermentables, String hops, String other, String yeast) {
-        super(beerID, beerName, style, abv, -1);
+        super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
         this.brewery_id = brewery != null ? brewery : "-";
         this.numRating = 0;
         this.state = state;
         this.country = country;
         this.availability = availability;
         this.notes = notes;
-        this.url = url;
+        this.url = url != null ? url : "-";
         this.retired = retired.equalsIgnoreCase("t");
         this.method = method;
         this.og = Double.parseDouble(og);
@@ -58,14 +58,12 @@ public class DetailedBeer extends Beer {
 
     public DetailedBeer (Document beer) {
         this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
-                beer.getString("abv"), beer.getString("brewery_id"), beer.getString("state"),
-                beer.getString("country"), beer.getString("availability"), beer.getString("notes"),
-                beer.getString("url"), beer.getString("retired"), beer.getString("method"),
-                beer.getString("og"), beer.getString("fg"), beer.getString("ibu"),
+                beer.getString("abv"), beer.getString("rating"), beer.getString("brewery_id"),
+                beer.getString("state"), beer.getString("country"), beer.getString("availability"),
+                beer.getString("notes"), beer.getString("url"), beer.getString("retired"),
+                beer.getString("method"), beer.getString("og"), beer.getString("fg"), beer.getString("ibu"),
                 beer.getString("color"), beer.getString("ph mash"), beer.getString("fermentables"),
                 beer.getString("hops"), beer.getString("other"), beer.getString("yeast"));
-
-        this.score = Double.parseDouble(beer.getString("rating"));
     }
 
     public String getBrewery_id() {

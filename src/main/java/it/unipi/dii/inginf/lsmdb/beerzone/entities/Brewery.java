@@ -34,16 +34,19 @@ public class Brewery {
         return beers;
     }
 
+    public void setTypes(String types) {
+        this.types = types;
+    }
+
     public void setBeers(ArrayList<Integer> beers) {
         this.beers = beers;
     }
 
-    // mettere solo in beerManager ?
-    public boolean addBeer(int beer) {
+    public boolean addToBrewery(int beer) {
         return beers.add(beer);
     }
 
-    public boolean deleteBeer(Integer beer) {
+    public boolean deleteFromBrewery(Integer beer) {
         return beers.remove(beer);
     }
 

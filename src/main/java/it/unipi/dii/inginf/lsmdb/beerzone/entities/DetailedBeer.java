@@ -8,8 +8,8 @@ public class DetailedBeer extends Beer {
     private String brewery_id;
     //private int beerScore;
     private int numRating;
-    private String state;
-    private String country;
+    //private String state;
+    //private String country;
     private String availability;
     private String notes;
     private boolean retired;
@@ -31,15 +31,13 @@ public class DetailedBeer extends Beer {
     }
 
     public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, String state, String country, String availability, String notes,
+                        @Nullable String brewery, String availability, String notes,
                         @Nullable  String url, String retired, String method, String og, String fg, String ibu,
                         @Nullable String color, @Nullable String phMash,
                         String fermentables, String hops, String other, String yeast) {
         super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
         this.brewery_id = brewery != null ? brewery : "-";
         this.numRating = 0;
-        this.state = state;
-        this.country = country;
         this.availability = availability;
         this.notes = notes;
         this.url = url != null ? url : "-";
@@ -59,11 +57,12 @@ public class DetailedBeer extends Beer {
     public DetailedBeer (Document beer) {
         this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
                 beer.getString("abv"), beer.getString("rating"), beer.getString("brewery_id"),
-                beer.getString("state"), beer.getString("country"), beer.getString("availability"),
-                beer.getString("notes"), beer.getString("url"), beer.getString("retired"),
-                beer.getString("method"), beer.getString("og"), beer.getString("fg"), beer.getString("ibu"),
-                beer.getString("color"), beer.getString("ph mash"), beer.getString("fermentables"),
-                beer.getString("hops"), beer.getString("other"), beer.getString("yeast"));
+                beer.getString("availability"), beer.getString("notes"), beer.getString("url"),
+                beer.getString("retired"), beer.getString("method"), beer.getString("og"),
+                beer.getString("fg"), beer.getString("ibu"), beer.getString("color"),
+                beer.getString("ph mash"), beer.getString("fermentables"), beer.getString("hops"),
+                beer.getString("other"), beer.getString("yeast"));
+        this.numRating = beer.getInteger("num_rating");
     }
 
     public String getBrewery_id() {
@@ -72,14 +71,6 @@ public class DetailedBeer extends Beer {
 
     public String getNumRating() {
         return String.valueOf(numRating);
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public String getCountry() {
-        return country;
     }
 
     public String getAvailability() {
@@ -148,14 +139,6 @@ public class DetailedBeer extends Beer {
 
     public void setNumRating(int numRating) {
         this.numRating = numRating;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
     }
 
     public void setAvailability(String availability) {

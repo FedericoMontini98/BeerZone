@@ -1,10 +1,12 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.Nullable;
+import org.bson.Document;
+
 import java.util.Date;
 
 public class Review {
-    private int beerID;
-    private int breweryID;
+    private String beerID;
     private String username;
     private Date reviewDate;
     private String text;
@@ -17,62 +19,66 @@ public class Review {
 
     public Review(){}
 
-    public Review(int beerID, int breweryID, String username) {
+    public Review(String beerID, String username) {
         this.beerID = beerID;
-        this.breweryID = breweryID;
         this.username = username;
     }
 
-    public int getBeerID() {
-        return beerID;
+    public Review(String beerID, String username, Date reviewDate, @Nullable String text, String look, String smell,
+                  String taste, String feel, String overall) {
+        this.beerID = beerID;
+        this.username = username;
+        this.reviewDate = reviewDate;
+        this.text = text;
+        this.look = Double.parseDouble(look);
+        this.smell = Double.parseDouble(smell);
+        this.taste = Double.parseDouble(taste);
+        this.feel = Double.parseDouble(feel);
+        this.overall = Double.parseDouble(overall);
     }
 
-    public int getBreweryID() {
-        return breweryID;
+    public String getBeerID() {
+        return beerID;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public Date getReviewDate() {
-        return reviewDate;
+    public String getReviewDate() {
+        return reviewDate.toString();
     }
 
     public String getText() {
         return text;
     }
 
-    public double getLook() {
-        return look;
+    public String getLook() {
+        return String.valueOf(look);
     }
 
-    public double getSmell() {
-        return smell;
+    public String getSmell() {
+        return String.valueOf(smell);
     }
 
-    public double getTaste() {
-        return taste;
+    public String getTaste() {
+        return String.valueOf(taste);
     }
 
-    public double getFeel() {
-        return feel;
+    public String getFeel() {
+        return String.valueOf(feel);
     }
 
-    public double getOverall() {
-        return overall;
+    public String getOverall() {
+        return String.valueOf(overall);
     }
 
-    public double getScore() {
-        return score;
+    public String getScore() {
+        return String.valueOf(score);
     }
 
-    public void setBeerID(int beerID) {
+    public void setBeerID(String beerID) {
         this.beerID = beerID;
-    }
-
-    public void setBreweryID(int breweryID) {
-        this.breweryID = breweryID;
     }
 
     public void setUsername(String username) {
@@ -87,27 +93,45 @@ public class Review {
         this.text = text;
     }
 
-    public void setLook(double look) {
-        this.look = look;
+    public void setLook(String look) {
+        this.look = Double.parseDouble(look);
     }
 
-    public void setSmell(double smell) {
-        this.smell = smell;
+    public void setSmell(String smell) {
+        this.smell = Double.parseDouble(smell);
     }
 
-    public void setTaste(double taste) {
-        this.taste = taste;
+    public void setTaste(String taste) {
+        this.taste = Double.parseDouble(taste);
     }
 
-    public void setFeel(double feel) {
-        this.feel = feel;
+    public void setFeel(String feel) {
+        this.feel = Double.parseDouble(feel);
     }
 
-    public void setOverall(double overall) {
-        this.overall = overall;
+    public void setOverall(String overall) {
+        this.overall = Double.parseDouble(overall);
     }
 
-    public void setScore(double score) {
-        this.score = score;
+    public void setScore(String score) {
+        this.score = Double.parseDouble(score);
+    }
+
+    public void computeScore() {
+        score = look + smell + taste + feel + overall;
+        score /= 5;
+    }
+
+    public Document getReview() {
+        return new Document("beer_id", beerID)
+                .append("username", username)
+                .append("reviewDate", reviewDate)
+                .append("text", text)
+                .append("look", look)
+                .append("smell", smell)
+                .append("taste", taste)
+                .append("feel", feel)
+                .append("overall", overall)
+                .append("rating", score);
     }
 }

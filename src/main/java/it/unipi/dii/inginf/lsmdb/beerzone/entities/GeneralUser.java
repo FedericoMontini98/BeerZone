@@ -1,9 +1,10 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.Nullable;
 import org.bson.Document;
 
 public class GeneralUser {
-    protected int userID;   // _id, if -1 is not yet in database
+    protected String userID;   // _id, if -1 is not yet in database
     protected String email;
     protected String username;
     private String password;
@@ -11,10 +12,10 @@ public class GeneralUser {
     protected int type; // 0: standard user, 1: brewery
 
     public GeneralUser(String email, String username, String password, String location, int type) {
-        this(-1, email, username, password, location, type);
+        this(null, email, username, password, location, type);
     }
 
-    public GeneralUser(int id, String email, String username, String password, String location, int type) {
+    public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
         this.userID = id;
         this.email = email;
         this.username = username;
@@ -23,7 +24,16 @@ public class GeneralUser {
         this.type = type;
     }
 
-    public int getUserID() {
+    public GeneralUser(Document user) {
+        this.userID = user.getString("_id");
+        this.username = user.getString("username");
+        this.password = user.getString("password");
+        this.location = user.getString("location");
+        this.type = user.getInteger("type");
+
+    }
+
+    public String getUserID() {
         return userID;
     }
 
@@ -43,7 +53,7 @@ public class GeneralUser {
         return type;
     }
 
-    public void setUserID(int userID) {
+    public void setUserID(String userID) {
         this.userID = userID;
     }
 
@@ -67,11 +77,27 @@ public class GeneralUser {
         return type == 0;
     }
 
-    protected Document getUser() {
+    protected Document getUserDoc(boolean update) {
+        Document doc = new Document();
+        if (update)
+            doc.append("_id", userID);
+        doc.append("username", username)
+                .append("password", password)
+                .append("email", email)
+                .append("location", location)
+                .append("type", type);
+        return doc;
+    }
+
+    protected Document getUserIdDoc() {
         return new Document("username", username)
                 .append("password", password)
                 .append("email", email)
                 .append("location", location)
                 .append("type", type);
+    }
+
+    public boolean checkPassword(String pwd) {
+        return password.equals(pwd);
     }
 }

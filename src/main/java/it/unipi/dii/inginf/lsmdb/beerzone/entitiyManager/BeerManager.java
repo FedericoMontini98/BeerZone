@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import static com.mongodb.client.model.Filters.*;
 
 public class BeerManager {
-    private Beer beer;
+    //private Beer beer;
     private MongoManager mongoManager;
     private MongoCollection<Document> beersCollection;
 
@@ -19,22 +20,23 @@ public class BeerManager {
         mongoManager = MongoManager.getInstance();
         beersCollection = mongoManager.getCollection("beer");
     }
-
+/*
     public BeerManager (Beer beer) {
         this();
         this.beer = beer;
     }
-
-    public void addNewBeer(Document beerDoc) {
+*/
+    public void addNewBeer(DetailedBeer beer) {
+        Document beerDoc = beer.getBeerDoc(false);
         beersCollection.insertOne(beerDoc);
     }
 
-    /* page start from 0 ? */
-    public ArrayList<Beer> showBeers(int page) {
-        int limit = 20;
-        int n = page * limit;
 
-        FindIterable iterator = beersCollection.find().skip(n).limit(limit);
+    public ArrayList<Beer> browseBeers(int page, String name, String style) {
+        int limit = 20;
+        int n = (page-1) * limit;
+
+        FindIterable iterator = beersCollection.find().skip(n).limit(limit+1);
 
         ArrayList<Beer> beerList = new ArrayList<>();
         return beerList;
@@ -46,6 +48,21 @@ public class BeerManager {
 
             for (Document beerDoc : beersCollection.find(
                             regex("name", ".*" + beerName + ".*", "-i"))
+                    .limit(10)) {
+                beerList.add(new Beer(beerDoc));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beerList;
+    }
+
+    public ArrayList<Beer> findBeersByStyle(String styleName) {
+        ArrayList<Beer> beerList = new ArrayList<>();
+        try {
+
+            for (Document beerDoc : beersCollection.find(
+                            regex("name", ".*" + styleName + ".*", "-i"))
                     .limit(25)) {
                 beerList.add(new Beer(beerDoc));
             }
@@ -54,6 +71,8 @@ public class BeerManager {
         }
         return beerList;
     }
+
+
 
     /*
     * public Beer createBeerFromDoc(Document beerDoc)

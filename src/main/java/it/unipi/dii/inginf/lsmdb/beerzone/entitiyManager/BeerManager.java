@@ -1,19 +1,22 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.*;
+import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Projections.include;
 
 public class BeerManager {
     //private Beer beer;
-    private MongoManager mongoManager;
-    private MongoCollection<Document> beersCollection;
+    private final MongoManager mongoManager;
+    private final MongoCollection<Document> beersCollection;
 
 
     public BeerManager(){
@@ -31,24 +34,39 @@ public class BeerManager {
         beersCollection.insertOne(beerDoc);
     }
 
+// browse beer by brewery -> typeUser, @Nullable _idBrewery
 
-    public ArrayList<Beer> browseBeers(int page, String name, String style) {
+    public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
+        //check string
+        name = name != null ? name : "";
         int limit = 20;
         int n = (page-1) * limit;
 
-        FindIterable iterator = beersCollection.find().skip(n).limit(limit+1);
+        FindIterable<Document> iterable = beersCollection.find(or(
+                regex("name", ".*" + name + ".*", "i"),
+                regex("style", ".*" + name + ".*", "i")))
+                .skip(n).limit(limit+1)
+                .projection(include("name", "style", "abv", "rating"));
 
         ArrayList<Beer> beerList = new ArrayList<>();
+        for (Document beer: iterable) {
+            beerList.add(new Beer(beer));
+        }
         return beerList;
     }
 
-    public ArrayList<Beer> findBeers(String beerName) {
-        ArrayList<Beer> beerList = new ArrayList<>();
-        try {
+    // TODO
+    public ArrayList<Beer> browseBeersByBrewery(int page, String brewery) {
+        brewery = brewery != null ? brewery : "";
+        int limit = 20;
+        int n = (page-1) * limit;
 
+        ArrayList<Beer> beerList = new ArrayList<>();
+        ArrayList<ObjectId> beers = BreweryManager.getBeerList(page, brewery);
+        try {
             for (Document beerDoc : beersCollection.find(
-                            regex("name", ".*" + beerName + ".*", "-i"))
-                    .limit(10)) {
+                            regex("name", ".*" + brewery + ".*", "-i"))
+                    .limit(limit+1)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {

@@ -37,6 +37,13 @@ public class Review {
         this.overall = Double.parseDouble(overall);
     }
 
+    public Review(Document review) {
+        this(review.getString("beer_id"), review.getString("username"), review.getDate("date"),
+                review.getString("test"), review.getString("look"), review.getString("smell"),
+                review.getString("tste"), review.getString("feel"), review.getString("overall"));
+        this.score = review.getDouble("score");
+    }
+
     public String getBeerID() {
         return beerID;
     }

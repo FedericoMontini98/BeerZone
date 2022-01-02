@@ -1,55 +1,86 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.*;
+import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
-import org.neo4j.driver.Session;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 
 import static com.mongodb.client.model.Filters.*;
-import static org.neo4j.driver.Values.parameters;
+import static com.mongodb.client.model.Projections.include;
 
 public class BeerManager {
-    private Beer beer;
-    private MongoManager mongoManager;
-    private MongoCollection<Document> beersCollection;
-    private Neo4jManager NeoDBMS;
+    //private Beer beer;
+    private final MongoManager mongoManager;
+    private final MongoCollection<Document> beersCollection;
 
 
     public BeerManager(){
         mongoManager = MongoManager.getInstance();
         beersCollection = mongoManager.getCollection("beer");
     }
-
+/*
     public BeerManager (Beer beer) {
         this();
         this.beer = beer;
     }
-
-    public void addNewBeer(Document beerDoc) {
+*/
+    public void addNewBeer(DetailedBeer beer) {
+        Document beerDoc = beer.getBeerDoc(false);
         beersCollection.insertOne(beerDoc);
     }
 
-    /* page start from 0 ? */
-    public ArrayList<Beer> showBeers(int page) {
-        int limit = 20;
-        int n = page * limit;
+// browse beer by brewery -> typeUser, @Nullable _idBrewery
 
-        FindIterable iterator = beersCollection.find().skip(n).limit(limit);
+    public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
+        //check string
+        name = name != null ? name : "";
+        int limit = 20;
+        int n = (page-1) * limit;
+
+        FindIterable<Document> iterable = beersCollection.find(or(
+                regex("name", ".*" + name + ".*", "i"),
+                regex("style", ".*" + name + ".*", "i")))
+                .skip(n).limit(limit+1)
+                .projection(include("name", "style", "abv", "rating"));
 
         ArrayList<Beer> beerList = new ArrayList<>();
+        for (Document beer: iterable) {
+            beerList.add(new Beer(beer));
+        }
         return beerList;
     }
 
-    public ArrayList<Beer> findBeers(String beerName) {
+    // TODO
+    public ArrayList<Beer> browseBeersByBrewery(int page, String brewery) {
+        brewery = brewery != null ? brewery : "";
+        int limit = 20;
+        int n = (page-1) * limit;
+
+        ArrayList<Beer> beerList = new ArrayList<>();
+        ArrayList<ObjectId> beers = BreweryManager.getBeerList(page, brewery);
+        try {
+            for (Document beerDoc : beersCollection.find(
+                            regex("name", ".*" + brewery + ".*", "-i"))
+                    .limit(limit+1)) {
+                beerList.add(new Beer(beerDoc));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beerList;
+    }
+
+    public ArrayList<Beer> findBeersByStyle(String styleName) {
         ArrayList<Beer> beerList = new ArrayList<>();
         try {
 
             for (Document beerDoc : beersCollection.find(
-                            regex("name", ".*" + beerName + ".*", "-i"))
+                            regex("name", ".*" + styleName + ".*", "-i"))
                     .limit(25)) {
                 beerList.add(new Beer(beerDoc));
             }
@@ -60,55 +91,6 @@ public class BeerManager {
     }
 
 
-    /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
-     *  Both to reviews and beer's files */
-    public boolean AddBeer (String BeerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            session.run("CREATE (B:Beer{id: $BeerID})",parameters("BeerID",BeerID));
-            return true;
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /* ************************************************************************************************************/
-    /* *************************************  Neo4J Section  ******************************************************/
-    /* ************************************************************************************************************/
-
-    /* Function used to add the relationship of "SameStyle" between two beers.
-     *  It's used to suggest beers based on the common styles between the beers that can be suggested and the beers
-     *  in their favorites */
-    public boolean addSameStyle(String firstBeerID,String secondBeerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH\n" +
-                            "(B1:Beer),\n" +
-                            "(B2:Beer)\n " +
-                            "WHERE B1.id = $BeerID AND B2.id = $BeerID \n" +
-                            "CREATE (B1)-[S:SameStyle]->(B2)\n" +
-                            "CREATE (B2)-[S:SameStyle]->(B1)\n",
-                    parameters( "firstBeerID", firstBeerID, "secondBeerID", secondBeerID));
-            return true;
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean removeBeer(String beerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (B {id: $beerID})\n" +
-                            "DETACH DELETE B",
-                    parameters( "beerID", beerID));
-            return true;
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     /*
     * public Beer createBeerFromDoc(Document beerDoc)

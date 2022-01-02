@@ -4,14 +4,15 @@ import org.bson.Document;
 
 import java.util.*;
 
-public class Brewery {
-    private final GeneralUser brewery;
+public class Brewery extends GeneralUser {
+    //private GeneralUser brewery;
     private String types;   //brewery type: bar, pub, etc.
     private List<Integer> beers;
 
     /* _id is from database, if null is a new brewery */
     public Brewery(String _id, String email, String username, String password, String location, String types) {
-        brewery = new GeneralUser(_id, email, username, password, location, 1);
+        //brewery = new GeneralUser
+        super(_id, email, username, password, location, 1);
         this.types = types;
         beers = null;
     }
@@ -21,11 +22,22 @@ public class Brewery {
     }
 
     public Brewery(Document doc) {
-        this.brewery = new GeneralUser(doc);
+        //this.brewery = new GeneralUser(doc);
+        super(doc);
         this.types = doc.getString("types");
         this.beers = doc.getList("beers", Integer.class);
     }
 
+    public Brewery(List<Integer> beers) {
+        //this.brewery = null;
+        this.types = null;
+        this.beers = beers;
+    }
+/*
+    public GeneralUser getBrewery() {
+        return brewery;
+    }
+*/
     public String getTypes() {
         return types;
     }
@@ -51,7 +63,8 @@ public class Brewery {
     }
 
     public Document getBreweryDoc(boolean update) {
-        return brewery.getUserDoc(update).append("types", types)
+        //return brewery.getUserDoc(update)
+        return super.getUserDoc(update).append("types", types)
                 .append("beers", new ArrayList<Integer>());
     }
 

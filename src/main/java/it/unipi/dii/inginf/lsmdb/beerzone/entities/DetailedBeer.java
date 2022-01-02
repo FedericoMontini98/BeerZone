@@ -26,32 +26,34 @@ public class DetailedBeer extends Beer {
     private String other;
     private String yeast;
 
+    public DetailedBeer() {}
+
     public DetailedBeer(String beerID, String beerName, String style, String abv, double score) {
         super(beerID, beerName, style, abv, score);
     }
 
     public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, String availability, String notes,
-                        @Nullable  String url, String retired, String method, String og, String fg, String ibu,
-                        @Nullable String color, @Nullable String phMash,
-                        String fermentables, String hops, String other, String yeast) {
+                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
+                        @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
+                        @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
         super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
         this.brewery_id = brewery != null ? brewery : "-";
         this.numRating = 0;
-        this.availability = availability;
-        this.notes = notes;
+        this.availability = availability != null ? availability : "-";
+        this.notes = notes != null ? notes : "=";
         this.url = url != null ? url : "-";
         this.retired = retired.equalsIgnoreCase("t");
-        this.method = method;
-        this.og = Double.parseDouble(og);
-        this.fg = Double.parseDouble(fg);
-        this.ibu = Double.parseDouble(ibu);
+        this.method = method != null ? method : "-";
+        this.og = og != null ? Double.parseDouble(og) : -1;
+        this.fg = fg != null ? Double.parseDouble(fg) : -1;
+        this.ibu = ibu != null ? Double.parseDouble(ibu) : -1;
         this.color = color != null ? Double.parseDouble(color) : -1;
         this.phMash = phMash != null ? Double.parseDouble(phMash) : -1;
-        this.fermentables = fermentables;
-        this.hops = hops;
-        this.other = other;
-        this.yeast = yeast;
+        this.fermentables = fermentables != null ? fermentables : "-";
+        this.hops = hops != null ? hops : "-";
+        this.other = other != null ? other : "-";
+        this.yeast = yeast != null ? yeast : "-";
     }
 
     public DetailedBeer (Document beer) {
@@ -60,7 +62,7 @@ public class DetailedBeer extends Beer {
                 beer.getString("availability"), beer.getString("notes"), beer.getString("url"),
                 beer.getString("retired"), beer.getString("method"), beer.getString("og"),
                 beer.getString("fg"), beer.getString("ibu"), beer.getString("color"),
-                beer.getString("ph mash"), beer.getString("fermentables"), beer.getString("hops"),
+                beer.getString("phMash"), beer.getString("fermentables"), beer.getString("hops"),
                 beer.getString("other"), beer.getString("yeast"));
         this.numRating = beer.getInteger("num_rating");
     }

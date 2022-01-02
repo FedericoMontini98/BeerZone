@@ -1,13 +1,17 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 public class Beer {
+   // protected ObjectId beerID;
     protected String beerID;
     protected String beerName;
     protected String style;
     protected String abv;
     protected double score;
+
+    public Beer() {}
 
     public Beer(String beerID, String beerName, String style, String abv, double score) {
         this.beerID = beerID;
@@ -26,11 +30,8 @@ public class Beer {
     }
 
     public Beer (Document beer) {
-        beerID = beer.getString("_id");
-        beerName = beer.getString("name");
-        style = beer.getString("style");
-        abv = beer.getString("abv");
-        score = Double.parseDouble(beer.getString("rating"));
+        this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
+                beer.getString("abv"), Double.parseDouble(beer.getString("rating")));
     }
 
     public String getBeerID() {

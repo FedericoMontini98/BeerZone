@@ -3,7 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
 
-public class GeneralUser {
+public abstract class GeneralUser {
     protected String userID;   // _id, if -1 is not yet in database
     protected String email;
     protected String username;
@@ -11,12 +11,14 @@ public class GeneralUser {
     protected String location;
     protected int type; // 0: standard user, 1: brewery
 
+    public GeneralUser() {}
+
     public GeneralUser(String email, String username, String password, String location, int type) {
         this(null, email, username, password, location, type);
     }
 
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
-        this.userID = id;
+        this.userID = id != null ? id : "-1";
         this.email = email;
         this.username = username;
         this.password = password;
@@ -97,7 +99,7 @@ public class GeneralUser {
                 .append("type", type);
     }
 
-    public boolean checkPassword(String pwd) {
+    /*public boolean checkPassword(String pwd) {
         return password.equals(pwd);
-    }
+    }*/
 }

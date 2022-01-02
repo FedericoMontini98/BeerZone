@@ -169,8 +169,8 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     int id = Integer.parseInt(browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString());
-                    Beer b = new Beer(id, "Nome");
-                    createBeerPage(containerPanel, frame, userType, inputData, b);
+                    //Beer b = new Beer(id, "Nome");
+                    //createBeerPage(containerPanel, frame, userType, inputData, b);
                 }
             }
         });

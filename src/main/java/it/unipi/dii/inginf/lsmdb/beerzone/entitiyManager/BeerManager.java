@@ -62,18 +62,17 @@ public class BeerManager {
         return beerList;
     }
 
-    // TODO
-    public ArrayList<Beer> browseBeersByBrewery(int page, String brewery) {
-        brewery = brewery != null ? brewery : "";
-        int limit = 20;
+    public ArrayList<Beer> browseBeersByBrewery(int page, String breweryID) {
+        if (breweryID == null)
+            return null;
+        int limit = 3;
         int n = (page-1) * limit;
 
         ArrayList<Beer> beerList = new ArrayList<>();
-        ArrayList<ObjectId> beers = BreweryManager.getInstance().getBeerList(page, brewery);
+        //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
         try {
-            for (Document beerDoc : beersCollection.find(
-                            regex("name", ".*" + brewery + ".*", "-i"))
-                    .limit(limit+1)) {
+            for (Document beerDoc : beersCollection.find(eq("brewery_id", breweryID))
+                    .skip(n).limit(limit+1)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {
@@ -82,13 +81,13 @@ public class BeerManager {
         return beerList;
     }
 
-    public ArrayList<Beer> findBeersByStyle(String styleName) {
+    public ArrayList<Beer> browseBeersByStyle(String styleName) {
         ArrayList<Beer> beerList = new ArrayList<>();
         try {
 
             for (Document beerDoc : beersCollection.find(
-                            regex("name", ".*" + styleName + ".*", "-i"))
-                    .limit(25)) {
+                            regex("style", ".*" + styleName + ".*", "-i"))
+                    .limit(20)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {

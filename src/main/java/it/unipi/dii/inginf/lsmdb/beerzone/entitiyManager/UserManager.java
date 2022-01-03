@@ -12,15 +12,23 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
 
 public class UserManager {
-    private final MongoManager mongoManager;
-    private static MongoCollection<Document> users;
+    private static UserManager userManager;
+    //private final MongoManager mongoManager;
+    private MongoCollection<Document> users;
         // users collection include both standard users (type 0) and breweries (type 1)
 
-    public UserManager() {
-        mongoManager = MongoManager.getInstance();
-        users = mongoManager.getCollection("users");
+    private UserManager() {
+        //mongoManager = MongoManager.getInstance();
+        users = MongoManager.getInstance().getCollection("users");
     }
-/*
+
+    public static UserManager getInstance() {
+        if (userManager == null)
+            userManager = new UserManager();
+        return userManager;
+    }
+
+    /*
     public static Brewery getBrewery(String email) {
         Brewery b = null;
         Document userDoc = getUser(email, 1);
@@ -40,17 +48,17 @@ public class UserManager {
  */
 
     // use example: Brewery b = new Brewery(UserManager.getGeneralUser(email, type);
-    public static Document getUser(String email, int type) {
+    public Document getUser(String email, int type) {
         return users.find(and(eq("type", type), eq("email", email))).first();
     }
 
     /* check if an email and/or an username already exist in the users collection */
-    public static boolean userExist(String email, int type, @Nullable String username) {
+    public boolean userExist(String email, int type, @Nullable String username) {
         Document doc = null;
         if (type == 1) {    // Brewery
             doc = users.find(eq("email", email)).first();
         } else if (type == 0) { // StandardUser
-            if (username == null || username.isEmpty() || username == " ")
+            if (username == null || username.isEmpty() || username.equals(" "))
                 throw new RuntimeException("Username not valid");
             doc = users.find(or(eq("email", email), and(eq("type", type), eq("username", username)))).first();
         }
@@ -58,7 +66,7 @@ public class UserManager {
         return !(doc == null || doc.isEmpty());
     }
 
-    public static boolean addBrewery(String username, String password, String email, String location, String types) {
+    public boolean addBrewery(String username, String password, String email, String location, String types) {
         try {
             if (userExist(email, 1, null))
                 return false;
@@ -70,7 +78,7 @@ public class UserManager {
         return registerUser(doc);
     }
 
-    public static boolean addUser(String username, String password, String email, String location, int age) {
+    public boolean addUser(String username, String password, String email, String location, int age) {
         try {
             if (userExist(email, 0, username))
                 return false;
@@ -82,7 +90,7 @@ public class UserManager {
         return registerUser(doc);
     }
 
-    private static boolean registerUser(Document userDoc) {
+    private boolean registerUser(Document userDoc) {
         try {
             users.insertOne(userDoc);
             return true;
@@ -92,7 +100,7 @@ public class UserManager {
         }
     }
 
-    public static int login(String email, String password) {
+    public int login(String email, String password) {
         int type = -1;
         try {
             Document userDoc = users.find(eq("email", email)).first();

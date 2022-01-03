@@ -13,15 +13,22 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
 
 public class BreweryManager {
-    private final MongoManager mongoManager;
-    private static MongoCollection<Document> breweries;
+    private static BreweryManager breweryManager;
+    //private final MongoManager mongoManager;
+    private MongoCollection<Document> breweries;
 
-    public BreweryManager() {
-        mongoManager = MongoManager.getInstance();
-        breweries = mongoManager.getCollection("finalUsers");
+    private BreweryManager() {
+        //mongoManager = MongoManager.getInstance();
+        breweries = MongoManager.getInstance().getCollection("finalUsers");
     }
 
-    public static ArrayList<ObjectId> getBeerList(int page, String name){
+    public static BreweryManager getInstance() {
+        if (breweryManager == null)
+            breweryManager = new BreweryManager();
+        return breweryManager;
+    }
+
+   public ArrayList<ObjectId> getBeerList(int page, String name){
         int limit = 20;
         int n = (page-1) * limit;
 

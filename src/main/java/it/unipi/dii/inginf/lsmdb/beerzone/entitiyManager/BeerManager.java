@@ -15,13 +15,20 @@ import static com.mongodb.client.model.Projections.include;
 
 public class BeerManager {
     //private Beer beer;
-    private final MongoManager mongoManager;
+    private static BeerManager beerManager;
+    //private final MongoManager mongoManager;
     private final MongoCollection<Document> beersCollection;
 
 
-    public BeerManager(){
-        mongoManager = MongoManager.getInstance();
-        beersCollection = mongoManager.getCollection("beer");
+    private BeerManager(){
+        //mongoManager = MongoManager.getInstance();
+        beersCollection = MongoManager.getInstance().getCollection("beer");
+    }
+
+    public static BeerManager getInstance() {
+        if (beerManager == null)
+            beerManager = new BeerManager();
+        return beerManager;
     }
 /*
     public BeerManager (Beer beer) {
@@ -62,7 +69,7 @@ public class BeerManager {
         int n = (page-1) * limit;
 
         ArrayList<Beer> beerList = new ArrayList<>();
-        ArrayList<ObjectId> beers = BreweryManager.getBeerList(page, brewery);
+        ArrayList<ObjectId> beers = BreweryManager.getInstance().getBeerList(page, brewery);
         try {
             for (Document beerDoc : beersCollection.find(
                             regex("name", ".*" + brewery + ".*", "-i"))

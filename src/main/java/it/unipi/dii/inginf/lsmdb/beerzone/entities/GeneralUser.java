@@ -27,7 +27,7 @@ public abstract class GeneralUser {
     }
 
     public GeneralUser(Document user) {
-        this.userID = user.getString("_id");
+        this.userID = user.get("_id").toString();
         this.username = user.getString("username");
         this.password = user.getString("password");
         this.location = user.getString("location");

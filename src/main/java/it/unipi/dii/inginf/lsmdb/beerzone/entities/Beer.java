@@ -30,7 +30,7 @@ public class Beer {
     }
 
     public Beer (Document beer) {
-        this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
+        this(beer.get("_id").toString(), beer.getString("name"), beer.getString("style"),
                 beer.getString("abv"), Double.parseDouble(beer.getString("rating")));
     }
 

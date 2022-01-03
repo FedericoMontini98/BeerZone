@@ -38,5 +38,4 @@ public class Neo4jManager implements AutoCloseable{
         else
             neoInstance.driver.close();
     }
-
 }

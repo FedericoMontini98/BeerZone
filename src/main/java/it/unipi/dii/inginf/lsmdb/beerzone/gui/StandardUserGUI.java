@@ -1,10 +1,11 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -14,29 +15,12 @@ public class StandardUserGUI {
     private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
 
     /**
-     * function used to create the button that allows to login as a standard user
-     *
-     * @param frame: frame used by the application
-     */
-    public static void setStandardUserButton(JFrame frame){
-        JButton btn = new JButton("Login as Standard User");
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),10,10);
-        btn.addActionListener(e -> {
-            frame.getContentPane().removeAll();
-            frame.repaint();
-            BeerZoneGUI.prepareLoginSection(frame, STANDARD_USER);
-        });
-        frame.getContentPane().add(btn, gbc);
-    }
-
-    /**
      * function that creates the user section
      *
      * @param frame: frame used by the application
-     * @param inputData: data inserted by the user
+     * @param s: brewery informations
      */
-    public static void standardUserSection(JFrame frame, String[] inputData){
+    public static void standardUserSection(JFrame frame, StandardUser s){
         JButton[] btnArray = new JButton[4];
         frame.setTitle("BeerZone - STANDARD USER");
         frame.setLayout(new GridLayout(1,2));
@@ -46,17 +30,16 @@ public class StandardUserGUI {
         rjp.setLayout(new GridBagLayout());
 
         btnArray[0] = new JButton("Browse Favorites");
-        btnArray[0].addActionListener(e -> browseUserFavorites(rjp, frame, inputData));
+        btnArray[0].addActionListener(e -> browseUserFavorites(rjp, frame, s));
 
         btnArray[1] = new JButton("View Suggestions");
-        btnArray[1].addActionListener(e -> userSuggestions(rjp, frame, inputData));
+        btnArray[1].addActionListener(e -> userSuggestions(rjp, frame, s));
 
         btnArray[2] = new JButton("Browse Beer");
-        btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER, inputData));
+        btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER, s.getUserID(), s.getUsername()));
 
         btnArray[3] = new JButton("Logout");
-        btnArray[3].addActionListener(e -> {
-            Arrays.fill(inputData, null); BeerZoneGUI.prepareLogRegister(frame);});
+        btnArray[3].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
 
         setLeftStandardUserButton(btnArray, ljp);
         ljp.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -73,9 +56,9 @@ public class StandardUserGUI {
     /**
      * @param rjp:
      * @param frame:
-     * @param inputData:
+     * @param s: brewery informations
      */
-    private static void browseUserFavorites(JPanel rjp, JFrame frame, String[] inputData) {
+    private static void browseUserFavorites(JPanel rjp, JFrame frame, StandardUser s) {
         rjp.removeAll();
         frame.repaint();
         frame.setVisible(true);
@@ -84,9 +67,9 @@ public class StandardUserGUI {
     /**
      * @param rjp:
      * @param frame:
-     * @param inputData:
+     * @param s: brewery informations
      */
-    private static void userSuggestions(JPanel rjp, JFrame frame, String[] inputData) {
+    private static void userSuggestions(JPanel rjp, JFrame frame, StandardUser s) {
         rjp.removeAll();
         frame.repaint();
         frame.setVisible(true);
@@ -116,11 +99,13 @@ public class StandardUserGUI {
     /**
      * function that creates "add to favorites", "Review Beer" and "Go Back" buttons
      *
-     *  @param containerPanel : panel containing the btnPanel
-     * @param inputData : data inserted by the user
+     * @param frame:
+     * @param containerPanel : panel containing the btnPanel
+     * @param userType:
+     * @param userId:
      * @param selBeer: beer selected by the user
      */
-    public static void createButtonFunctionalities(JFrame frame, JPanel containerPanel, String[] inputData, Beer selBeer) {
+    public static void createButtonFunctionalities(JFrame frame, JPanel containerPanel, Integer userType, String userId, DetailedBeer selBeer, String username) {
         JButton addFav = new JButton("Add to Favorites");
         JButton reviewBeer = new JButton("Review Beer");
         JPanel btnPanel = new JPanel();
@@ -131,7 +116,7 @@ public class StandardUserGUI {
         btnPanel.add(addFav, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, inputData, selBeer));
+        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, userId, selBeer, username));
         reviewBeer.setPreferredSize(new Dimension(130,26));
         btnPanel.add(reviewBeer, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -141,19 +126,19 @@ public class StandardUserGUI {
         containerPanel.add(btnPanel, new GridBagConstraints(0,5,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
 
-        prepareReturnToBrowseButton(containerPanel, frame, inputData);
+        prepareReturnToBrowseButton(containerPanel, frame, userId, username);
     }
 
     /**
      * function that creates a button that allows the user to return to the browse beer section
      *  @param jp : JPanel that contains the review page
      * @param frame : frame used by the application
-     * @param inputData: data inserted by the user
+     * @param userId: id of the user
      */
-    private static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, String[] inputData) {
+    private static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, String userId, String username) {
         JButton returnToBrowse = new JButton("Go Back");
         returnToBrowse.addActionListener(e ->{
-            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, STANDARD_USER, inputData);
+            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, STANDARD_USER, userId, username);
         });
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
@@ -165,10 +150,9 @@ public class StandardUserGUI {
      *
      * @param frame: frame used by the application
      * @param rjp: JPanel that contains the review page
-     * @param inputData: data inserted by the user
      * @param selBeer: beer selected by the user
      */
-    private static void reviewBeerPage(JFrame frame, JPanel rjp, String[] inputData, Beer selBeer) {
+    private static void reviewBeerPage(JFrame frame, JPanel rjp, String userId, DetailedBeer selBeer, String username) {
         rjp.removeAll();
         JTextField reviewAvg = new JTextField("3.0");
         JTextArea textArea = new JTextArea(5, 30);
@@ -180,8 +164,8 @@ public class StandardUserGUI {
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
-        prepareReturnToBeerButton(btnPanel, frame, inputData, selBeer);
-        prepareSubmitReviewButton(btnPanel, textArea, spinners, reviewAvg, inputData, selBeer);
+        prepareReturnToBeerButton(rjp, btnPanel, frame, userId, selBeer, username);
+        prepareSubmitReviewButton(btnPanel, textArea, spinners, reviewAvg, selBeer, username);
         rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
@@ -189,10 +173,10 @@ public class StandardUserGUI {
         frame.setVisible(true);
     }
 
-    private static void prepareReturnToBeerButton(JPanel btnPanel, JFrame frame, String[] inputData, Beer selBeer) {
+    private static void prepareReturnToBeerButton(JPanel rjp, JPanel btnPanel, JFrame frame, String userId, DetailedBeer selBeer, String username) {
         JButton returnToBeer = new JButton("Go Back");
         returnToBeer.setFont(new Font("Arial", Font.PLAIN, 16));
-        returnToBeer.addActionListener(e -> BeerZoneGUI.createBeerPage(btnPanel, frame, STANDARD_USER, inputData, selBeer));
+        returnToBeer.addActionListener(e -> BeerZoneGUI.createBeerPage(rjp, frame, STANDARD_USER, userId, selBeer, username));
 
         btnPanel.add(returnToBeer, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0, 0));
@@ -200,14 +184,14 @@ public class StandardUserGUI {
 
     /**
      * function that prepares button that submits the review
-     *  @param btnPanel : JPanel that contains the review page
+     * @param btnPanel : JPanel that contains the review page
      * @param textArea : area where the user can insert the review
      * @param spinners : list of spinners to compute the average value
      * @param reviewAvg : field with the average vote
-     * @param inputData : data inserted by the user
+     * @param
      * @param selBeer : beer selected by the user
      */
-    private static void prepareSubmitReviewButton(JPanel btnPanel, JTextArea textArea, JSpinner[] spinners, JTextField reviewAvg, String[] inputData, Beer selBeer) {
+    private static void prepareSubmitReviewButton(JPanel btnPanel, JTextArea textArea, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, String username) {
         JButton subReviewBtn = new JButton("Submit");
         subReviewBtn.setFont(new Font("Arial", Font.PLAIN, 16));
         subReviewBtn.addActionListener(e -> {
@@ -216,14 +200,14 @@ public class StandardUserGUI {
             for(int i = 0; i < spinners.length; i++)
                 values[i] = (Double)spinners[i].getValue();
             String text = textArea.getText();
-            System.out.println("username: " + inputData[0] + "\n"+
-                                "beerID: " + selBeer.getBeerID() + "\n" +
-                                "avg: " + avg + "\n" +
-                                "value[1]: " +  values[0] + "\n" +
-                                "value[2]: " +  values[1] + "\n" +
-                                "value[3]: " +  values[2] + "\n" +
-                                "value[4]: " +  values[3] + "\n" +
-                                "text: " + text);
+            System.out.println("username: " + username + "\n"+
+                    "beerID: " + selBeer.getBeerID() + "\n" +
+                    "avg: " + avg + "\n" +
+                    "value[1]: " +  values[0] + "\n" +
+                    "value[2]: " +  values[1] + "\n" +
+                    "value[3]: " +  values[2] + "\n" +
+                    "value[4]: " +  values[3] + "\n" +
+                    "text: " + text);
         });
 
         btnPanel.add(subReviewBtn, new GridBagConstraints(1,0,1,1,0,0,
@@ -346,4 +330,5 @@ public class StandardUserGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 20, 0, 0),20,5));
 
     }
+
 }

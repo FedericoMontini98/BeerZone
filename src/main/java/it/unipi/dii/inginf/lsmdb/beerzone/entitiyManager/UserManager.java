@@ -22,17 +22,21 @@ import org.neo4j.driver.TransactionWork;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class UserManager {
     private final MongoManager mongoManager;
     private static MongoCollection<Document> users;
         // users collection include both standard users (type 0) and breweries (type 1)
-    private Neo4jManager NeoDBMS;
+    private final Neo4jManager NeoDBMS;
 
     public UserManager() {
         mongoManager = MongoManager.getInstance();
         users = mongoManager.getCollection("users");
+        NeoDBMS = Neo4jManager.getInstance();
     }
 /*
     public static Brewery getBrewery(String email) {
@@ -179,7 +183,7 @@ public class UserManager {
      *  favorites */
     public boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {username: $Username})-[F:Favorites]-(B:Beer {id: $BeerID}) \n" +
+            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {id: $BeerID}) \n" +
                             "DELETE F",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;
@@ -190,28 +194,6 @@ public class UserManager {
         }
     }
 
-
-    /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
-     * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
-     * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
-    public boolean addReview(String Username, String BeerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            Date date = new Date();
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
-            String str = formatter.format(date);
-            session.run("MATCH\n" +
-                            "  (B:Beer),\n" +
-                            "  (U:User)\n" +
-                            "WHERE U.username = $Username AND B.id = $BeerID\n" +
-                            "CREATE (U)-[R:Reviewed{InDate:$Date}]->(B)\n",
-                    parameters( "Username", Username, "BeerID", BeerID,"Date", str));
-            return true;
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer has been reviewed from this user */
@@ -229,7 +211,7 @@ public class UserManager {
     }
 
     /* Function used to remove a user from Neo4J graph DB */
-    public boolean removeUser(String ID, String username){
+    public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U {username: $username, ID: $ID})\n" +
                             "DETACH DELETE U",
@@ -239,6 +221,27 @@ public class UserManager {
         catch(Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /* Function used to return to GUI a list of beers that the user has in its favorites */
+    public List<String> getFavorites(String username){
+        try(Session session = NeoDBMS.getDriver().session()) {
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                Result result = tx.run("MATCH (U:User)-[F:Favorites]->(B:Beer) WHERE U.Username = $username" +
+                                " RETURN B.ID as ID",
+                        parameters("username", username));
+                ArrayList<String> favorites = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    favorites.add(r.get("ID").asString());
+                }
+                return favorites;
+            });
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

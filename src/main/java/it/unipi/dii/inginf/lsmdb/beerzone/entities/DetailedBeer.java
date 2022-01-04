@@ -56,6 +56,16 @@ public class DetailedBeer extends Beer {
         this.yeast = yeast != null ? yeast : "-";
     }
 
+    public DetailedBeer(String beerName, String style, String abv, @Nullable String score,
+                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
+                        @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
+                        @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
+        this(null, beerName, style, abv, score, brewery, availability, notes, url, retired, method, og, fg, ibu,
+                color, phMash, fermentables, hops, other, yeast);
+
+    }
+
     public DetailedBeer (Document beer) {
         this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
                 beer.getString("abv"), beer.getString("rating"), beer.getString("brewery_id"),

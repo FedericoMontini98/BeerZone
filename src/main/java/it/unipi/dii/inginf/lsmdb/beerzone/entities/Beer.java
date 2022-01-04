@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -13,12 +14,16 @@ public class Beer {
 
     public Beer() {}
 
-    public Beer(String beerID, String beerName, String style, String abv, double score) {
+    public Beer(@Nullable String beerID, String beerName, String style, String abv, double score) {
         this.beerID = beerID != null ? beerID : "-1";
         this.beerName = beerName;
         this.style = style;
         this.abv = abv;
         this.score = score;
+    }
+
+    public Beer(String beerName, String style, String abv, double score) {
+        this(null, beerName, style, abv, score);
     }
 
     public Beer(String beerID, String beerName, String style, String abv) {

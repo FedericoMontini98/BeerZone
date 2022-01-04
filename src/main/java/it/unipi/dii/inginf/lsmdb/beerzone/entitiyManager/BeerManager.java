@@ -21,18 +21,18 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
+import static org.neo4j.driver.Values.parameters;
 
 public class BeerManager {
     private Beer beer;
-    private MongoManager mongoManager;
-    private MongoCollection<Document> beersCollection;
+    private final MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
     //private final MongoManager mongoManager;
 
     public BeerManager(){
-        mongoManager = MongoManager.getInstance();
-        beersCollection = mongoManager.getCollection("beer");
+        MongoManager mongoManager = MongoManager.getInstance();
+        beersCollection = MongoManager.getCollection("beer");
         NeoDBMS = Neo4jManager.getInstance();
 
     }

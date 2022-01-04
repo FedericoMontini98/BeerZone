@@ -5,7 +5,7 @@ import java.util.Date;
 public class FavoriteBeer extends Beer {
     private Date favoriteDate;
 
-    public FavoriteBeer(int beerID, String beerName, Date favoriteDate) {
+    public FavoriteBeer(String beerID, String beerName, Date favoriteDate) {
         super(beerID, beerName);
         this.favoriteDate = favoriteDate;
     }
@@ -14,7 +14,7 @@ public class FavoriteBeer extends Beer {
         this(beer.getBeerID(), beer.getBeerName(), date);
     }
 
-    public FavoriteBeer(int beerID, String beerName) {
+    public FavoriteBeer(String beerID, String beerName) {
         this(beerID, beerName, new Date());
     }
 

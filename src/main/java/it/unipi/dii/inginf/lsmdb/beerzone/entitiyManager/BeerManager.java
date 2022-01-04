@@ -88,6 +88,23 @@ public class BeerManager {
     }
 
 
+    public ArrayList<Beer> browseBeersByStyle(String styleName) {
+        ArrayList<Beer> beerList = new ArrayList<>();
+        try {
+
+            for (Document beerDoc : beersCollection.find(
+                            regex("style", ".*" + styleName + ".*", "-i"))
+                    .limit(20)) {
+                beerList.add(new Beer(beerDoc));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beerList;
+    }
+
+
+
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
     /* ************************************************************************************************************/
@@ -117,38 +134,58 @@ public class BeerManager {
         }
     }
 
-    public ArrayList<Beer> browseBeersByStyle(String styleName) {
-        ArrayList<Beer> beerList = new ArrayList<>();
-        try {
-
-            for (Document beerDoc : beersCollection.find(
-                            regex("style", ".*" + styleName + ".*", "-i"))
-                    .limit(20)) {
-                beerList.add(new Beer(beerDoc));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return beerList;
-    }
-
-
-
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
     *  others users */
-    public List<String> getSuggested(String Style){
+    public List<String> getSuggested(String Username){
+        //Lookin for how many different style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
-            return session.readTransaction((TransactionWork<List<String>>) tx -> {
-                Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
-                        " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 3" +
-                        " RETURN B.ID as ID",parameters("Style",Style));
-                ArrayList<String> Suggested = new ArrayList<>();
-                while (result.hasNext()) {
-                    Record r = result.next();
-                    Suggested.add(r.get("ID").asString());
-                }
-                return Suggested;
-            });
+            Result n_style = session.run("match (U:User)-[F:Favorite]->(B:Beer) \n" +
+                    "where U.Username=$Username\n" +
+                    "return distinct count(B.Style)",parameters("Username",Username));
+            //If none i return an empty list
+            if (n_style.single().get(0).asInt()==0){
+                return Collections.emptyList();
+            }
+            Result Style_records= session.run("match (U:User)-[F:Favorite]->(B:Beer) \n" +
+                    "where U.Username=$Username\n" +
+                    "return  B.Style",parameters("Username",Username));
+            String Style_1= Style_records.next().get("Style").asString();
+            String Style_2=Style_records.next().get("Style").asString();
+            //If less than 4 I return two suggestions for that style
+            if(n_style.single().get(0).asInt()<2){
+                return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
+                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 4" +
+                            " RETURN B.ID as ID", parameters("Style", Style_1));
+                    ArrayList<String> Suggested = new ArrayList<>();
+                    while (result.hasNext()) {
+                        Record r = result.next();
+                        Suggested.add(r.get("ID").asString());
+                    }
+                    return Suggested;
+                });
+            }
+            //If more than 2 I take the two with most records and return suggestions on those two
+            else{
+                return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
+                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 2" +
+                            " RETURN B.ID as ID", parameters("Style", Style_1));
+                    ArrayList<String> Suggested = new ArrayList<>();
+                    while (result.hasNext()) {
+                        Record r = result.next();
+                        Suggested.add(r.get("ID").asString());
+                    }
+                    Result result_2 = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
+                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 2" +
+                            " RETURN B.ID as ID", parameters("Style",Style_2));
+                    while (result_2.hasNext()) {
+                        Record r = result_2.next();
+                        Suggested.add(r.get("ID").asString());
+                    }
+                    return Suggested;
+                });
+            }
         }
         catch(Exception e){
             e.printStackTrace();

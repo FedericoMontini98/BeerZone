@@ -1,27 +1,37 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.*;
+import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionWork;
+import org.bson.types.ObjectId;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
-import static org.neo4j.driver.Values.parameters;
+import static com.mongodb.client.model.Projections.include;
 
 public class BeerManager {
+
     private Beer beer;
     private MongoManager mongoManager;
     private MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
+
+    //private Beer beer;
+    private final MongoManager mongoManager;
+    private final MongoCollection<Document> beersCollection;
+
 
 
     public BeerManager(){
@@ -29,34 +39,50 @@ public class BeerManager {
         beersCollection = mongoManager.getCollection("beer");
         NeoDBMS = Neo4jManager.getInstance();
     }
-
+/*
     public BeerManager (Beer beer) {
         this();
         this.beer = beer;
     }
-
-    public void addNewBeer(Document beerDoc) {
+*/
+    public void addNewBeer(DetailedBeer beer) {
+        Document beerDoc = beer.getBeerDoc(false);
         beersCollection.insertOne(beerDoc);
     }
 
-    /* page start from 0 ? */
-    public ArrayList<Beer> showBeers(int page) {
-        int limit = 20;
-        int n = page * limit;
+// browse beer by brewery -> typeUser, @Nullable _idBrewery
 
-        FindIterable iterator = beersCollection.find().skip(n).limit(limit);
+    public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
+        //check string
+        name = name != null ? name : "";
+        int limit = 20;
+        int n = (page-1) * limit;
+
+        FindIterable<Document> iterable = beersCollection.find(or(
+                regex("name", ".*" + name + ".*", "i"),
+                regex("style", ".*" + name + ".*", "i")))
+                .skip(n).limit(limit+1)
+                .projection(include("name", "style", "abv", "rating"));
 
         ArrayList<Beer> beerList = new ArrayList<>();
+        for (Document beer: iterable) {
+            beerList.add(new Beer(beer));
+        }
         return beerList;
     }
 
-    public ArrayList<Beer> findBeers(String beerName) {
-        ArrayList<Beer> beerList = new ArrayList<>();
-        try {
+    // TODO
+    public ArrayList<Beer> browseBeersByBrewery(int page, String brewery) {
+        brewery = brewery != null ? brewery : "";
+        int limit = 20;
+        int n = (page-1) * limit;
 
+        ArrayList<Beer> beerList = new ArrayList<>();
+        ArrayList<ObjectId> beers = BreweryManager.getBeerList(page, brewery);
+        try {
             for (Document beerDoc : beersCollection.find(
-                            regex("name", ".*" + beerName + ".*", "-i"))
-                    .limit(25)) {
+                            regex("name", ".*" + brewery + ".*", "-i"))
+                    .limit(limit+1)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {
@@ -64,6 +90,7 @@ public class BeerManager {
         }
         return beerList;
     }
+
 
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
@@ -94,18 +121,23 @@ public class BeerManager {
         }
     }
 
-    public boolean removeBeer(String beerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (B {id: $beerID})\n" +
-                            "DETACH DELETE B",
-                    parameters( "beerID", beerID));
-            return true;
-        }
-        catch(Exception e){
+  
+    public ArrayList<Beer> findBeersByStyle(String styleName) {
+        ArrayList<Beer> beerList = new ArrayList<>();
+        try {
+
+            for (Document beerDoc : beersCollection.find(
+                            regex("name", ".*" + styleName + ".*", "-i"))
+                    .limit(25)) {
+                beerList.add(new Beer(beerDoc));
+            }
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return beerList;
     }
+
+
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
     *  others users */

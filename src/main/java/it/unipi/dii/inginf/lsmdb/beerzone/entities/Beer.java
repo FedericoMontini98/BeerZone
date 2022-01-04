@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -13,12 +14,16 @@ public class Beer {
 
     public Beer() {}
 
-    public Beer(String beerID, String beerName, String style, String abv, double score) {
-        this.beerID = beerID;
+    public Beer(@Nullable String beerID, String beerName, String style, String abv, double score) {
+        this.beerID = beerID != null ? beerID : "-1";
         this.beerName = beerName;
         this.style = style;
         this.abv = abv;
         this.score = score;
+    }
+
+    public Beer(String beerName, String style, String abv, double score) {
+        this(null, beerName, style, abv, score);
     }
 
     public Beer(String beerID, String beerName, String style, String abv) {
@@ -30,7 +35,7 @@ public class Beer {
     }
 
     public Beer (Document beer) {
-        this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
+        this(beer.get("_id").toString(), beer.getString("name"), beer.getString("style"),
                 beer.getString("abv"), Double.parseDouble(beer.getString("rating")));
     }
 
@@ -77,7 +82,7 @@ public class Beer {
     public Document getBeerDoc(boolean update) {
         Document doc = new Document();
         if (update)
-            doc.append("_id", beerID);
+            doc.append("_id", new ObjectId(beerID));
         doc.append("name", beerName)
                 .append("style", style)
                 .append("abv", abv)

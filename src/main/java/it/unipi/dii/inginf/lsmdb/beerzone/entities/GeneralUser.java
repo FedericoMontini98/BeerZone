@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 public abstract class GeneralUser {
     protected String userID;   // _id, if -1 is not yet in database
@@ -27,7 +28,7 @@ public abstract class GeneralUser {
     }
 
     public GeneralUser(Document user) {
-        this.userID = user.getString("_id");
+        this.userID = user.get("_id").toString();
         this.username = user.getString("username");
         this.password = user.getString("password");
         this.location = user.getString("location");
@@ -82,7 +83,7 @@ public abstract class GeneralUser {
     protected Document getUserDoc(boolean update) {
         Document doc = new Document();
         if (update)
-            doc.append("_id", userID);
+            doc.append("_id", new ObjectId(userID));
         doc.append("username", username)
                 .append("password", password)
                 .append("email", email)

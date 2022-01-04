@@ -5,11 +5,18 @@ import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
 
 public class ReviewManager {
-    private final MongoManager mongoManager;
+    private static ReviewManager reviewManager;
+    //private final MongoManager mongoManager;
     private MongoCollection<Document> reviewsCollection;
 
-    public ReviewManager() {
-        mongoManager = MongoManager.getInstance();
-        reviewsCollection = mongoManager.getCollection("reviews");
+    private ReviewManager() {
+        //mongoManager = MongoManager.getInstance();
+        reviewsCollection = MongoManager.getInstance().getCollection("reviews");
+    }
+
+    public static ReviewManager getInstance() {
+        if (reviewManager == null)
+            reviewManager = new ReviewManager();
+        return reviewManager;
     }
 }

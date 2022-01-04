@@ -1,17 +1,14 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Accumulators.*;
-import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
@@ -32,7 +29,7 @@ import java.util.List;
 
 public class UserManager {
     private final MongoManager mongoManager;
-    private MongoCollection<Document> users;
+    private static MongoCollection<Document> users;
         // users collection include both standard users (type 0) and breweries (type 1)
     private final Neo4jManager NeoDBMS;
 
@@ -41,23 +38,94 @@ public class UserManager {
         users = mongoManager.getCollection("users");
         NeoDBMS = Neo4jManager.getInstance();
     }
-
-    public void addBrewery(String username, String password, String email, String location) {
-        Document doc = new Brewery(email, username, password, location).getBrewery();
-        registerUser(doc);
+/*
+    public static Brewery getBrewery(String email) {
+        Brewery b = null;
+        Document userDoc = getUser(email, 1);
+        if (userDoc != null && !userDoc.isEmpty())
+            b = new Brewery(userDoc);
+        return b;
     }
 
-    public void addUser(String username, String password, String email, String location, int age) {
-        Document doc = new StandardUser(email, username, password, age, location).getUser();
-        registerUser(doc);
+    public static StandardUser getStandardUser(String email) {
+        StandardUser u = null;
+        Document userDoc = getUser(email, 0);
+        if (userDoc != null && !userDoc.isEmpty())
+            u = new StandardUser(userDoc);
+        return u;
     }
 
-    public void registerUser(Document userDoc) {
+ */
+
+    // use example: Brewery b = new Brewery(UserManager.getGeneralUser(email, type);
+    public static Document getUser(String email, int type) {
+        return users.find(and(eq("type", type), eq("email", email))).first();
+    }
+
+    /* check if an email and/or an username already exist in the users collection */
+    public static boolean userExist(String email, int type, @Nullable String username) {
+        Document doc = null;
+        if (type == 1) {    // Brewery
+            doc = users.find(eq("email", email)).first();
+        } else if (type == 0) { // StandardUser
+            if (username == null || username.isEmpty() || username == " ")
+                throw new RuntimeException("Username not valid");
+            doc = users.find(or(eq("email", email), and(eq("type", type), eq("username", username)))).first();
+        }
+
+        return !(doc == null || doc.isEmpty());
+    }
+
+    public static boolean addBrewery(String username, String password, String email, String location, String types) {
+        try {
+            if (userExist(email, 1, null))
+                return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        Document doc = new Brewery(email, username, password, location, types).getBreweryDoc(false);
+        return registerUser(doc);
+    }
+
+    public static boolean addUser(String username, String password, String email, String location, int age) {
+        try {
+            if (userExist(email, 0, username))
+                return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        Document doc = new StandardUser(email, username, password, age, location).getUserDoc(false);
+        return registerUser(doc);
+    }
+
+    private static boolean registerUser(Document userDoc) {
         try {
             users.insertOne(userDoc);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static int login(String email, String password) {
+        int type = -1;
+        try {
+            Document userDoc = users.find(eq("email", email)).first();
+            if (userDoc == null || userDoc.isEmpty())
+                return -1;
+
+            if (!password.equals(userDoc.getString("password")))
+                return -1;
+
+            type = userDoc.getInteger("type");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return type;
     }
 
     public void deleteUser(String email) {

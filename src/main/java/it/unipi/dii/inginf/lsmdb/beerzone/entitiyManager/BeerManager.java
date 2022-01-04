@@ -5,10 +5,14 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static org.neo4j.driver.Values.parameters;
@@ -100,6 +104,28 @@ public class BeerManager {
         catch(Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
+    *  others users */
+    public List<String> getSuggested(String Style){
+        try(Session session = NeoDBMS.getDriver().session()) {
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
+                        " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 3" +
+                        " RETURN B.ID as ID",parameters("Style",Style));
+                ArrayList<String> Suggested = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    Suggested.add(r.get("ID").asString());
+                }
+                return Suggested;
+            });
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 

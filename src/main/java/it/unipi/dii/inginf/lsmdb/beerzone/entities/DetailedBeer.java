@@ -28,11 +28,11 @@ public class DetailedBeer extends Beer {
 
     public DetailedBeer() {}
 
-    public DetailedBeer(String beerID, String beerName, String style, String abv, double score) {
+    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, double score) {
         super(beerID, beerName, style, abv, score);
     }
 
-    public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String score,
+    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
                         @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,

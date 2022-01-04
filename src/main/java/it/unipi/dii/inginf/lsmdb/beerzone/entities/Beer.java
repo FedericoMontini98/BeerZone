@@ -14,7 +14,7 @@ public class Beer {
     public Beer() {}
 
     public Beer(String beerID, String beerName, String style, String abv, double score) {
-        this.beerID = beerID;
+        this.beerID = beerID != null ? beerID : "-1";
         this.beerName = beerName;
         this.style = style;
         this.abv = abv;
@@ -77,7 +77,7 @@ public class Beer {
     public Document getBeerDoc(boolean update) {
         Document doc = new Document();
         if (update)
-            doc.append("_id", beerID);
+            doc.append("_id", new ObjectId(beerID));
         doc.append("name", beerName)
                 .append("style", style)
                 .append("abv", abv)

@@ -28,11 +28,11 @@ public class DetailedBeer extends Beer {
 
     public DetailedBeer() {}
 
-    public DetailedBeer(String beerID, String beerName, String style, String abv, double score) {
+    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, double score) {
         super(beerID, beerName, style, abv, score);
     }
 
-    public DetailedBeer(String beerID, String beerName, String style, String abv, @Nullable String score,
+    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
                         @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
@@ -54,6 +54,16 @@ public class DetailedBeer extends Beer {
         this.hops = hops != null ? hops : "-";
         this.other = other != null ? other : "-";
         this.yeast = yeast != null ? yeast : "-";
+    }
+
+    public DetailedBeer(String beerName, String style, String abv, @Nullable String score,
+                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
+                        @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
+                        @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
+        this(null, beerName, style, abv, score, brewery, availability, notes, url, retired, method, og, fg, ibu,
+                color, phMash, fermentables, hops, other, yeast);
+
     }
 
     public DetailedBeer (Document beer) {

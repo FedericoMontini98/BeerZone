@@ -173,7 +173,14 @@ public class UserManager {
      *  it already in its favorites */
     public boolean addFavorite(StandardUser user, Beer beer) {
         try (Session session = NeoDBMS.getDriver().session()) {
-            session.run("MERGE (U:User) WHERE U.Username");
+            //Check if user exists
+            session.run("MERGE (U:User{Username: $username})" +
+                    "ON CREATE" +
+                    "   SET U.Username=$username, U.ID=$id ",parameters("username",user.getUsername(),"id",user.getUserID()));
+            //Check if beer exists
+            session.run("MERGE (B:Beer{ID: $id})" +
+                    "ON CREATE" +
+                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",beer.getBeerName(),"id",beer.getBeerID(),"style",beer.getStyle()));
             LocalDateTime MyLDTObj = LocalDateTime.now();
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             String str = MyLDTObj.format(myFormatObj);
@@ -199,22 +206,6 @@ public class UserManager {
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {id: $BeerID}) \n" +
                             "DELETE F",
-                    parameters( "Username", Username, "BeerID", BeerID));
-            return true;
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
-    /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
-     * This function has to be available only if the beer has been reviewed from this user */
-    public boolean removeReview(String Username, String BeerID){
-        try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {username: $Username})-[R:Reviewed]-(B:Beer {id: $BeerID}) \n" +
-                            "DELETE R",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;
         }

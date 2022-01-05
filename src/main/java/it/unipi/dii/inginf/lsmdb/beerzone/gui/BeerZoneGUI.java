@@ -78,8 +78,9 @@ public class BeerZoneGUI {
         JButton submitChoice2 = new JButton("<html><center>Search<br>Brewery by<br>Name</html></center>");
         submitChoice2.setPreferredSize(new Dimension(120, 50));
         submitChoice2.addActionListener(e -> beerInput.setText(""));
-        searchPanel.add(submitChoice2, new GridBagConstraints(1,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        if(Objects.equals(userType, STANDARD_USER))
+            searchPanel.add(submitChoice2, new GridBagConstraints(1,0,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         searchPanel.setBackground(BACKGROUND_COLOR);
         containerPanel.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
@@ -243,14 +244,16 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         JButton toBrewery = new JButton("Go to Brewery");
-        containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        if(Objects.equals(userType, STANDARD_USER))
+            containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
         toBrewery.addActionListener(e->{
            BreweryManagerGUI.createBreweryPage(containerPanel, frame, userId, selBeer.getBrewery_id());
         });
         createRecipeSection(containerPanel, 2, recipeTexts, userType);
 
-        if(userType == STANDARD_USER)
+        if(Objects.equals(userType, STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, userType, userId, selBeer, username);
         else
             BreweryManagerGUI.prepareReturnToBrowseButton(containerPanel, frame, userType, userId, username);
@@ -361,6 +364,7 @@ public class BeerZoneGUI {
         JButton confirmSection = new JButton((Objects.equals(userType, BREWERY_MANAGER)) ? "Confirm description" : "Confirm choice");
         recipeCB.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED)
+                inputRecipe.setForeground(Color.BLACK);
                 inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
         });
 
@@ -370,6 +374,10 @@ public class BeerZoneGUI {
                     recipeTexts[recipeCB.getSelectedIndex()] = inputRecipe.getText();
                 else
                     inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
+            }
+            else{
+                inputRecipe.setText("Choose an option is not a valid recipe section");
+                inputRecipe.setForeground(Color.RED);
             }
         });
         recipePanel.add(confirmSection, new GridBagConstraints(0, 3,1,1,0,0,
@@ -422,7 +430,7 @@ public class BeerZoneGUI {
                 inputData[i] = inputs[i].getText();
                 inputs[i].setBackground(Color.WHITE);
             } else {
-                inputs[i].setBackground(new Color(255, 87, 112));
+                inputs[i].setBackground(Color.RED);
                 correctData = false;
             }
         }
@@ -450,24 +458,18 @@ public class BeerZoneGUI {
         GridBagConstraints gbc = new GridBagConstraints();
         JRadioButton rb1 = new JRadioButton("Standard User");
         JRadioButton rb2 = new JRadioButton("Brewery Manager");
-        rb1.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if(e.getStateChange() == ItemEvent.SELECTED) {
-                    createRegisterInputField("Age", jp, VARIABLE_ROW + 1, inputs);
-                    frame.repaint();
-                    frame.setVisible(true);
-                }
+        rb1.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                createRegisterInputField("Age", jp, VARIABLE_ROW + 1, inputs);
+                frame.repaint();
+                frame.setVisible(true);
             }
         });
-        rb2.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if(e.getStateChange() == ItemEvent.SELECTED) {
-                    createRegisterInputField("Type", jp, VARIABLE_ROW + 1, inputs);
-                    frame.repaint();
-                    frame.setVisible(true);
-                }
+        rb2.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                createRegisterInputField("Type", jp, VARIABLE_ROW + 1, inputs);
+                frame.repaint();
+                frame.setVisible(true);
             }
         });
         frame.getContentPane().add(jp, gbc);
@@ -517,7 +519,6 @@ public class BeerZoneGUI {
             Boolean correctData = readRegisterInputs(rb1, rb2, inputs, inputData);
             if(correctData) {
                 bg[0] = readUserType(rb1, rb2);
-                System.out.println(bg[0]);
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 if(Objects.equals(bg[0], "Brewery Manager")){
@@ -530,8 +531,6 @@ public class BeerZoneGUI {
                     StandardUserGUI.standardUserSection(frame, s);
                 }
             }
-            else
-                System.out.println("Missing data");
         });
     }
 
@@ -556,24 +555,27 @@ public class BeerZoneGUI {
             rb2.setBackground(Color.RED);
             correctData = false;
         }
-        else
-            rb1.setBackground(null); rb2.setBackground(null);
+        else {
+            rb1.setBackground(null);
+            rb2.setBackground(null);
+        }
 
-        for(int i = 0; i < inputs.length; i++){
-            if(!inputs[i].getText().equals("")) {
-                inputData[i] = inputs[i].getText();
-                inputs[i].setBackground(Color.WHITE);
-            }
-            else {
-                inputs[i].setBackground(Color.RED);
-                correctData = false;
-            }
-            if(i == (PASS_CONFIRMATION_ROW - 1) && !inputs[i - 1].getText().equals(inputs[i].getText())) {
-                inputs[i].setBackground(Color.RED);
-                inputs[i].setText("");
-                inputs[i - 1].setBackground(Color.RED);
-                inputs[i - 1].setText("");
-                correctData = false;
+        if(correctData) {
+            for (int i = 0; i < inputs.length; i++) {
+                if (!inputs[i].getText().equals("")) {
+                    inputData[i] = inputs[i].getText();
+                    inputs[i].setBackground(Color.WHITE);
+                } else {
+                    inputs[i].setBackground(Color.RED);
+                    correctData = false;
+                }
+                if (i == (PASS_CONFIRMATION_ROW - 1) && !inputs[i - 1].getText().equals(inputs[i].getText())) {
+                    inputs[i].setBackground(Color.RED);
+                    inputs[i].setText("");
+                    inputs[i - 1].setBackground(Color.RED);
+                    inputs[i - 1].setText("");
+                    correctData = false;
+                }
             }
         }
         return correctData;
@@ -609,9 +611,9 @@ public class BeerZoneGUI {
     private static void createRegisterInputField(String type, JPanel panel, Integer row, JTextField[] inputs) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        if(row == LOCATION_ROW)
+        if(row == LOCATION_ROW + 1)
             gbc.insets = new Insets(20,30,20,20);
-        else if(row == LOCATION_ROW + 1)
+        else if(row == VARIABLE_ROW + 1)
             gbc.insets = new Insets(0,30,20,20);
         else
             gbc.insets = new Insets(20,30,0,20);
@@ -629,16 +631,16 @@ public class BeerZoneGUI {
         gbc.gridx = 1;
         gbc.gridwidth = 2;
         gbc.ipadx = 122;
-        if(row == LOCATION_ROW)
+        if(row == LOCATION_ROW + 1)
             gbc.insets = new Insets(20,0,20,30);
-        else if(row == LOCATION_ROW + 1)
+        else if(row == VARIABLE_ROW + 1)
             gbc.insets = new Insets(0,0,20,30);
         else
             gbc.insets = new Insets(20,0,0,30);
 
         JPasswordField inputSectionPw = new JPasswordField();
         JTextField inputSection = new JTextField();
-        if(row == PASSWORD_ROW || row == PASS_CONFIRMATION_ROW){
+        if(row == PASSWORD_ROW + 1 || row == PASS_CONFIRMATION_ROW + 1){
             inputs[row - 1] = inputSectionPw;
             panel.add(inputSectionPw, gbc);
         }
@@ -704,7 +706,6 @@ public class BeerZoneGUI {
     public static void prepareLoginSection(JFrame frame) {
         frame.setTitle("BeerZone - USER LOGIN");
 
-        String[] inputData = new String[2];
         JTextField[] inputs = new JTextField[2];
         frame.setLayout(new GridBagLayout());
         JPanel jp = new JPanel();

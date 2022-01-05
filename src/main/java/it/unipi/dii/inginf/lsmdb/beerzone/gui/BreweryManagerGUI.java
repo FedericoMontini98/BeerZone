@@ -18,6 +18,7 @@ public class BreweryManagerGUI {
     private static final Integer BREWERY_MANAGER = 1;
     private static final Integer USERNAME_ROW = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
+    private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
     private static final Integer RECIPE_SECTION_ABV = 1;
     private static final Integer RECIPE_SECTION_AVAILABILITY = 2;
     private static final Integer RECIPE_SECTION_COLOR = 3;
@@ -81,27 +82,51 @@ public class BreweryManagerGUI {
      */
     private static void generateAddBeerMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
-        JTextField[] inputs = new JTextField[5];
+        JTextField[] input = new JTextField[1];
         String[] recipeTexts = new String[16];
-        createInputField(containerPanel, inputs);
+        createInputField(containerPanel, input);
         JComboBox<String> cb = createInputStyle(containerPanel);
         BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         btn.addActionListener(e->{
-            boolean correct = checkRecipe(recipeTexts);
-            if(!correct){
+            boolean recipeCorrect = checkRecipe(recipeTexts);
+            boolean infoCorrect = checkInfo(input, cb);
+            if(!recipeCorrect){
                 System.out.println("OG - FG - IBU - COLOR - PHMASH must be numbers");
             }
             else{
-                System.out.println("Correct");
-                DetailedBeer db = new DetailedBeer();
+                if(!infoCorrect)
+                    System.out.println("Input not correct");
+                else {
+                    System.out.println("Correct");
+                    DetailedBeer db = new DetailedBeer();
+                }
             }
         });
         containerPanel.add(btn, new GridBagConstraints(0,5,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static boolean checkInfo(JTextField[] input, JComboBox<String> cb) {
+        boolean correct = true;
+        if(input[0].getText().equals("")) {
+            input[0].setBackground(Color.RED);
+            correct = false;
+        }
+        else
+            input[0].setBackground(Color.WHITE);
+
+        if(cb.getSelectedIndex() == 0) {
+            cb.setBackground(Color.RED);
+            correct = false;
+        }
+        else
+            cb.setBackground(Color.WHITE);
+
+        return correct;
     }
 
     private static boolean checkRecipe(String[] recipeTexts) {
@@ -127,9 +152,9 @@ public class BreweryManagerGUI {
      * function that creates the input field in the "add beer" section
      *
      * @param panel: panel containing the add beer section
-     * @param inputs: vector containing the brewery manager's inputs
+     * @param input: brewery manager's input
      */
-    private static void createInputField(JPanel panel, JTextField[] inputs) {
+    private static void createInputField(JPanel panel, JTextField[] input) {
         JTextField description = new JTextField("Beer Name");
         description.setFont(new Font("Arial", Font.PLAIN ,15));
         description.setBackground(BACKGROUND_COLOR);
@@ -139,7 +164,7 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         JTextField inputField = new JTextField();
-        inputs[0] = inputField;
+        input[0] = inputField;
         panel.add(inputField, new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
     }
@@ -344,20 +369,23 @@ public class BreweryManagerGUI {
         Brewery brewery = new Brewery("2", "brewery@brewery.com", "brewery", "brewery", "location", "pub");
         ArrayList<Integer> breweryBeers = new ArrayList<Integer>(Arrays.asList(1,2,39));
         brewery.setBeers(breweryBeers);
+        JPanel jp = new JPanel(new GridBagLayout());
+        jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        addBreweryFields(containerPanel,"Brewery Name", "brewery", Objects.equals(userId, breweryIdBeer), 0);
-        addBreweryFields(containerPanel,"Email", "brewery@brewery.com", Objects.equals(userId, breweryIdBeer), 1);
-        addBreweryFields(containerPanel,"Location", "location", Objects.equals(userId, breweryIdBeer), 2);
-        addBreweryFields(containerPanel, "Brewery Type", "pub", Objects.equals(userId, breweryIdBeer), 3);
+        addBreweryFields(jp,"Brewery Name", "brewery", Objects.equals(userId, breweryIdBeer), 0);
+        addBreweryFields(jp,"Email", "brewery@brewery.com", Objects.equals(userId, breweryIdBeer), 1);
+        addBreweryFields(jp,"Location", "location", Objects.equals(userId, breweryIdBeer), 2);
+        addBreweryFields(jp, "Brewery Type", "pub", Objects.equals(userId, breweryIdBeer), 3);
 
         //get the beers associated with the brewery
         String[] beerId = {"1", "2", "3", "4"};
-        String[] beerList = {"Beer1", "Beer2", "Beer3", "Beer4"};
+        String[] beerList = {"Beer1", "Beer2", "Beer3", "Beer5"};
         JComboBox<String> beerListCB = new JComboBox<>(beerList);
         beerListCB.setVisible(true);
         beerListCB.setPreferredSize(new Dimension(100, 30));
-        containerPanel.add(beerListCB, new GridBagConstraints(0, 4,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+        containerPanel.add(beerListCB, new GridBagConstraints(0, 1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 30, 15, 0),0,0));
 
         JButton goToBeer = new JButton("Go To Beer");
         goToBeer.addActionListener(e ->{
@@ -367,7 +395,9 @@ public class BreweryManagerGUI {
             //DetailedBeer selBeer = searchBeerById(beerId[beerListCB.getSelectedIndex()]);
             BeerZoneGUI.createBeerPage(containerPanel, frame, BREWERY_MANAGER, userId, selBeer, brewery.getUsername());
         });
-        containerPanel.add(goToBeer,  new GridBagConstraints(1, 4,1,1,0,0,
+        containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+        containerPanel.add(jp, new GridBagConstraints(0, 0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
@@ -377,17 +407,17 @@ public class BreweryManagerGUI {
         JTextField desc = new JTextField(description);
         desc.setFont(new Font("Arial", Font.BOLD, 14));
         desc.setEditable(false);
-        desc.setBackground(BACKGROUND_COLOR);
+        desc.setBackground(BACKGROUND_COLOR_RECIPE);
         desc.setBorder(createEmptyBorder());
         containerPanel.add(desc, new GridBagConstraints(0,row,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 15, 0),0, 0));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 25, 15, 0),0, 0));
 
         JTextField info = new JTextField(breweryInfo);
         info.setFont(new Font("Arial", Font.PLAIN, 14));
         info.setEditable(editable);
         info.setBorder(createEmptyBorder());
-        info.setBackground(BACKGROUND_COLOR);
+        info.setBackground(BACKGROUND_COLOR_RECIPE);
         containerPanel.add(info, new GridBagConstraints(1,row,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 15, 0),0, 0));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 0, 15, 15),0, 0));
     }
 }

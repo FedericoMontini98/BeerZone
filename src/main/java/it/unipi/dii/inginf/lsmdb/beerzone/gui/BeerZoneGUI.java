@@ -1,17 +1,10 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
+import javax.swing.table.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Objects;
@@ -249,7 +242,7 @@ public class BeerZoneGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         toBrewery.addActionListener(e->{
-           BreweryManagerGUI.createBreweryPage(containerPanel, frame, userId, selBeer.getBrewery_id());
+           BreweryManagerGUI.createBreweryPage(containerPanel, frame, userType, userId, selBeer.getBrewery_id());
         });
         createRecipeSection(containerPanel, 2, recipeTexts, userType);
 
@@ -361,27 +354,25 @@ public class BeerZoneGUI {
         recipePanel.add(jsc, new GridBagConstraints(0, 2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
 
-        JButton confirmSection = new JButton((Objects.equals(userType, BREWERY_MANAGER)) ? "Confirm description" : "Confirm choice");
+        JButton confirmSection = new JButton("Confirm description");
         recipeCB.addItemListener(e -> {
-            if(e.getStateChange() == ItemEvent.SELECTED)
+            if(e.getStateChange() == ItemEvent.SELECTED) {
                 inputRecipe.setForeground(Color.BLACK);
                 inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
+                if(recipeCB.getSelectedIndex() == 0){
+                    inputRecipe.setText("'Choose an option' is not a valid recipe section");
+                    inputRecipe.setForeground(Color.RED);
+                }
+            }
         });
 
         confirmSection.addActionListener(e->{
-            if(recipeCB.getSelectedIndex() != 0) {
-                if (Objects.equals(userType, BREWERY_MANAGER))
-                    recipeTexts[recipeCB.getSelectedIndex()] = inputRecipe.getText();
-                else
-                    inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
-            }
-            else{
-                inputRecipe.setText("Choose an option is not a valid recipe section");
-                inputRecipe.setForeground(Color.RED);
-            }
+            if(recipeCB.getSelectedIndex() != 0)
+                recipeTexts[recipeCB.getSelectedIndex()] = inputRecipe.getText();
         });
-        recipePanel.add(confirmSection, new GridBagConstraints(0, 3,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+        if(Objects.equals(userType, BREWERY_MANAGER))
+            recipePanel.add(confirmSection, new GridBagConstraints(0, 3,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
 
         containerPanel.add(recipePanel, new GridBagConstraints(0, panelRow, 2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),30,10));
@@ -741,7 +732,7 @@ public class BeerZoneGUI {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //send query to see what type of user it is
-                int res = BREWERY_MANAGER;
+                int res = STANDARD_USER;
                 if(res == BREWERY_MANAGER){
                     Brewery b = new Brewery("1", "email", "username", "password", "location", "types");
                     BreweryManagerGUI.breweryManagerSection(frame, b);

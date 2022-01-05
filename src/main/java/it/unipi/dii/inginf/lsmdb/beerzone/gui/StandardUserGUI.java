@@ -2,10 +2,17 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 
 import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -13,6 +20,8 @@ public class StandardUserGUI {
     private static final Integer STANDARD_USER = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
+    private static final Integer SUGGESTIONS = 0;
+    private static final Integer FAVORITES = 1;
 
     /**
      * function that creates the user section
@@ -30,10 +39,10 @@ public class StandardUserGUI {
         rjp.setLayout(new GridBagLayout());
 
         btnArray[0] = new JButton("Browse Favorites");
-        btnArray[0].addActionListener(e -> browseUserFavorites(rjp, frame, s));
+        btnArray[0].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, FAVORITES));
 
         btnArray[1] = new JButton("View Suggestions");
-        btnArray[1].addActionListener(e -> userSuggestions(rjp, frame, s));
+        btnArray[1].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
         btnArray[2] = new JButton("Browse Beer");
         btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER, s.getUserID(), s.getUsername()));
@@ -58,21 +67,131 @@ public class StandardUserGUI {
      * @param frame:
      * @param s: brewery informations
      */
-    private static void browseUserFavorites(JPanel rjp, JFrame frame, StandardUser s) {
+    private static void browseUserFavoritesSuggestions(JPanel rjp, JFrame frame, StandardUser s, Integer request) {
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        Date date = new Date(System.currentTimeMillis());
+        FavoriteBeer b1 = new FavoriteBeer("", "Beer1", date);
+        FavoriteBeer b2 = new FavoriteBeer("", "Beer2", date);
+        FavoriteBeer b3 = new FavoriteBeer("", "Beer3", date);
+        FavoriteBeer b4 = new FavoriteBeer("", "Beer4", date);
+        FavoriteBeer b5 = new FavoriteBeer("", "Beer5", date);
+        ArrayList<FavoriteBeer> list = new ArrayList<>();
+        /*list.add(b1);
+        list.add(b2);
+        list.add(b3);
+        list.add(b4);
+        list.add(b5);*/
         rjp.removeAll();
+        JPanel beerContainer = new JPanel(new GridBagLayout());
+        beerContainer.setBackground(BACKGROUND_COLOR);
+        createFavoriteSuggestionSection(list, 0, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
+        createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
+        s.setFavorites(list);
         frame.repaint();
         frame.setVisible(true);
     }
 
-    /**
-     * @param rjp:
-     * @param frame:
-     * @param s: brewery informations
-     */
-    private static void userSuggestions(JPanel rjp, JFrame frame, StandardUser s) {
-        rjp.removeAll();
+    private static void createFavoriteSuggestionPageButtons(ArrayList<FavoriteBeer> list, JPanel beerContainer, JPanel rjp, JFrame frame, String userId, String username, Integer request) {
+        JPanel btnPanel = new JPanel();
+        btnPanel.setBackground(BACKGROUND_COLOR);
+        JTextField currPage = new JTextField("1");
+        currPage.setBackground(BACKGROUND_COLOR);
+        currPage.setEditable(false);
+        currPage.setBorder(createEmptyBorder());
+        currPage.setFont(new Font("Arial", Font.BOLD, 15));
+
+        JButton rightArr = new JButton(">");
+        JButton leftArr = new JButton("<");
+        leftArr.setEnabled(false);
+        rightArr.setEnabled(list.size() > 4);
+        btnPanel.add(leftArr, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
+        leftArr.addActionListener(e -> {
+            int currNum = Integer.parseInt(currPage.getText());
+            if(currNum == 2)
+                leftArr.setEnabled(false);
+            if((currNum*4) >= list.size())
+                rightArr.setEnabled(true);
+            currNum = currNum - 1;
+            currPage.setText(String.valueOf(currNum));
+            createFavoriteSuggestionSection(list, currNum - 1, beerContainer, rjp, frame, userId, username, request);
+        });
+
+        btnPanel.add(currPage, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 90, 0, 0),0,0));
+
+        btnPanel.add(rightArr, new GridBagConstraints(2,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0,0));
+        rightArr.addActionListener(e -> {
+            int currNum = Integer.parseInt(currPage.getText());
+            if(currNum == 1)
+                leftArr.setEnabled(true);
+            if((currNum*4 + 4) >= (list.size() - 1))
+                rightArr.setEnabled(false);
+            currNum = currNum + 1;
+            currPage.setText(String.valueOf(currNum));
+            createFavoriteSuggestionSection(list, currNum - 1, beerContainer, rjp, frame, userId, username, request);
+        });
+
+        rjp.add(btnPanel, new GridBagConstraints(0,1,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+    }
+
+    private static void createFavoriteSuggestionSection(ArrayList<FavoriteBeer> list, int page, JPanel beerContainer, JPanel rjp, JFrame frame, String userId, String username, Integer request) {
+        beerContainer.removeAll();
+        if(page == 0 && list.size() == 0){
+            JTextField err = new JTextField((request == FAVORITES)?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            beerContainer.add(err);
+            rjp.add(beerContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        for(int j = 0; j < 4; j++){
+            if((j + page*4) > list.size() - 1)
+                break;
+            JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
+            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            createBeerPreview(beerPreviewContainer, list.get(page * 4 + j), rjp, frame, userId, username);
+            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2,(j < 2)?0:1,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+        }
+        rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static void createBeerPreview(JPanel beerPreviewContainer, FavoriteBeer favoriteBeer, JPanel rjp, JFrame frame, String userId, String username) {
+        JTextPane beerName = new JTextPane();
+        beerName.setEditable(false);
+        beerName.setText(favoriteBeer.getBeerName());
+        beerName.setPreferredSize(new Dimension(150, 40));
+        StyledDocument doc = beerName.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+        beerPreviewContainer.add(beerName, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+
+        JTextField date = new JTextField(favoriteBeer.getFavoriteDate().toString());
+        date.setEditable(false);
+        date.setBackground(BACKGROUND_COLOR_RECIPE);
+        date.setBorder(createEmptyBorder());
+        beerPreviewContainer.add(date, new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 5, 5, 5),0,0));
+
+        JButton goToBeer = new JButton("To Beer Page");
+        goToBeer.addActionListener(e->{
+            //get beer by id
+            //DetailedBeer selBeer = searchBeerById(favoriteBeer.getBeerId());
+            //createBeerPage(rjp, frame, STANDARD_USER, userId, selBeer, username)
+        });
+        beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
     }
 
     /**
@@ -319,7 +438,7 @@ public class StandardUserGUI {
             double currTot = 0.0;
             for (JSpinner jSpinner : spinners) currTot = currTot + (Double) jSpinner.getValue();
 
-            currTot = currTot/4;
+            currTot = (double) Math.round(currTot/4 * 100) / 100;
             reviewAvg.setText(String.valueOf(currTot));
         });
         if(row != 1)

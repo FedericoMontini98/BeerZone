@@ -52,7 +52,7 @@ public class BreweryManagerGUI {
         rjp.setLayout(new GridBagLayout());
         ljp.setLayout(new GridBagLayout());
         btnArray[0] = new JButton("Brewery Page");
-        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, b.getUserID(), b.getUserID()));
+        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, BREWERY_MANAGER, b.getUserID(), b.getUserID()));
         btnArray[1] = new JButton("Add beer");
         btnArray[1].addActionListener(e -> generateAddBeerMenu(rjp, frame, b));
         btnArray[2] = new JButton("Browse Beer");
@@ -362,7 +362,7 @@ public class BreweryManagerGUI {
      * @param userId
      * @param breweryIdBeer
      */
-    public static void createBreweryPage(JPanel containerPanel, JFrame frame, String userId, String breweryIdBeer) {
+    public static void createBreweryPage(JPanel containerPanel, JFrame frame,  Integer usertype, String userId, String breweryIdBeer) {
         containerPanel.removeAll();
 
         //search brewery by brewery id
@@ -393,7 +393,7 @@ public class BreweryManagerGUI {
                 "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
                 "Hops", "Other", "Yeast");
             //DetailedBeer selBeer = searchBeerById(beerId[beerListCB.getSelectedIndex()]);
-            BeerZoneGUI.createBeerPage(containerPanel, frame, BREWERY_MANAGER, userId, selBeer, brewery.getUsername());
+            BeerZoneGUI.createBeerPage(containerPanel, frame, usertype, userId, selBeer, brewery.getUsername());
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));

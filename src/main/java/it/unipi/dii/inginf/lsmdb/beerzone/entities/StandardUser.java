@@ -1,14 +1,17 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class StandardUser extends GeneralUser {
     //private final GeneralUser user;
     private int age;
-    private ArrayList<FavoriteBeer> favorites;
+    private List<String> favorites;
 
     public StandardUser(String id, String email, String username, String password, int age, String location) {
         //user = new GeneralUser
@@ -39,7 +42,7 @@ public class StandardUser extends GeneralUser {
         return age;
     }
 
-    public ArrayList<FavoriteBeer> getFavorites() {
+    public List<String> getFavorites() {
         return favorites;
     }
 
@@ -47,12 +50,13 @@ public class StandardUser extends GeneralUser {
         this.age = age;
     }
 
-    public void setFavorites(ArrayList<FavoriteBeer> favorites) {
+    public void setFavorites(List<String> favorites) {
         this.favorites = favorites;
     }
 
-    public boolean addToFavorites(Beer beer) {
-        return favorites.add(new FavoriteBeer(beer, new Date()));
+    public void addToFavorites(Beer beer) {
+        //I add it to the current instance of this user
+        this.favorites.add(beer.getBeerID());
     }
 
     public boolean removeFromFavorites(FavoriteBeer beer) {

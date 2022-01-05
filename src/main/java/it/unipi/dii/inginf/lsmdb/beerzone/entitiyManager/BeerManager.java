@@ -15,7 +15,11 @@ import org.neo4j.driver.TransactionWork;
 import org.bson.types.ObjectId;
 
 
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -119,7 +123,7 @@ public class BeerManager {
     public boolean AddBeer (String BeerID,String style,String name){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})",parameters("BeerID",BeerID));
+            session.run("MERGE (S:Style{nameStyle: $Style})",parameters("Style",style));
             //I then create the node for the new beer
             session.run("CREATE (B:Beer{ID: $BeerID,Name: $name,Style: $style})",parameters("BeerID",BeerID,"Name",name,"Style",style));
             //I create the relationship between the style node and the beer node
@@ -196,7 +200,45 @@ public class BeerManager {
         }
     }
 
+    /* Function that calculate the most favorite beers in the past month */
+    public List<String> getMostFavoriteThisMonth (){
+        try(Session session = NeoDBMS.getDriver().session()){
+            //Get the current date
+            LocalDateTime MyLDTObj = LocalDateTime.now();
+            //Subtract a month
+            MyLDTObj.minus(Period.ofMonths(1));
+            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            //Convert it into a string with the chosen format
+            String Starting_date = MyLDTObj.format(myFormatObj);
+            //I commit the query and return the value
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                Result result = tx.run("MATCH ()-[F1:Favorite]->(B1)\n" +
+                                "MATCH ()-[F2:Favorite]->(B2) \n" +
+                                "WHERE F1.date>=date($starting_Date) AND F2.date>=date($starting_Date) AND B1.ID=B2.ID\n" +
+                                "RETURN B1.ID as ID,(toFloat(COUNT(F2.date))/2) AS Num ORDER BY Num DESC LIMIT 10; ",
+                        parameters( "starting_Date", Starting_date));
+                ArrayList<String> MostLiked = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    MostLiked.add(r.get("ID").asString());
+                }
+                return MostLiked;
+            });
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
     /*
+
+
+
+            session.run("MATCH ()-[F1:Favorite]->(B1)\n" +
+                            "MATCH ()-[F2:Favorite]->(B2) \n" +
+                            "WHERE F1.date>=date($starting_Date) AND F2.date>=date($starting_Date) AND B1.ID=B2.ID\n" +
+                            "RETURN B1.ID,(COUNT(F2.date)/2) AS Num ORDER BY Num DESC LIMIT 10; ",
+                    parameters( "starting_Date", Starting_date));
     * public Beer createBeerFromDoc(Document beerDoc)
     *
     * public List<Beer> readBeers(String beerName)  // also a substring of the name

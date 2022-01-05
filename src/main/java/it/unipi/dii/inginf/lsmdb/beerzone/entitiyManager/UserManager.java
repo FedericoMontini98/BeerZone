@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
@@ -170,17 +171,20 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    public boolean addFavorite(String Username, String BeerID) {
+    public boolean addFavorite(StandardUser user, Beer beer) {
         try (Session session = NeoDBMS.getDriver().session()) {
+            session.run("MERGE (U:User) WHERE U.Username");
             LocalDateTime MyLDTObj = LocalDateTime.now();
-            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             String str = MyLDTObj.format(myFormatObj);
             session.run("MATCH\n" +
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
-                            "WHERE U.username = $Username AND B.id = $BeerID'\n" +
-                            "CREATE (U)-[F:Favorites{InDate:$Date}]->(B)\n",
-                    parameters("Username", Username, "BeerID", BeerID, "Date", str));
+                            "WHERE U.Username = $Username AND B.ID = $BeerID'\n" +
+                            "CREATE (U)-[F:Favorites{date:$Date}]->(B)\n",
+                    parameters("Username", user.getUsername(), "BeerID", beer.getBeerID(), "Date", str));
+            //I add it to the entity instance
+            user.addToFavorites(beer);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,23 +239,23 @@ public class UserManager {
     }
 
     /* Function used to return to GUI a list of beers that the user has in its favorites */
-    public List<String> getFavorites(String username){
+    public void getFavorites(StandardUser user){
         try(Session session = NeoDBMS.getDriver().session()) {
-            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+            //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
+            user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {
                 Result result = tx.run("MATCH (U:User)-[F:Favorites]->(B:Beer) WHERE U.Username = $username" +
                                 " RETURN B.ID as ID",
-                        parameters("username", username));
+                        parameters("username", user.getUsername()));
                 ArrayList<String> favorites = new ArrayList<>();
                 while (result.hasNext()) {
                     Record r = result.next();
                     favorites.add(r.get("ID").asString());
                 }
                 return favorites;
-            });
+            }));
         }
         catch(Exception e){
             e.printStackTrace();
-            return Collections.emptyList();
         }
     }
 }

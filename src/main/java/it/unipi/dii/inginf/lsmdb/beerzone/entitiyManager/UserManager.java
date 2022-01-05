@@ -159,7 +159,7 @@ public class UserManager {
      *  Both to reviews and User's files */
     public boolean AddStandardUser(String ID, String Username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("CREATE (U:User{username: $Username, ID: $id})",parameters("Username",Username,"ID",ID));
+            session.run("CREATE (U:User{Username: $Username, ID: $id})",parameters("Username",Username,"ID",ID));
             return true;
         }
         catch(Exception e){
@@ -185,10 +185,9 @@ public class UserManager {
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             String str = MyLDTObj.format(myFormatObj);
             session.run("MATCH\n" +
-                            "  (B:Beer),\n" +
-                            "  (U:User)\n" +
-                            "WHERE U.Username = $Username AND B.ID = $BeerID'\n" +
-                            "CREATE (U)-[F:Favorites{date:$Date}]->(B)\n",
+                            "  (B:Beer{ID:$BeerID}),\n" +
+                            "  (U:User{Username:$Username})\n" +
+                            "CREATE (U)-[F:Favorite{date:$Date}]->(B)\n",
                     parameters("Username", user.getUsername(), "BeerID", beer.getBeerID(), "Date", str));
             //I add it to the entity instance
             user.addToFavorites(beer);
@@ -204,7 +203,7 @@ public class UserManager {
      *  favorites */
     public boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {id: $BeerID}) \n" +
+            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;
@@ -218,7 +217,7 @@ public class UserManager {
     /* Function used to remove a user from Neo4J graph DB */
     public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U {username: $username, ID: $ID})\n" +
+            session.run("MATCH (U {Username: $username, ID: $ID})\n" +
                             "DETACH DELETE U",
                     parameters( "username", username));
             return true;
@@ -234,7 +233,7 @@ public class UserManager {
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {
-                Result result = tx.run("MATCH (U:User)-[F:Favorites]->(B:Beer) WHERE U.Username = $username" +
+                Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorites]->(B:Beer)" +
                                 " RETURN B.ID as ID",
                         parameters("username", user.getUsername()));
                 ArrayList<String> favorites = new ArrayList<>();

@@ -57,7 +57,7 @@ public class ReviewManager {
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
                             "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
-                            "CREATE (U)-[R:Reviewed{InDate:$Date}]->(B)\n",
+                            "CREATE (U)-[R:Reviewed{date:date($Date)}]->(B)\n",
                     parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
             return true;
         }
@@ -69,11 +69,11 @@ public class ReviewManager {
 
     /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer has been reviewed from this user */
-    public boolean removeReview(String Username, String BeerID){
+    public boolean removeReview(StandardUser user, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {username: $Username})-[R:Reviewed]-(B:Beer {id: $BeerID}) \n" +
+            session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE R",
-                    parameters( "Username", Username, "BeerID", BeerID));
+                    parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID()));
             return true;
         }
         catch(Exception e){

@@ -133,19 +133,20 @@ public class BeerManager {
 
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */
-    public boolean AddBeer (String BeerID,String style,String name){
+    public boolean AddBeer (Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})",parameters("Style",style));
+            session.run("MERGE (S:Style{nameStyle: $Style})" +
+                    "ON CREATE" +
+                    "SET nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("CREATE (B:Beer{ID: $BeerID,Name: $name,Style: $style})",parameters("BeerID",BeerID,"Name",name,"Style",style));
+            session.run("CREATE (B:Beer{ID: $BeerID,Name: $name})",parameters("BeerID",beer.getBeerID(),"Name",beer.getBeerName()));
             //I create the relationship between the style node and the beer node
             session.run("MATCH\n" +
-                            "(B:Beer),\n" +
-                            "(S:Style)\n " +
-                            "WHERE B.BeerID = $BeerID AND S.styleName = $style \n" +
+                            "(B:Beer{ID:$BeerID}),\n" +
+                            "(S:Style{nameStyle:$style})\n " +
                             "CREATE (B)-[Ss:SameStyle]->(S)\n",
-                    parameters( "BeerID", BeerID, "styleName", style));
+                    parameters( "BeerID", beer.getBeerID(), "styleName", beer.getStyle()));
             return true;
         }
         catch(Exception e){
@@ -155,26 +156,24 @@ public class BeerManager {
     }
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
-    *  others users */
+    *  others users */ /* TO BE CHECKED */
     public List<String> getSuggested(String Username){
         //Lookin for how many different style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
-            Result n_style = session.run("match (U:User)-[F:Favorite]->(B:Beer) \n" +
-                    "where U.Username=$Username\n" +
-                    "return distinct count(B.Style)",parameters("Username",Username));
+            Result n_style = session.run("match (U:User{Username:$Username})-[F:Favorite]->(B)-[Ss:SameStyle]->(S) \n" +
+                    "return distinct count(S.nameStyle)",parameters("Username",Username));
             //If none i return an empty list
             if (n_style.single().get(0).asInt()==0){
                 return Collections.emptyList();
             }
-            Result Style_records= session.run("match (U:User)-[F:Favorite]->(B:Beer) \n" +
-                    "where U.Username=$Username\n" +
+            Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer) \n" +
                     "return  B.Style",parameters("Username",Username));
             String Style_1= Style_records.next().get("Style").asString();
             String Style_2=Style_records.next().get("Style").asString();
             //If less than 4 I return two suggestions for that style
             if(n_style.single().get(0).asInt()<2){
                 return session.readTransaction((TransactionWork<List<String>>) tx -> {
-                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
+                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," + /* CORREGGI QUA */
                             " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 4" +
                             " RETURN B.ID as ID", parameters("Style", Style_1));
                     ArrayList<String> Suggested = new ArrayList<>();
@@ -244,14 +243,7 @@ public class BeerManager {
         }
     }
     /*
-
-
-
-            session.run("MATCH ()-[F1:Favorite]->(B1)\n" +
-                            "MATCH ()-[F2:Favorite]->(B2) \n" +
-                            "WHERE F1.date>=date($starting_Date) AND F2.date>=date($starting_Date) AND B1.ID=B2.ID\n" +
-                            "RETURN B1.ID,(COUNT(F2.date)/2) AS Num ORDER BY Num DESC LIMIT 10; ",
-                    parameters( "starting_Date", Starting_date));
+    *
     * public Beer createBeerFromDoc(Document beerDoc)
     *
     * public List<Beer> readBeers(String beerName)  // also a substring of the name

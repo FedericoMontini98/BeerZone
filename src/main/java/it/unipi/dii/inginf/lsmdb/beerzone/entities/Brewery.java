@@ -1,53 +1,71 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import java.util.ArrayList;
+import org.bson.Document;
+
+import java.util.*;
 
 public class Brewery extends GeneralUser {
-    private String city;
-    private String state;
-    private ArrayList<Integer> beers;
+    //private GeneralUser brewery;
+    private String types;   //brewery type: bar, pub, etc.
+    private List<Integer> beers;
 
-    public Brewery(int id, String email, String username, String password, String city, String state) {
-        super(id, email, username, password, 1);
-        this.city = city;
-        this.state = state;
+    /* _id is from database, if null is a new brewery */
+    public Brewery(String _id, String email, String username, String password, String location, String types) {
+        //brewery = new GeneralUser
+        super(_id, email, username, password, location, 1);
+        this.types = types;
+        beers = null;
     }
 
-    public String getCity() {
-        return city;
+    public Brewery(String email, String username, String password, String location, String types) {
+        this(null, email, username, password, location, types);
     }
 
-    public String getState() {
-        return state;
+    public Brewery(Document doc) {
+        //this.brewery = new GeneralUser(doc);
+        super(doc);
+        this.types = doc.getString("types");
+        this.beers = doc.getList("beers", Integer.class);
     }
 
-    public ArrayList<Integer> getBeers() {
+    public Brewery(List<Integer> beers) {
+        //this.brewery = null;
+        this.types = null;
+        this.beers = beers;
+    }
+/*
+    public GeneralUser getBrewery() {
+        return brewery;
+    }
+*/
+    public String getTypes() {
+        return types;
+    }
+
+    public List<Integer> getBeers() {
         return beers;
     }
 
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public void setState(String state) {
-        this.state = state;
+    public void setTypes(String types) {
+        this.types = types;
     }
 
     public void setBeers(ArrayList<Integer> beers) {
         this.beers = beers;
     }
 
-    // mettere solo in beerManager ?
-    public boolean addBeer(int beer) {
+    public boolean addToBrewery(int beer) {
         return beers.add(beer);
     }
 
-    public boolean deleteBeer(Integer beer) {
+    public boolean deleteFromBrewery(Integer beer) {
         return beers.remove(beer);
     }
 
-    @Override
-    public boolean isStandard() {
-        return false;
+    public Document getBreweryDoc(boolean update) {
+        //return brewery.getUserDoc(update)
+        return super.getUserDoc(update).append("types", types)
+                .append("beers", new ArrayList<Integer>());
     }
+
 }

@@ -24,17 +24,22 @@ import static com.mongodb.client.model.Projections.include;
 import static org.neo4j.driver.Values.parameters;
 
 public class BeerManager {
-    private Beer beer;
+    //private Beer beer;
     private final MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
     //private final MongoManager mongoManager;
 
-    public BeerManager(){
-        MongoManager mongoManager = MongoManager.getInstance();
-        beersCollection = MongoManager.getCollection("beer");
+    private BeerManager(){
+        beersCollection = MongoManager.getInstance().getCollection("beer");
         NeoDBMS = Neo4jManager.getInstance();
 
+    }
+
+    public static BeerManager getInstance() {
+        if (beerManager == null)
+            beerManager = new BeerManager();
+        return beerManager;
     }
 /*
     public BeerManager (Beer beer) {

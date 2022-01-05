@@ -36,8 +36,7 @@ public class UserManager {
         // users collection include both standard users (type 0) and breweries (type 1)
     private final Neo4jManager NeoDBMS;
 
-    public UserManager() {
-        users = MongoManager.getCollection("users");
+    private UserManager() {
         NeoDBMS = Neo4jManager.getInstance();
         //mongoManager = MongoManager.getInstance();
         users = MongoManager.getInstance().getCollection("users");

@@ -12,14 +12,21 @@ import java.util.Date;
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
-    private final MongoManager mongoManager;
+    private static ReviewManager reviewManager;
+    //private final MongoManager mongoManager;
     private MongoCollection<Document> reviewsCollection;
     private final Neo4jManager NeoDBMS;
 
-    public ReviewManager() {
-        mongoManager = MongoManager.getInstance();
-        reviewsCollection = mongoManager.getCollection("reviews");
+    private ReviewManager() {
+        //mongoManager = MongoManager.getInstance();
+        reviewsCollection = MongoManager.getInstance().getCollection("reviews");
         NeoDBMS = Neo4jManager.getInstance();
+    }
+
+    public static ReviewManager getInstance() {
+        if (reviewManager == null)
+            reviewManager = new ReviewManager();
+        return reviewManager;
     }
 
 
@@ -50,4 +57,3 @@ public class ReviewManager {
         }
     }
 }
-

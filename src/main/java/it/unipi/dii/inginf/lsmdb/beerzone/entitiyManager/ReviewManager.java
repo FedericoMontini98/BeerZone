@@ -16,7 +16,7 @@ import static org.neo4j.driver.Values.parameters;
 public class ReviewManager {
     private static ReviewManager reviewManager;
     //private final MongoManager mongoManager;
-    private MongoCollection<Document> reviewsCollection;
+    private final MongoCollection<Document> reviewsCollection;
     private final Neo4jManager NeoDBMS;
 
     private ReviewManager() {

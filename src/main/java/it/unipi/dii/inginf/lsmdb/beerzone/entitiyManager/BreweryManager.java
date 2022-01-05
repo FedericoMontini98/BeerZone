@@ -16,7 +16,7 @@ import static com.mongodb.client.model.Projections.include;
 public class BreweryManager {
     private static BreweryManager breweryManager;
     //private final MongoManager mongoManager;
-    private MongoCollection<Document> breweriesCollection;
+    private final MongoCollection<Document> breweriesCollection;
 
     private BreweryManager() {
         //mongoManager = MongoManager.getInstance();
@@ -44,6 +44,11 @@ public class BreweryManager {
             breweryList.add(new Brewery(brewery));
         }
         return breweryList;
+    }
+
+    // TODO
+    public void updateBrewery(Brewery b) {
+        // chiamare set in brewery
     }
 
     public ArrayList<ObjectId> getBeerList(int page, String name){

@@ -28,7 +28,7 @@ public abstract class GeneralUser {
     }
 
     public GeneralUser(Document user) {
-        this.userID = user.get("_id").toString();
+        this.userID = user.getObjectId("_id").toString();
         this.username = user.getString("username");
         this.password = user.getString("password");
         this.location = user.getString("location");
@@ -92,7 +92,7 @@ public abstract class GeneralUser {
         return doc;
     }
 
-    protected Document getUserIdDoc() {
+    protected Document getUserDoc() {
         return new Document("username", username)
                 .append("password", password)
                 .append("email", email)

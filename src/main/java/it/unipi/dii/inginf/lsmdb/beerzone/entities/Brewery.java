@@ -1,13 +1,14 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.*;
 
 public class Brewery extends GeneralUser {
     //private GeneralUser brewery;
     private String types;   //brewery type: bar, pub, etc.
-    private List<Integer> beers;
+    private List<Beer> beers;
 
     /* _id is from database, if null is a new brewery */
     public Brewery(String _id, String email, String username, String password, String location, String types) {
@@ -25,14 +26,13 @@ public class Brewery extends GeneralUser {
         //this.brewery = new GeneralUser(doc);
         super(doc);
         this.types = doc.getString("types");
-        this.beers = doc.getList("beers", Integer.class);
+        this.beers = new ArrayList<>();
+        List<Document> list = doc.getList("beers", Document.class);
+        for (Document d: list) {
+            beers.add(new Beer(d.get("beer_id").toString(), d.getString("beer_name")));
+        }
     }
 
-    public Brewery(List<Integer> beers) {
-        //this.brewery = null;
-        this.types = null;
-        this.beers = beers;
-    }
 /*
     public GeneralUser getBrewery() {
         return brewery;
@@ -42,7 +42,7 @@ public class Brewery extends GeneralUser {
         return types;
     }
 
-    public List<Integer> getBeers() {
+    public List<Beer> getBeers() {
         return beers;
     }
 
@@ -50,22 +50,34 @@ public class Brewery extends GeneralUser {
         this.types = types;
     }
 
-    public void setBeers(ArrayList<Integer> beers) {
+    public void setBeers(ArrayList<Beer> beers) {
         this.beers = beers;
     }
 
-    public boolean addToBrewery(int beer) {
+    public boolean addToBrewery(Beer beer) {
         return beers.add(beer);
     }
 
-    public boolean deleteFromBrewery(Integer beer) {
+    public boolean deleteFromBrewery(Beer beer) {
         return beers.remove(beer);
+    }
+
+    public List<Document> getBeerList() {
+        ArrayList<Document> beersList = new ArrayList<>();
+        for (Beer b: beers) {
+            beersList.add( b.getBeerNameDoc());
+        }
+        return beersList;
     }
 
     public Document getBreweryDoc(boolean update) {
         //return brewery.getUserDoc(update)
-        return super.getUserDoc(update).append("types", types)
-                .append("beers", new ArrayList<Integer>());
+        Document doc = super.getUserDoc().append("types", types);
+        if (update)
+            doc.append("beers", getBeerList());
+        else    // new Brewery
+            doc.append("beers", new ArrayList<>());
+        return doc;
     }
 
 }

@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.*;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
@@ -105,6 +106,18 @@ public class BeerManager {
             e.printStackTrace();
         }
         return beerList;
+    }
+
+    public ArrayList<Beer> getBeersFromBrewery(Brewery brewery) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        try {
+            for (Document beer : beersCollection.find(in("_id", brewery.getBeers()))) {
+                beers.add(new Beer(beer));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beers;
     }
 
 

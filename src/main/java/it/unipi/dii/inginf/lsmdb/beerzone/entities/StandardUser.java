@@ -59,9 +59,9 @@ public class StandardUser extends GeneralUser {
         return favorites.remove(beer);
     }
 
-    public Document getUserDoc(boolean update) {
+    public Document getUserDoc() {
         //return user.getUserDoc(update).append("age", age);
-        return super.getUserDoc(update).append("age", age);
+        return super.getUserDoc().append("age", age);
     }
 
 }

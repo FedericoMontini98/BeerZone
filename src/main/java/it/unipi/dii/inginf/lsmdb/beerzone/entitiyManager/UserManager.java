@@ -32,7 +32,7 @@ import java.util.List;
 public class UserManager {
     private static UserManager userManager;
     //private final MongoManager mongoManager;
-    private MongoCollection<Document> users;
+    private final MongoCollection<Document> users;
         // users collection include both standard users (type 0) and breweries (type 1)
     private final Neo4jManager NeoDBMS;
 
@@ -106,7 +106,7 @@ public class UserManager {
             e.printStackTrace();
             return false;
         }
-        Document doc = new StandardUser(email, username, password, age, location).getUserDoc(false);
+        Document doc = new StandardUser(email, username, password, age, location).getUserDoc();
         return registerUser(doc);
     }
 

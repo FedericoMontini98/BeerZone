@@ -92,7 +92,6 @@ public class BeerManager {
         return beerList;
     }
 
-
     public ArrayList<Beer> browseBeersByStyle(String styleName) {
         ArrayList<Beer> beerList = new ArrayList<>();
         try {
@@ -107,7 +106,6 @@ public class BeerManager {
         }
         return beerList;
     }
-
 
 
     /* ************************************************************************************************************/

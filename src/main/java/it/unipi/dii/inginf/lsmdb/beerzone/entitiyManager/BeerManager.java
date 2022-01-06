@@ -1,6 +1,7 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.*;
+import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
 public class BeerManager {
@@ -37,7 +39,6 @@ public class BeerManager {
     private BeerManager(){
         beersCollection = MongoManager.getInstance().getCollection("beer");
         NeoDBMS = Neo4jManager.getInstance();
-
     }
 
     public static BeerManager getInstance() {
@@ -141,6 +142,12 @@ public class BeerManager {
             e.printStackTrace();
         }
         return beer;
+    }
+
+    public long deleteBreweryFromBeers(String breweryID) {
+        UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
+                unset("brewery"));
+        return updateResult.getMatchedCount();
     }
 
 

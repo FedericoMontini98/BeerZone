@@ -2,10 +2,10 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -89,5 +89,11 @@ public class BreweryManager {
         }
         breweriesCollection.find(in("_id", beerList));
         return beerList;
+    }
+
+    public boolean deleteBrewery(Brewery brewery) {
+        BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());
+        DeleteResult deleteResult = breweriesCollection.deleteOne(eq("_id", new ObjectId(brewery.getUserID())));
+        return deleteResult.getDeletedCount() == 1;
     }
 }

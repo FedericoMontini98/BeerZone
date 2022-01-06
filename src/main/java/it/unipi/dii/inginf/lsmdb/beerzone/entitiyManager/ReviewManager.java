@@ -78,7 +78,7 @@ public class ReviewManager {
 
     /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer has been reviewed from this user */
-    public boolean removeReview(String Username, String BeerID){
+    private boolean removeReview(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE R",
@@ -92,7 +92,7 @@ public class ReviewManager {
     }
 
     /* Function used to calculate the IDs of the most reviewed beers this month */
-    public List<String> mostReviewedBeers(){
+    private List<String> mostReviewedBeers(){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();

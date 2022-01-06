@@ -184,7 +184,7 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    public boolean AddStandardUser(String Username){
+    private boolean AddStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("CREATE (U:User{Username: $Username})",parameters("Username",Username));
             return true;
@@ -198,7 +198,7 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
+    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
             session.run("MERGE (U:User{Username: $username})" +
@@ -225,7 +225,7 @@ public class UserManager {
     /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
      *  favorites */
-    public boolean removeFavorite(String Username, String BeerID){
+    private boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
@@ -239,7 +239,7 @@ public class UserManager {
     }
 
     /* Function used to remove a user from Neo4J graph DB */
-    public boolean removeUser(String username){
+    private boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U {Username: $username})\n" +
                             "DETACH DELETE U",
@@ -253,7 +253,7 @@ public class UserManager {
     }
 
     /* Function used to return to GUI a list of beers that the user has in its favorites */
-    public void getFavorites(StandardUser user){
+    private void getFavorites(StandardUser user){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {

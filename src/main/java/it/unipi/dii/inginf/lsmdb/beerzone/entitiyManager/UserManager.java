@@ -198,7 +198,7 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
+    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
             session.run("MERGE (U:User{Username: $username})" +
@@ -225,7 +225,7 @@ public class UserManager {
     /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
      *  favorites */
-    private boolean removeFavorite(String Username, String BeerID){
+    public boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",

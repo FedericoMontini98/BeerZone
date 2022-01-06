@@ -4,34 +4,26 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
-
-
 import org.bson.Document;
+import org.bson.types.ObjectId;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
+
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static org.neo4j.driver.Values.parameters;
-
-import org.bson.types.ObjectId;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
-
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 public class UserManager {
     private static UserManager userManager;
@@ -52,9 +44,10 @@ public class UserManager {
         return userManager;
     }
 
-    // TODO
     public boolean deleteUser(StandardUser user) {
-        return false;
+        boolean result_1=deleteStandardUser(user.getEmail());
+        boolean result_2=removeUser(user.getUsername());
+        return (result_1&&result_2);
     }
 
 
@@ -111,7 +104,7 @@ public class UserManager {
         return null;
     }
 
-    public boolean deleteStandardUser(String email) {
+    private boolean deleteStandardUser(String email) {
         try {
             DeleteResult deleteResult = usersCollection.deleteOne(eq("email", email));
             return deleteResult.getDeletedCount() == 1;
@@ -141,9 +134,11 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    private boolean AddStandardUser(String Username){
+    public boolean AddStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("CREATE (U:User{Username: $Username})",parameters("Username",Username));
+            session.run("MERGE (U:User{Username: $Username})" +
+                    "ON CREATE" +
+                    "SET U.Username=$Username",parameters("Username",Username));
             return true;
         }
         catch(Exception e){
@@ -158,15 +153,13 @@ public class UserManager {
     public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
-            session.run("MERGE (U:User{Username: $username})" +
-                    "ON CREATE" +
-                    "   SET U.Username=$username",parameters("username",Username));
+            UserManager.getInstance().AddStandardUser(Username);
             //Check if beer exists
-            session.run("MERGE (B:Beer{ID: $id})" +
-                    "ON CREATE" +
-                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",fv.getBeerName(),"id",fv.getBeerID(),"style",fv.getStyle()));
+            BeerManager.getInstance().AddBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
+            //I put the date in the right format
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             String str = myFormatObj.format((TemporalAccessor)fv.getFavoriteDate());
+            //Run the query
             session.run("MATCH\n" +
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
@@ -195,7 +188,7 @@ public class UserManager {
         }
     }
 
-    /* Function used to remove a user from Neo4J graph DB */
+    /* Function used to remove a user and all its relationships from Neo4J graph DB */
     private boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U {Username: $username})\n" +
@@ -210,7 +203,7 @@ public class UserManager {
     }
 
     /* Function used to return to GUI a list of beers that the user has in its favorites */
-    private void getFavorites(StandardUser user){
+    public void getFavorites(StandardUser user){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {

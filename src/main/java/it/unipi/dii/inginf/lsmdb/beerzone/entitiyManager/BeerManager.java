@@ -159,14 +159,14 @@ public class BeerManager {
 
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */
-    private boolean AddBeer (Beer beer){
+    public boolean AddBeer (Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
             session.run("MERGE (S:Style{nameStyle: $Style})" +
                     "ON CREATE" +
                     "SET nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("CREATE (B:Beer{ID: $BeerID,Name: $name})",parameters("BeerID",beer.getBeerID(),"Name",beer.getBeerName()));
+            session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
             //I create the relationship between the style node and the beer node
             session.run("MATCH\n" +
                             "(B:Beer{ID:$BeerID}),\n" +
@@ -182,8 +182,8 @@ public class BeerManager {
     }
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
-    *  others users */ /* TO BE CHECKED */
-    private List<String> getSuggested(StandardUser user){
+    *  others users */
+    public List<String> getSuggested(StandardUser user){
         //Looking for how many style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
@@ -258,7 +258,7 @@ public class BeerManager {
     }
 
     /* Function that calculate the most favorite beers in the past month */
-    private List<String> getMostFavoriteThisMonth (){
+    public List<String> getMostFavoriteThisMonth (){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
@@ -279,6 +279,7 @@ public class BeerManager {
                                 "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
                 ArrayList<String> MostLiked = new ArrayList<>();
+                //Saving the results in a List before returning it
                 while (result.hasNext()) {
                     Record r = result.next();
                     MostLiked.add(r.get("ID").asString());

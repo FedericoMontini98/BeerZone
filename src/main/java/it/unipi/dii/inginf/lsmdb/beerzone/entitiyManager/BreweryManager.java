@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
@@ -46,9 +47,16 @@ public class BreweryManager {
         return breweryList;
     }
 
-    // TODO
-    public void updateBrewery(Brewery b) {
-        // chiamare set in brewery
+    public boolean updateBrewery(Brewery brewery) {
+        try {
+            UpdateResult updateResult = breweriesCollection.replaceOne(eq("_id", new ObjectId(brewery.getUserID())),
+                    (brewery.getBreweryDoc(true)));
+            if (updateResult.getMatchedCount() == 1)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public ArrayList<ObjectId> getBeerList(int page, String name){

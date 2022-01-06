@@ -48,11 +48,11 @@ public class BreweryManagerGUI {
         rjp.setLayout(new GridBagLayout());
         ljp.setLayout(new GridBagLayout());
         btnArray[0] = new JButton("Brewery Page");
-        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, BREWERY_MANAGER, b.getUserID(), b.getUserID()));
+        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, b));
         btnArray[1] = new JButton("Add beer");
         btnArray[1].addActionListener(e -> generateAddBeerMenu(rjp, frame, b));
         btnArray[2] = new JButton("Browse Beer");
-        btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, BREWERY_MANAGER, b.getUserID(), b.getUsername()));
+        btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, b));
         btnArray[3] = new JButton("Extract Brewery Statistics");
         btnArray[3].addActionListener(e -> generateBreweryStatisticsMenu(rjp, frame, b));
         btnArray[4] = new JButton("Logout");
@@ -106,6 +106,13 @@ public class BreweryManagerGUI {
         frame.setVisible(true);
     }
 
+    /**
+     * function that ccontrols if the textfields are correct
+     *
+     * @param input: generate all the beer info
+     * @param cb: JComboBox containing style
+     * @return correct: contains if the inputs are correct
+     */
     private static boolean checkInfo(JTextField[] input, JComboBox<String> cb) {
         boolean correct = true;
         if(input[0].getText().equals("")) {
@@ -125,6 +132,12 @@ public class BreweryManagerGUI {
         return correct;
     }
 
+    /**
+     * function that checks if the recipe has numbers where numbers are mandatory
+     *
+     * @param recipeTexts:
+     * @return corrrect: correctness of data
+     */
     private static boolean checkRecipe(String[] recipeTexts) {
         boolean correct = true;
         for(int i = 0; i < recipeTexts.length; i++){
@@ -132,7 +145,7 @@ public class BreweryManagerGUI {
                 continue;
 
             if(i == RECIPE_SECTION_OG || i == RECIPE_SECTION_FG || i == RECIPE_SECTION_IBU || i == RECIPE_SECTION_COLOR
-                    || i == RECIPE_SECTION_PHMASH) {
+                    || i == RECIPE_SECTION_PHMASH || i == RECIPE_SECTION_ABV) {
                 try {
                     Double.parseDouble(recipeTexts[i]);
                 } catch (NumberFormatException nfe) {
@@ -336,15 +349,16 @@ public class BreweryManagerGUI {
 
     /**
      * function that creates a button that allows the user to return to the browse beer section
+     *
      * @param jp : JPanel that contains the review page
      * @param frame : frame used by the application
-     * @param userType: user type
-     * @param userId: id of the user
+     * @param user: logged user
      */
-    public static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, Integer userType, String userId, String username) {
+    public static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, GeneralUser user) {
         JButton returnToBrowse = new JButton("Go Back");
+        Brewery b = (Brewery)user;
         returnToBrowse.addActionListener(e ->{
-            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, userType, userId, username);
+            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, b);
         });
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
@@ -353,14 +367,15 @@ public class BreweryManagerGUI {
 
 
     /**
-     * @param containerPanel
-     * @param frame
-     * @param userId
-     * @param breweryIdBeer
+     * function that creates the personal page of the brewery
+     *
+     * @param containerPanel: panel containing the brewery page
+     * @param frame: frame used by the application
+     * @param user: logged user
      */
-    public static void createBreweryPage(JPanel containerPanel, JFrame frame,  Integer usertype, String userId, String breweryIdBeer) {
+    public static void createBreweryPage(JPanel containerPanel, JFrame frame,  GeneralUser user) {
         containerPanel.removeAll();
-
+        Brewery b = (Brewery) user;
         JTextPane[] inputs = new JTextPane[4];
         //search brewery by brewery id
         Brewery brewery = new Brewery("2", "brewery@brewery.com", "brewery", "brewery", "location", "pub");
@@ -370,10 +385,10 @@ public class BreweryManagerGUI {
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp,"Brewery Name", "brewery", 0, inputs);
-        BeerZoneGUI.addGenericFields(jp,"Email", "brewery@brewery.com", 1, inputs);
-        BeerZoneGUI.addGenericFields(jp,"Location", "location", 2, inputs);
-        BeerZoneGUI.addGenericFields(jp, "Brewery Type", "pub", 3, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Brewery Name", b.getUsername(), 0, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Email", b.getEmail(), 1, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Location", b.getLocation(), 2, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Brewery Type", b.getTypes(), 3, inputs);
 
         //get the beers associated with the brewery
         String[] beerId = {"1", "2", "3", "4"};
@@ -390,7 +405,7 @@ public class BreweryManagerGUI {
                 "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
                 "Hops", "Other", "Yeast");
             //DetailedBeer selBeer = searchBeerById(beerId[beerListCB.getSelectedIndex()]);
-            BeerZoneGUI.createBeerPage(containerPanel, frame, usertype, userId, selBeer, brewery.getUsername());
+            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, b);
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));

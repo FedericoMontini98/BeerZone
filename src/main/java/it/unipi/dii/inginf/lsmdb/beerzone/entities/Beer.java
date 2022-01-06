@@ -9,7 +9,7 @@ public class Beer {
     protected String beerID;
     protected String beerName;
     protected String style;
-    protected String abv;
+    protected double abv;
     protected double score;
 
     public Beer() {}
@@ -18,7 +18,7 @@ public class Beer {
         this.beerID = beerID != null ? beerID : "-1";
         this.beerName = beerName;
         this.style = style;
-        this.abv = abv;
+        this.abv = Double.parseDouble(abv);
         this.score = score;
     }
 
@@ -31,11 +31,11 @@ public class Beer {
     }
 
     public Beer(String beerID, String beerName) {
-        this(beerID, beerName, null, null, 0);
+        this(beerID, beerName, "-", "-1", 0);
     }
 
     public Beer (Document beer) {
-        this(beer.get("_id").toString(), beer.getString("name"), beer.getString("style"),
+        this(beer.getObjectId("_id").toString(), beer.getString("name"), beer.getString("style"),
                 beer.getString("abv"), Double.parseDouble(beer.getString("rating")));
     }
 
@@ -52,7 +52,7 @@ public class Beer {
     }
 
     public String getAbv() {
-        return abv;
+        return String.valueOf(abv);
     }
 
     public String getScore() {
@@ -72,7 +72,7 @@ public class Beer {
     }
 
     public void setAbv(String abv) {
-        this.abv = abv;
+        this.abv = Double.parseDouble(abv);
     }
 
     public void setScore(double score) {
@@ -88,5 +88,10 @@ public class Beer {
                 .append("abv", abv)
                 .append("rating", score);
         return doc;
+    }
+
+    public Document getBeerNameDoc() {
+        return new Document("beer_id", new ObjectId(beerID))
+                .append("beer_name", beerName);
     }
 }

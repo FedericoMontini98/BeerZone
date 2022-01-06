@@ -26,7 +26,7 @@ public class MongoManager {
         return mongoManager;
     }
 
-    public static MongoCollection<Document> getCollection(String collectionName) {
+    public MongoCollection<Document> getCollection(String collectionName) {
         if (mongoManager == null)
             throw new RuntimeException("Mongo Connection does not exist!");
 

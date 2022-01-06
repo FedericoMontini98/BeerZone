@@ -38,9 +38,9 @@ public class DetailedBeer extends Beer {
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
         super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
-        this.brewery_id = brewery != null ? brewery : "-";
+        this.brewery_id = brewery != null ? brewery : "";
         this.numRating = 0;
-        this.availability = availability != null ? availability : "-";
+        this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "=";
         this.url = url != null ? url : "-";
         this.retired = retired.equalsIgnoreCase("t");
@@ -68,7 +68,7 @@ public class DetailedBeer extends Beer {
 
     public DetailedBeer (Document beer) {
         this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
-                beer.getString("abv"), beer.getString("rating"), beer.getString("brewery_id"),
+                beer.getString("abv"), beer.getString("rating"), beer.getString("brewery"),
                 beer.getString("availability"), beer.getString("notes"), beer.getString("url"),
                 beer.getString("retired"), beer.getString("method"), beer.getString("og"),
                 beer.getString("fg"), beer.getString("ibu"), beer.getString("color"),

@@ -1,20 +1,31 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.MongoCollection;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
     private static ReviewManager reviewManager;
     //private final MongoManager mongoManager;
-    private MongoCollection<Document> reviewsCollection;
+    private final MongoCollection<Document> reviewsCollection;
     private final Neo4jManager NeoDBMS;
 
     private ReviewManager() {
@@ -38,8 +49,16 @@ public class ReviewManager {
     /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
      * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
-    public boolean addReview(String Username, String BeerID){
+    public boolean addReview(Beer beer, StandardUser user ){
         try(Session session = NeoDBMS.getDriver().session()){
+            //Check if user exists
+            session.run("MERGE (U:User{Username: $username})" +
+                    "ON CREATE" +
+                    "   SET U.Username=$username, U.ID=$id ",parameters("username",user.getUsername(),"id",user.getUserID()));
+            //Check if beer exists
+            session.run("MERGE (B:Beer{ID: $id})" +
+                    "ON CREATE" +
+                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",beer.getBeerName(),"id",beer.getBeerID(),"style",beer.getStyle()));
             Date date = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
             String str = formatter.format(date);
@@ -47,13 +66,63 @@ public class ReviewManager {
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
                             "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
-                            "CREATE (U)-[R:Reviewed{InDate:$Date}]->(B)\n",
-                    parameters( "Username", Username, "BeerID", BeerID,"Date", str));
+                            "CREATE (U)-[R:Reviewed{date:date($Date)}]->(B)\n",
+                    parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
             return true;
         }
         catch(Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
+     * This function has to be available only if the beer has been reviewed from this user */
+    public boolean removeReview(StandardUser user, Beer beer){
+        try(Session session = NeoDBMS.getDriver().session()){
+            session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
+                            "DELETE R",
+                    parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID()));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /* Function used to calculate the IDs of the most reviewed beers this month */
+    public List<String> mostReviewedBeers(){
+        try(Session session = NeoDBMS.getDriver().session()){
+            //Get the current date
+            LocalDateTime MyLDTObj = LocalDateTime.now();
+            //Subtract a month
+            MyLDTObj.minus(Period.ofMonths(1));
+            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            //Convert it into a string with the chosen format
+            String Starting_date = MyLDTObj.format(myFormatObj);
+            //I commit the query and return the value
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                Result result = tx.run("MATCH ()-[R:Reviewed]->(B:Beer)\n" +
+                                "WHERE R.date>=date($starting_Date)\n" +
+                                "WITH collect(B) as Rw\n" +
+                                "MATCH ()-[R1:Reviewed]->(B1:Beer)\n" +
+                                "WHERE (B1) in Rw AND R1.date>=date($starting_Date)\n" +
+                                "MATCH ()-[R2:Reviewed]->(B1)\n" +
+                                "WHERE R2.date>=date($starting_Date)\n" +
+                                "RETURN COUNT(DISTINCT R2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
+                        parameters( "starting_Date", Starting_date));
+                ArrayList<String> MostLiked = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    MostLiked.add(r.get("ID").asString());
+                }
+                return MostLiked;
+            });
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

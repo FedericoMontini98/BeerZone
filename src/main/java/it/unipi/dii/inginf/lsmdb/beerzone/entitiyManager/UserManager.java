@@ -16,6 +16,7 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
+import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Result;
@@ -147,8 +148,32 @@ public class UserManager {
         }
     }
 
-    public void updateUsername(String email, String newUsername) {
-        UpdateResult result = users.updateOne(eq("email", email), set("username", newUsername));
+    private boolean updateUser(Document doc, String _id) {
+        try {
+            UpdateResult updateResult = users.replaceOne(eq("_id", new ObjectId(_id)), doc);
+            if (updateResult.getMatchedCount() == 1)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateStandardUser(StandardUser user) {
+        //return updateUser(user.getUserDoc(), user.getUserID());
+        try {
+            UpdateResult updateResult = users.replaceOne(eq("_id", new ObjectId(user.getUserID())),
+                    user.getUserDoc());
+            if (updateResult.getMatchedCount() == 1)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateBrewery(Brewery brewery) {
+        return updateUser(brewery.getBreweryDoc(true), brewery.getUserID());
     }
 
     /* ************************************************************************************************************/

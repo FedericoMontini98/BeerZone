@@ -10,6 +10,7 @@ import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
+import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
@@ -115,6 +116,19 @@ public class BeerManager {
             e.printStackTrace();
         }
         return beers;
+    }
+
+    public DetailedBeer getBeer(String beerID) {
+        DetailedBeer beer = null;
+        try {
+            Document doc = beersCollection.find(eq("_id", new ObjectId(beerID))).first();
+            if (doc == null)
+                return null;
+            beer = new DetailedBeer(doc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beer;
     }
 
 
@@ -258,15 +272,4 @@ public class BeerManager {
             return Collections.emptyList();
         }
     }
-    /*
-    *
-    * public Beer createBeerFromDoc(Document beerDoc)
-    *
-    * public List<Beer> readBeers(String beerName)  // also a substring of the name
-    *
-    * public void updateRating(...)
-    *
-    * public void deleteBeer(Beer beer);
-    *
-    * */
 }

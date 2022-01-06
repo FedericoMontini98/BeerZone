@@ -1,19 +1,12 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -368,18 +361,19 @@ public class BreweryManagerGUI {
     public static void createBreweryPage(JPanel containerPanel, JFrame frame,  Integer usertype, String userId, String breweryIdBeer) {
         containerPanel.removeAll();
 
+        JTextPane[] inputs = new JTextPane[4];
         //search brewery by brewery id
         Brewery brewery = new Brewery("2", "brewery@brewery.com", "brewery", "brewery", "location", "pub");
-        ArrayList<Integer> breweryBeers = new ArrayList<Integer>(Arrays.asList(1,2,39));
+        ArrayList<Beer> breweryBeers = new ArrayList<Beer>(Arrays.asList(new Beer("1", "Beer1"), new Beer("2", "Beer2"), new Beer("3", "Beer3")));
         brewery.setBeers(breweryBeers);
         JPanel jp = new JPanel(new GridBagLayout());
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp,"Brewery Name", "brewery", Objects.equals(userId, breweryIdBeer), 0);
-        BeerZoneGUI.addGenericFields(jp,"Email", "brewery@brewery.com", Objects.equals(userId, breweryIdBeer), 1);
-        BeerZoneGUI.addGenericFields(jp,"Location", "location", Objects.equals(userId, breweryIdBeer), 2);
-        BeerZoneGUI.addGenericFields(jp, "Brewery Type", "pub", Objects.equals(userId, breweryIdBeer), 3);
+        BeerZoneGUI.addGenericFields(jp,"Brewery Name", "brewery", 0, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Email", "brewery@brewery.com", 1, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Location", "location", 2, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Brewery Type", "pub", 3, inputs);
 
         //get the beers associated with the brewery
         String[] beerId = {"1", "2", "3", "4"};

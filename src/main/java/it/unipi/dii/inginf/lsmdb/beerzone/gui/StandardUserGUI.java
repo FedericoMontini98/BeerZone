@@ -1,15 +1,11 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 
 import javax.swing.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 import java.awt.*;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -68,34 +64,39 @@ public class StandardUserGUI {
     private static void createUserPage(JPanel rjp, JFrame frame, StandardUser s) {
         rjp.removeAll();
 
+        JTextPane[] inputs = new JTextPane[4];
         JPanel jp = new JPanel(new GridBagLayout());
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), true, 0);
-        BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(), true, 1);
-        BeerZoneGUI.addGenericFields(jp, "Age", Integer.toString(s.getAge()), true, 2);
-        BeerZoneGUI.addGenericFields(jp, "Location", s.getLocation(), true, 3);
+        BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), 0, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(),1, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Age", Integer.toString(s.getAge()), 2, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Location", s.getLocation(), 3, inputs);
 
         rjp.add(jp, new GridBagConstraints(0, 0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
 
-        JButton updateUser = new JButton("Update brewery");
+        JButton updateUser = new JButton("Update User");
         updateUser.addActionListener(e->{
-
+            s.setUsername(inputs[0].getText());
+            s.setEmail(inputs[1].getText());
+            s.setAge(Integer.parseInt(inputs[2].getText()));
+            s.setLocation(inputs[3].getText());
+            //UserManager.getInstance().updateStandardUser(s);
         });
         rjp.add(updateUser,  new GridBagConstraints(0, 1,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
 
-        JButton deleteBrewey = new JButton("Delete User");
-        deleteBrewey.setFont(new Font("Arial", Font.BOLD, 15));
-        deleteBrewey.setBackground(Color.RED);
-        deleteBrewey.setPreferredSize(new Dimension(200, 40));
-        deleteBrewey.setForeground(Color.WHITE);
-        deleteBrewey.addActionListener(e->{
-
+        JButton deleteUser = new JButton("Delete User");
+        deleteUser.setFont(new Font("Arial", Font.BOLD, 15));
+        deleteUser.setBackground(Color.RED);
+        deleteUser.setPreferredSize(new Dimension(200, 40));
+        deleteUser.setForeground(Color.WHITE);
+        deleteUser.addActionListener(e->{
+            //UserManager.getInstance().deleteUser(s.getEmail());
         });
-        rjp.add(deleteBrewey, new GridBagConstraints(0, 2,2,1,0,0,
+        rjp.add(deleteUser, new GridBagConstraints(0, 2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
 
         frame.repaint();
@@ -110,6 +111,11 @@ public class StandardUserGUI {
     private static void browseUserFavoritesSuggestions(JPanel rjp, JFrame frame, StandardUser s, Integer request) {
         SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
         Date date = new Date(System.currentTimeMillis());
+        //UserManager.getInstance().getFavorites(s);
+        //ArrayList<FavoriteBeer> favBeer = new ArrayList<FavoriteBeer>();
+        //for(int i = 0; i < s.getFavorites().size(); i++)
+        //    favBeer.add(BeerManager.getInstance().getFavoriteBeer(s.getFavorites().get(i)));
+
         FavoriteBeer b1 = new FavoriteBeer("", "Beer1", date);
         FavoriteBeer b2 = new FavoriteBeer("", "Beer2", date);
         FavoriteBeer b3 = new FavoriteBeer("", "Beer3", date);
@@ -124,9 +130,9 @@ public class StandardUserGUI {
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createFavoriteSuggestionSection(list, 0, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
-        createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
-        s.setFavorites(list);
+        createFavoriteSuggestionSection(/*favBeer*/list, 0, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
+        createFavoriteSuggestionPageButtons(/*favBeer*/list, beerContainer, rjp, frame, s.getUserID(), s.getUsername(), request);
+        //s.setFavorites(favId) //remove
         frame.repaint();
         frame.setVisible(true);
     }
@@ -227,7 +233,7 @@ public class StandardUserGUI {
         JButton goToBeer = new JButton("To Beer Page");
         goToBeer.addActionListener(e->{
             //get beer by id
-            //DetailedBeer selBeer = searchBeerById(favoriteBeer.getBeerId());
+            //DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(favoriteBeer.getBeerID());
             //createBeerPage(rjp, frame, STANDARD_USER, userId, selBeer, username)
         });
         beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
@@ -273,7 +279,10 @@ public class StandardUserGUI {
         JPanel btnPanel = new JPanel();
 
         addFav.addActionListener(e -> {
-            //add to favorites
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date dateFav = new Date();
+            FavoriteBeer fb = new FavoriteBeer(selBeer.getBeerID(), selBeer.getBeerName(), dateFav);
+            //UserManager.getInstance().addFavorite(userId, username, fb);
         });
         btnPanel.add(addFav, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -318,13 +327,21 @@ public class StandardUserGUI {
         rjp.removeAll();
         JTextField reviewAvg = new JTextField("3.0");
         JTextArea textArea = new JTextArea(5, 30);
-        JSpinner[] spinners = new JSpinner[4];
+        JSpinner[] spinners = new JSpinner[5];
 
-        //String[] review = String[4];
-        //review = searchReview(selBeer, username)
+        //Review rev = ReviewManager.getInstance().getReview(selBeer.getBeerID(), username);
         prepareAverageSection(reviewAvg, rjp);
         prepareVotesPanel(reviewAvg, spinners, rjp);
         prepareTextReviewArea(rjp, textArea);
+
+        /*if(rev != null){
+            reviewAvg.setText(rev.getScore());
+            spinners[0].setValue(Double.parseDouble(rev.getLook()));
+            spinners[1].setValue(Double.parseDouble(rev.getSmell()));
+            spinners[2].setValue(Double.parseDouble(rev.getTaste()));
+            spinners[3].setValue(Double.parseDouble(rev.getFeel()));
+            spinners[4].setValue(Double.parseDouble(rev.getOverall()));
+        }*/
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
@@ -366,18 +383,16 @@ public class StandardUserGUI {
             newScore = (double) Math.round(newScore * 100) / 100;
             selBeer.setScore(newScore);
             selBeer.setNumRating(Integer.parseInt(selBeer.getNumRating()) + 1);
-            Double[] values = new Double[4];
+            Double[] values = new Double[5];
             for(int i = 0; i < spinners.length; i++)
                 values[i] = (Double)spinners[i].getValue();
+
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date reviewDate = new Date();
             String text = textArea.getText();
-            System.out.println("username: " + username + "\n"+
-                    "beerID: " + selBeer.getBeerID() + "\n" +
-                    "avg: " + avg + "\n" +
-                    "value[1]: " +  values[0] + "\n" +
-                    "value[2]: " +  values[1] + "\n" +
-                    "value[3]: " +  values[2] + "\n" +
-                    "value[4]: " +  values[3] + "\n" +
-                    "text: " + text);
+            Review rev = new Review(selBeer.getBeerID(), username, reviewDate, null,  values[0].toString(), values[1].toString(), values[2].toString(),
+                                                                                                values[3].toString(), values[4].toString());
+            //ReviewManager.getInstance().addNewReview(rev);
         });
 
         btnPanel.add(subReviewBtn, new GridBagConstraints(1,0,1,1,0,0,
@@ -425,6 +440,7 @@ public class StandardUserGUI {
         createBeerReviewFields("Smell", votesPanel, 0, 1, reviewAvg, spinners);
         createBeerReviewFields("Taste", votesPanel, 1, 0, reviewAvg, spinners);
         createBeerReviewFields("Feel", votesPanel, 1, 1, reviewAvg, spinners);
+        createBeerReviewFields("Overall", votesPanel, 2, 0, reviewAvg, spinners);
 
         rjp.add(votesPanel, new GridBagConstraints(0,1,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),20, 20));
@@ -468,8 +484,8 @@ public class StandardUserGUI {
         description.setBackground(BACKGROUND_COLOR_RECIPE);
         description.setBorder(createEmptyBorder());
         description.setFont(new Font("Arial", Font.BOLD, 15));
-        GridBagConstraints gbc = new GridBagConstraints(2*col,row,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),0, 5);
+        GridBagConstraints gbc = new GridBagConstraints((row != 2)?2*col:1,row,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 2)?15:0, (row == 2)?80:0, 10, 0),0, 5);
 
         if(col == 1){
             gbc.insets.left = 70;
@@ -489,16 +505,14 @@ public class StandardUserGUI {
             double currTot = 0.0;
             for (JSpinner jSpinner : spinners) currTot = currTot + (Double) jSpinner.getValue();
 
-            currTot = (double) Math.round(currTot/4 * 100) / 100;
+            currTot = (double) Math.round(currTot/5 * 100) / 100;
             reviewAvg.setText(String.valueOf(currTot));
         });
-        if(row != 1)
+        if(row != 2)
             rjp.add(spinner, new GridBagConstraints(2*col + 1,row,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 20, 10, 0),20,5));
         else
-            rjp.add(spinner, new GridBagConstraints(2*col + 1,row,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 20, 0, 0),20,5));
-
+            rjp.add(spinner, new GridBagConstraints(2,row,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(15, 20, 0, 0),20,5));
     }
-
 }

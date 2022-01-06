@@ -1,6 +1,8 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -142,8 +144,8 @@ public class BeerZoneGUI {
         };
 
         setTableSettings(tableModel, browseTable, containerPanel, frame, userType, userId, username);
-        Beer b1 = new Beer("1", "beer1", "style1", "abv1", -1);
-        Beer b2 = new Beer("2", "beer2", "style2", "abv2", 4);
+        Beer b1 = new Beer("1", "beer1", "style1", "1", -1);
+        Beer b2 = new Beer("2", "beer2", "style2", "2", 4);
         tableModel.addRow(beerToStringArray(b1));
         tableModel.addRow(beerToStringArray(b2));
     }
@@ -200,7 +202,7 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     String id = browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString();
-                    DetailedBeer b = new DetailedBeer(id, "name", "style", "abv", "0.0", "brewery", "Availability", "Notes",
+                    DetailedBeer b = new DetailedBeer(id, "name", "style", "52", "0.0", "brewery", "Availability", "Notes",
                             "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
                             "Hops", "Other", "Yeast");
                     createBeerPage(containerPanel, frame, userType, userId, b, username);
@@ -283,10 +285,9 @@ public class BeerZoneGUI {
      * @param containerPanel
      * @param description
      * @param breweryInfo
-     * @param editable
      * @param row
      */
-    public static void addGenericFields(JPanel containerPanel, String description, String breweryInfo, boolean editable, int row) {
+    public static void addGenericFields(JPanel containerPanel, String description, String breweryInfo, int row, JTextPane[] inputs) {
         JTextField desc = new JTextField(description);
         desc.setFont(new Font("Arial", Font.BOLD, 14));
         desc.setEditable(false);
@@ -296,6 +297,7 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 25, 15, 15),0, 0));
 
         JTextPane info = new JTextPane();
+        inputs[row] = info;
         info.setText(breweryInfo);
         info.setPreferredSize(new Dimension(200, 50));
         StyledDocument doc = info.getStyledDocument();
@@ -543,8 +545,8 @@ public class BeerZoneGUI {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 if(Objects.equals(bg[0], "Brewery Manager")){
-                    Brewery t = new Brewery("", "", "", "", "", "");
                     Brewery b = new Brewery("1", inputData[EMAIL_ROW], inputData[USERNAME_ROW], inputData[PASSWORD_ROW], inputData[LOCATION_ROW], inputData[VARIABLE_ROW]);
+                    //BreweryManager.getInstance().addBrewery(b);
                     BreweryManagerGUI.breweryManagerSection(frame, b);
                 }
                 else{

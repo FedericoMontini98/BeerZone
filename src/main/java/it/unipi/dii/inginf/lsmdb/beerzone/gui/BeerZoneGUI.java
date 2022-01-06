@@ -200,7 +200,7 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     String id = browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString();
-                    DetailedBeer b = new DetailedBeer(id, "name", "style", "abv", "4.0", "brewery", "Availability", "Notes",
+                    DetailedBeer b = new DetailedBeer(id, "name", "style", "abv", "0.0", "brewery", "Availability", "Notes",
                             "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
                             "Hops", "Other", "Yeast");
                     createBeerPage(containerPanel, frame, userType, userId, b, username);
@@ -236,7 +236,8 @@ public class BeerZoneGUI {
         containerPanel.add(beerFields, new GridBagConstraints(0,0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        JButton toBrewery = new JButton("Go to Brewery");
+        JButton toBrewery = new JButton(selBeer.getBrewery_id().equals("")?"No Corresponding Brewery":"Go to Brewery");
+        toBrewery.setEnabled(!selBeer.getBrewery_id().equals(""));
         if(Objects.equals(userType, STANDARD_USER))
             containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -276,6 +277,35 @@ public class BeerZoneGUI {
         recipeTexts[13] = selBeer.getStyle();
         recipeTexts[14] = selBeer.getUrl();
         recipeTexts[15] = selBeer.getYeast();
+    }
+
+    /**
+     * @param containerPanel
+     * @param description
+     * @param breweryInfo
+     * @param editable
+     * @param row
+     */
+    public static void addGenericFields(JPanel containerPanel, String description, String breweryInfo, boolean editable, int row) {
+        JTextField desc = new JTextField(description);
+        desc.setFont(new Font("Arial", Font.BOLD, 14));
+        desc.setEditable(false);
+        desc.setBackground(BACKGROUND_COLOR_RECIPE);
+        desc.setBorder(createEmptyBorder());
+        containerPanel.add(desc, new GridBagConstraints(0,row,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 25, 15, 15),0, 0));
+
+        JTextPane info = new JTextPane();
+        info.setText(breweryInfo);
+        info.setPreferredSize(new Dimension(200, 50));
+        StyledDocument doc = info.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+        info.setFont(new Font("Arial", Font.PLAIN, 14));
+        info.setBorder(createEmptyBorder());
+        containerPanel.add(info, new GridBagConstraints(1,row,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 0, 15, 15),0, 0));
     }
 
     /**

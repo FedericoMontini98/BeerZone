@@ -7,6 +7,9 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -373,10 +376,10 @@ public class BreweryManagerGUI {
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        addBreweryFields(jp,"Brewery Name", "brewery", Objects.equals(userId, breweryIdBeer), 0);
-        addBreweryFields(jp,"Email", "brewery@brewery.com", Objects.equals(userId, breweryIdBeer), 1);
-        addBreweryFields(jp,"Location", "location", Objects.equals(userId, breweryIdBeer), 2);
-        addBreweryFields(jp, "Brewery Type", "pub", Objects.equals(userId, breweryIdBeer), 3);
+        BeerZoneGUI.addGenericFields(jp,"Brewery Name", "brewery", Objects.equals(userId, breweryIdBeer), 0);
+        BeerZoneGUI.addGenericFields(jp,"Email", "brewery@brewery.com", Objects.equals(userId, breweryIdBeer), 1);
+        BeerZoneGUI.addGenericFields(jp,"Location", "location", Objects.equals(userId, breweryIdBeer), 2);
+        BeerZoneGUI.addGenericFields(jp, "Brewery Type", "pub", Objects.equals(userId, breweryIdBeer), 3);
 
         //get the beers associated with the brewery
         String[] beerId = {"1", "2", "3", "4"};
@@ -385,7 +388,7 @@ public class BreweryManagerGUI {
         beerListCB.setVisible(true);
         beerListCB.setPreferredSize(new Dimension(100, 30));
         containerPanel.add(beerListCB, new GridBagConstraints(0, 1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 30, 15, 0),0,0));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 40, 15, 0),0,0));
 
         JButton goToBeer = new JButton("Go To Beer");
         goToBeer.addActionListener(e ->{
@@ -397,27 +400,28 @@ public class BreweryManagerGUI {
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
+        JButton updateBrewery = new JButton("Update brewery");
+        updateBrewery.addActionListener(e->{
+
+        });
+        containerPanel.add(updateBrewery,  new GridBagConstraints(0, 2,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
+        JButton deleteBrewey = new JButton("Delete Brewery");
+        deleteBrewey.setFont(new Font("Arial", Font.BOLD, 15));
+        deleteBrewey.setBackground(Color.RED);
+        deleteBrewey.setPreferredSize(new Dimension(200, 40));
+        deleteBrewey.setForeground(Color.WHITE);
+        deleteBrewey.addActionListener(e->{
+
+        });
+        containerPanel.add(deleteBrewey, new GridBagConstraints(0, 3,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
         containerPanel.add(jp, new GridBagConstraints(0, 0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
-    }
-
-    private static void addBreweryFields(JPanel containerPanel, String description, String breweryInfo, boolean editable, int row) {
-        JTextField desc = new JTextField(description);
-        desc.setFont(new Font("Arial", Font.BOLD, 14));
-        desc.setEditable(false);
-        desc.setBackground(BACKGROUND_COLOR_RECIPE);
-        desc.setBorder(createEmptyBorder());
-        containerPanel.add(desc, new GridBagConstraints(0,row,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 25, 15, 0),0, 0));
-
-        JTextField info = new JTextField(breweryInfo);
-        info.setFont(new Font("Arial", Font.PLAIN, 14));
-        info.setEditable(editable);
-        info.setBorder(createEmptyBorder());
-        info.setBackground(BACKGROUND_COLOR_RECIPE);
-        containerPanel.add(info, new GridBagConstraints(1,row,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 0, 15, 15),0, 0));
     }
 }

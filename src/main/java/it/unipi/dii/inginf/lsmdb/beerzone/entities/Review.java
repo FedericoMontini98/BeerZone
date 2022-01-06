@@ -2,20 +2,21 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.Date;
 
 public class Review {
+    private String reviewID;
     private String beerID;
     private String username;
     private Date reviewDate;
-    private String text;
-    private double look;
-    private double smell;
-    private double taste;
-    private double feel;
-    private double overall;
-    private double score;
+    private Double look;
+    private Double smell;
+    private Double taste;
+    private Double feel;
+    private Double overall;
+    private Double score;
 
     public Review(){}
 
@@ -24,24 +25,31 @@ public class Review {
         this.username = username;
     }
 
-    public Review(String beerID, String username, Date reviewDate, @Nullable String text, String look, String smell,
+    public Review(String beerID, String username, Date reviewDate, String look, String smell,
                   String taste, String feel, String overall) {
         this.beerID = beerID;
         this.username = username;
         this.reviewDate = reviewDate;
-        this.text = text;
         this.look = Double.parseDouble(look);
         this.smell = Double.parseDouble(smell);
         this.taste = Double.parseDouble(taste);
         this.feel = Double.parseDouble(feel);
         this.overall = Double.parseDouble(overall);
+        this.reviewID = "-1";
+        computeScore();
     }
 
     public Review(Document review) {
-        this(review.getString("beer_id"), review.getString("username"), review.getDate("date"),
-                review.getString("test"), review.getString("look"), review.getString("smell"),
-                review.getString("tste"), review.getString("feel"), review.getString("overall"));
+        this(review.getString("beer"), review.getString("username"), review.getDate("date"),
+                review.get("look").toString(), review.get("smell").toString(),
+                review.get("taste").toString(), review.get("feel").toString(),
+                review.get("overall").toString());
+        this.reviewID = review.getObjectId("_id").toString();
         this.score = review.getDouble("score");
+    }
+
+    public String getReviewID() {
+        return reviewID;
     }
 
     public String getBeerID() {
@@ -54,10 +62,6 @@ public class Review {
 
     public String getReviewDate() {
         return reviewDate.toString();
-    }
-
-    public String getText() {
-        return text;
     }
 
     public String getLook() {
@@ -96,10 +100,6 @@ public class Review {
         this.reviewDate = reviewDate;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
-
     public void setLook(String look) {
         this.look = Double.parseDouble(look);
     }
@@ -130,15 +130,14 @@ public class Review {
     }
 
     public Document getReview() {
-        return new Document("beer_id", beerID)
+        return new Document("beer", beerID)
                 .append("username", username)
-                .append("reviewDate", reviewDate)
-                .append("text", text)
+                .append("date", reviewDate)
                 .append("look", look)
                 .append("smell", smell)
                 .append("taste", taste)
                 .append("feel", feel)
                 .append("overall", overall)
-                .append("rating", score);
+                .append("score", score);
     }
 }

@@ -5,6 +5,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
@@ -25,6 +26,7 @@ import org.neo4j.driver.TransactionWork;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -157,9 +159,9 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    public boolean AddStandardUser(String ID, String Username){
+    public boolean AddStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("CREATE (U:User{Username: $Username, ID: $id})",parameters("Username",Username,"ID",ID));
+            session.run("CREATE (U:User{Username: $Username})",parameters("Username",Username));
             return true;
         }
         catch(Exception e){
@@ -171,26 +173,23 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    public boolean addFavorite(StandardUser user, Beer beer) {
+    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
             session.run("MERGE (U:User{Username: $username})" +
                     "ON CREATE" +
-                    "   SET U.Username=$username, U.ID=$id ",parameters("username",user.getUsername(),"id",user.getUserID()));
+                    "   SET U.Username=$username",parameters("username",Username));
             //Check if beer exists
             session.run("MERGE (B:Beer{ID: $id})" +
                     "ON CREATE" +
-                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",beer.getBeerName(),"id",beer.getBeerID(),"style",beer.getStyle()));
-            LocalDateTime MyLDTObj = LocalDateTime.now();
+                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",fv.getBeerName(),"id",fv.getBeerID(),"style",fv.getStyle()));
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            String str = MyLDTObj.format(myFormatObj);
+            String str = myFormatObj.format((TemporalAccessor)fv.getFavoriteDate());
             session.run("MATCH\n" +
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
                             "CREATE (U)-[F:Favorite{date:$Date}]->(B)\n",
-                    parameters("Username", user.getUsername(), "BeerID", beer.getBeerID(), "Date", str));
-            //I add it to the entity instance
-            user.addToFavorites(beer);
+                    parameters("Username",Username, "BeerID", fv.getBeerID(), "Date", str));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -217,7 +216,7 @@ public class UserManager {
     /* Function used to remove a user from Neo4J graph DB */
     public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U {Username: $username, ID: $ID})\n" +
+            session.run("MATCH (U {Username: $username})\n" +
                             "DETACH DELETE U",
                     parameters( "username", username));
             return true;

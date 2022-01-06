@@ -209,8 +209,8 @@ public class DetailedBeer extends Beer {
         this.yeast = yeast;
     }
 
-    public Document getBeerDoc(@Nullable boolean update) {
-        Document doc = super.getBeerDoc(update);
+    public Document getBeerDoc() {
+        Document doc = super.getBeerDoc();
         doc.append("brewery", brewery_id).append("numRating", numRating)
                 .append("method", method)
                 .append("og", og).append("fg", fg)

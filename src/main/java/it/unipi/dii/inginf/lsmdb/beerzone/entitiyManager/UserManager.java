@@ -70,7 +70,8 @@ public class UserManager {
             doc = usersCollection.find(eq("email", email)).first();
         } else if (type == 0) { // StandardUser
             if (username == null || username.isEmpty() || username.equals(" "))
-                throw new RuntimeException("Username not valid");
+                return false;
+                //throw new RuntimeException("Username not valid");
             doc = usersCollection.find(or(eq("email", email),
                     and(eq("type", type), eq("username", username)))).first();
         }

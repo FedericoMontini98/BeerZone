@@ -92,8 +92,13 @@ public class BreweryManager {
     }
 
     public boolean deleteBrewery(Brewery brewery) {
-        BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());
+        long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());
         DeleteResult deleteResult = breweriesCollection.deleteOne(eq("_id", new ObjectId(brewery.getUserID())));
-        return deleteResult.getDeletedCount() == 1;
+        return deleteResult.getDeletedCount() == 1 && ret == brewery.getBeerList().size();
+    }
+
+    // TODO
+    public boolean addBeerToBrewery(String breweryID, String beerID) {
+        return false;
     }
 }

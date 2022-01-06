@@ -35,7 +35,7 @@ public class Review {
         this.taste = Double.parseDouble(taste);
         this.feel = Double.parseDouble(feel);
         this.overall = Double.parseDouble(overall);
-        this.reviewID = "-1";
+        this.reviewID = new ObjectId().toString();
         computeScore();
     }
 
@@ -130,7 +130,8 @@ public class Review {
     }
 
     public Document getReview() {
-        return new Document("beer", beerID)
+        return new Document("_id", new ObjectId(reviewID))
+                .append("beer", beerID)
                 .append("username", username)
                 .append("date", reviewDate)
                 .append("look", look)

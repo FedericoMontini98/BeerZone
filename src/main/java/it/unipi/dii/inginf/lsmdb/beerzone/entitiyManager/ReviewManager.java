@@ -6,10 +6,19 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.neo4j.driver.Values.parameters;
 
@@ -82,4 +91,38 @@ public class ReviewManager {
         }
     }
 
+    /* Function used to calculate the IDs of the most reviewed beers this month */
+    public List<String> mostReviewedBeers(){
+        try(Session session = NeoDBMS.getDriver().session()){
+            //Get the current date
+            LocalDateTime MyLDTObj = LocalDateTime.now();
+            //Subtract a month
+            MyLDTObj.minus(Period.ofMonths(1));
+            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            //Convert it into a string with the chosen format
+            String Starting_date = MyLDTObj.format(myFormatObj);
+            //I commit the query and return the value
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                Result result = tx.run("MATCH ()-[R:Reviewed]->(B:Beer)\n" +
+                                "WHERE R.date>=date($starting_Date)\n" +
+                                "WITH collect(B) as Rw\n" +
+                                "MATCH ()-[R1:Reviewed]->(B1:Beer)\n" +
+                                "WHERE (B1) in Rw AND R1.date>=date($starting_Date)\n" +
+                                "MATCH ()-[R2:Reviewed]->(B1)\n" +
+                                "WHERE R2.date>=date($starting_Date)\n" +
+                                "RETURN COUNT(DISTINCT R2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
+                        parameters( "starting_Date", Starting_date));
+                ArrayList<String> MostLiked = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    MostLiked.add(r.get("ID").asString());
+                }
+                return MostLiked;
+            });
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
 }

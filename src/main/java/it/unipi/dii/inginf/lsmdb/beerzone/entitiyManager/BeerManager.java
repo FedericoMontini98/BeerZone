@@ -5,6 +5,7 @@ import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -13,14 +14,12 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionWork;
-import org.bson.types.ObjectId;
 
 
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +28,6 @@ import static com.mongodb.client.model.Projections.include;
 import static org.neo4j.driver.Values.parameters;
 
 public class BeerManager {
-    //private Beer beer;
     private final MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
@@ -46,12 +44,7 @@ public class BeerManager {
             beerManager = new BeerManager();
         return beerManager;
     }
-/*
-    public BeerManager (Beer beer) {
-        this();
-        this.beer = beer;
-    }
-*/
+
     public void addNewBeer(DetailedBeer beer) {
         Document beerDoc = beer.getBeerDoc(false);
         beersCollection.insertOne(beerDoc);
@@ -157,25 +150,36 @@ public class BeerManager {
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
     *  others users */ /* TO BE CHECKED */
-    public List<String> getSuggested(String Username){
-        //Lookin for how many different style this user have in his favorites
+    public List<String> getSuggested(StandardUser user){
+        //Looking for how many style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
-            Result n_style = session.run("match (U:User{Username:$Username})-[F:Favorite]->(B)-[Ss:SameStyle]->(S) \n" +
-                    "return distinct count(S.nameStyle)",parameters("Username",Username));
-            //If none i return an empty list
-            if (n_style.single().get(0).asInt()==0){
+            int n_style=0;
+            Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
+                    "return  S.nameStyle",parameters("Username",user.getUsername()));
+            String Style_1="",Style_2="";
+            if(Style_records.hasNext()) {
+                Style_1= Style_records.next().get("Style").asString();
+                if (Style_records.hasNext()) {
+                    Style_2 = Style_records.next().get("Style").asString();
+                    n_style = 2;
+                }
+                else{
+                    n_style=1;
+                }
+            }
+            if(n_style==0){ //If the user haven't any favorites I return an empty list
                 return Collections.emptyList();
             }
-            Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer) \n" +
-                    "return  B.Style",parameters("Username",Username));
-            String Style_1= Style_records.next().get("Style").asString();
-            String Style_2=Style_records.next().get("Style").asString();
             //If less than 4 I return two suggestions for that style
-            if(n_style.single().get(0).asInt()<2){
+            if(n_style==1){
+                String finalStyle_ = Style_1;
                 return session.readTransaction((TransactionWork<List<String>>) tx -> {
-                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," + /* CORREGGI QUA */
-                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 4" +
-                            " RETURN B.ID as ID", parameters("Style", Style_1));
+                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
+                            "WHERE (B1) in BeersWithSameStyle\n" +
+                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
+                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Style", finalStyle_));
                     ArrayList<String> Suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
@@ -186,18 +190,26 @@ public class BeerManager {
             }
             //If more than 2 I take the two with most records and return suggestions on those two
             else{
+                String finalStyle_1 = Style_1;
+                String finalStyle_2 = Style_2;
                 return session.readTransaction((TransactionWork<List<String>>) tx -> {
-                    Result result = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
-                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 2" +
-                            " RETURN B.ID as ID", parameters("Style", Style_1));
+                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
+                            "WHERE (B1) in BeersWithSameStyle\n" +
+                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_1));
                     ArrayList<String> Suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
                         Suggested.add(r.get("ID").asString());
                     }
-                    Result result_2 = tx.run("MATCH (B:Beer{Style:$Style}) With B," +
-                            " SIZE(()-[:Favorite]-(B)) as FavoritesCount ORDER BY FavoritesCount DESC LIMIT 2" +
-                            " RETURN B.ID as ID", parameters("Style",Style_2));
+                    Result result_2 = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
+                            "WHERE (B1) in BeersWithSameStyle\n" +
+                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_2));
                     while (result_2.hasNext()) {
                         Record r = result_2.next();
                         Suggested.add(r.get("ID").asString());
@@ -224,10 +236,14 @@ public class BeerManager {
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
             return session.readTransaction((TransactionWork<List<String>>) tx -> {
-                Result result = tx.run("MATCH ()-[F1:Favorite]->(B1)\n" +
-                                "MATCH ()-[F2:Favorite]->(B2) \n" +
-                                "WHERE F1.date>=date($starting_Date) AND F2.date>=date($starting_Date) AND B1.ID=B2.ID\n" +
-                                "RETURN B1.ID as ID,(toFloat(COUNT(F2.date))/2) AS Num ORDER BY Num DESC LIMIT 10; ",
+                Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
+                                "WHERE F.date>=date($starting_Date)\n" +
+                                "WITH collect(B) as Fv\n" +
+                                "MATCH ()-[F1:Favorite]->(B1:Beer)\n" +
+                                "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
+                                "MATCH ()-[F2:Favorite]->(B1)\n" +
+                                "WHERE F2.date>=date($starting_Date)\n" +
+                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
                 ArrayList<String> MostLiked = new ArrayList<>();
                 while (result.hasNext()) {

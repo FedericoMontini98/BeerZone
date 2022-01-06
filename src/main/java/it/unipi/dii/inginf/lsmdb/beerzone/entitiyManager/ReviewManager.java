@@ -1,6 +1,8 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.*;
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
@@ -39,6 +42,78 @@ public class ReviewManager {
         if (reviewManager == null)
             reviewManager = new ReviewManager();
         return reviewManager;
+    }
+
+    // TODO
+    public boolean addNewReview(Review review) {
+        // call BeerManager.getBeer
+        boolean ok = addReview(review);// && addReview(review);
+        return false;
+    }
+
+    // TODO
+    public void deleteReview(Review review) {
+        // neo: username + beer_id
+    }
+
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
+
+    public Review getReview(String username, String beerID) {
+        Review review = null;
+        try {
+            Document doc = reviewsCollection.find(and(eq("beer", beerID), eq("username", username)))
+                    .first();
+            if (doc != null)
+                review = new Review(doc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return review;
+    }
+
+    private boolean existsReview(Review review) {
+        try {
+            Document rev = reviewsCollection.find(and(eq("username", review.getUsername()),
+                    eq("beer", review.getBeerID()))).first();
+            if (rev != null)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /* add new review in mongoDB*/
+    private boolean addReview(Review review) {
+        if (!existsReview(review))
+            try {
+                reviewsCollection.insertOne(review.getReview());
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        return false;
+    }
+
+    private boolean deleteReviewMongo(Review review) {
+        DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", review.getUsername()),
+                eq("beer", review.getBeerID())));
+        return (deleteResult.getDeletedCount() == 1);
+    }
+
+    public ArrayList<Review> getBeerReviews(String beerID) {    // o Beer?
+        ArrayList<Review> reviews = new ArrayList<>();
+        try {
+            FindIterable<Document> iterable = reviewsCollection.find(eq("beer", beerID));
+            for (Document d: iterable) {
+                reviews.add(new Review(d));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return reviews;
     }
 
 

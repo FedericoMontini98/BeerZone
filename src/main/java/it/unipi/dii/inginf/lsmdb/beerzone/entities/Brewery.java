@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -11,7 +12,7 @@ public class Brewery extends GeneralUser {
     private List<Beer> beers;
 
     /* _id is from database, if null is a new brewery */
-    public Brewery(String _id, String email, String username, String password, String location, String types) {
+    public Brewery(@Nullable String _id, String email, String username, String password, String location, String types) {
         //brewery = new GeneralUser
         super(_id, email, username, password, location, 1);
         this.types = types;

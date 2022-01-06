@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
@@ -28,6 +29,20 @@ public class BreweryManager {
         if (breweryManager == null)
             breweryManager = new BreweryManager();
         return breweryManager;
+    }
+
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
+
+    public boolean addBrewery(Brewery brewery) {
+        try {
+            breweriesCollection.insertOne(brewery.getBreweryDoc(false));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
@@ -74,5 +89,11 @@ public class BreweryManager {
         }
         breweriesCollection.find(in("_id", beerList));
         return beerList;
+    }
+
+    public boolean deleteBrewery(Brewery brewery) {
+        BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());
+        DeleteResult deleteResult = breweriesCollection.deleteOne(eq("_id", new ObjectId(brewery.getUserID())));
+        return deleteResult.getDeletedCount() == 1;
     }
 }

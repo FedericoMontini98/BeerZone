@@ -30,7 +30,7 @@ public class StandardUserGUI {
      * @param s: brewery informations
      */
     public static void standardUserSection(JFrame frame, StandardUser s){
-        JButton[] btnArray = new JButton[4];
+        JButton[] btnArray = new JButton[5];
         frame.setTitle("BeerZone - STANDARD USER");
         frame.setLayout(new GridLayout(1,2));
         JPanel ljp = new JPanel();
@@ -38,17 +38,20 @@ public class StandardUserGUI {
         ljp.setLayout(new GridBagLayout());
         rjp.setLayout(new GridBagLayout());
 
-        btnArray[0] = new JButton("Browse Favorites");
-        btnArray[0].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, FAVORITES));
+        btnArray[0] = new JButton("User Page");
+        btnArray[0].addActionListener(e -> createUserPage(rjp, frame, s));
 
-        btnArray[1] = new JButton("View Suggestions");
-        btnArray[1].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
+        btnArray[1] = new JButton("Browse Favorites");
+        btnArray[1].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, FAVORITES));
 
-        btnArray[2] = new JButton("Browse Beer");
-        btnArray[2].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER, s.getUserID(), s.getUsername()));
+        btnArray[2] = new JButton("View Suggestions");
+        btnArray[2].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
-        btnArray[3] = new JButton("Logout");
-        btnArray[3].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
+        btnArray[3] = new JButton("Browse Beer");
+        btnArray[3].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, STANDARD_USER, s.getUserID(), s.getUsername()));
+
+        btnArray[4] = new JButton("Logout");
+        btnArray[4].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
 
         setLeftStandardUserButton(btnArray, ljp);
         ljp.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -59,6 +62,43 @@ public class StandardUserGUI {
         rjp.setBackground(BACKGROUND_COLOR);
         frame.getContentPane().add(rjp);
 
+        frame.setVisible(true);
+    }
+
+    private static void createUserPage(JPanel rjp, JFrame frame, StandardUser s) {
+        rjp.removeAll();
+
+        JPanel jp = new JPanel(new GridBagLayout());
+        jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        jp.setBackground(BACKGROUND_COLOR_RECIPE);
+
+        BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), true, 0);
+        BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(), true, 1);
+        BeerZoneGUI.addGenericFields(jp, "Age", Integer.toString(s.getAge()), true, 2);
+        BeerZoneGUI.addGenericFields(jp, "Location", s.getLocation(), true, 3);
+
+        rjp.add(jp, new GridBagConstraints(0, 0,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
+        JButton updateUser = new JButton("Update brewery");
+        updateUser.addActionListener(e->{
+
+        });
+        rjp.add(updateUser,  new GridBagConstraints(0, 1,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
+        JButton deleteBrewey = new JButton("Delete User");
+        deleteBrewey.setFont(new Font("Arial", Font.BOLD, 15));
+        deleteBrewey.setBackground(Color.RED);
+        deleteBrewey.setPreferredSize(new Dimension(200, 40));
+        deleteBrewey.setForeground(Color.WHITE);
+        deleteBrewey.addActionListener(e->{
+
+        });
+        rjp.add(deleteBrewey, new GridBagConstraints(0, 2,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+
+        frame.repaint();
         frame.setVisible(true);
     }
 
@@ -202,17 +242,20 @@ public class StandardUserGUI {
      */
     private static void setLeftStandardUserButton(JButton[] btnArray, JPanel jp) {
         GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30);
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),65,30);
         jp.add(btnArray[0], gbc);
-        gbc.ipadx = 22;
-        gbc.gridy = 1;
+        gbc = new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30);
         jp.add(btnArray[1], gbc);
-        gbc.ipadx = 50;
+        gbc.ipadx = 22;
         gbc.gridy = 2;
         jp.add(btnArray[2], gbc);
-        gbc = new GridBagConstraints(0,3,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
+        gbc.ipadx = 50;
+        gbc.gridy = 3;
         jp.add(btnArray[3], gbc);
+        gbc = new GridBagConstraints(0,4,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
+        jp.add(btnArray[4], gbc);
     }
 
     /**
@@ -277,6 +320,8 @@ public class StandardUserGUI {
         JTextArea textArea = new JTextArea(5, 30);
         JSpinner[] spinners = new JSpinner[4];
 
+        //String[] review = String[4];
+        //review = searchReview(selBeer, username)
         prepareAverageSection(reviewAvg, rjp);
         prepareVotesPanel(reviewAvg, spinners, rjp);
         prepareTextReviewArea(rjp, textArea);
@@ -284,7 +329,7 @@ public class StandardUserGUI {
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
         prepareReturnToBeerButton(rjp, btnPanel, frame, userId, selBeer, username);
-        prepareSubmitReviewButton(btnPanel, textArea, spinners, reviewAvg, selBeer, username);
+        prepareSubmitReviewButton(btnPanel, textArea, spinners, reviewAvg, selBeer, username /*, review*/);
         rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
@@ -310,11 +355,17 @@ public class StandardUserGUI {
      * @param
      * @param selBeer : beer selected by the user
      */
-    private static void prepareSubmitReviewButton(JPanel btnPanel, JTextArea textArea, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, String username) {
+    private static void prepareSubmitReviewButton(JPanel btnPanel, JTextArea textArea, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, String username /*, String[] review*/) {
         JButton subReviewBtn = new JButton("Submit");
         subReviewBtn.setFont(new Font("Arial", Font.PLAIN, 16));
         subReviewBtn.addActionListener(e -> {
             double avg = Double.parseDouble(reviewAvg.getText());
+            double oldScore = Double.parseDouble(selBeer.getScore());
+            double numReviews = Double.parseDouble(selBeer.getNumRating());
+            double newScore = ((oldScore * numReviews) + avg)/(numReviews + 1);
+            newScore = (double) Math.round(newScore * 100) / 100;
+            selBeer.setScore(newScore);
+            selBeer.setNumRating(Integer.parseInt(selBeer.getNumRating()) + 1);
             Double[] values = new Double[4];
             for(int i = 0; i < spinners.length; i++)
                 values[i] = (Double)spinners[i].getValue();

@@ -14,11 +14,11 @@ public class Beer {
 
     public Beer() {}
 
-    public Beer(@Nullable String beerID, String beerName, String style, String abv, double score) {
+    public Beer(@Nullable String beerID, String beerName, String style, @Nullable String abv, double score) {
         this.beerID = beerID != null ? beerID : "-1";
         this.beerName = beerName;
         this.style = style;
-        this.abv = Double.parseDouble(abv);
+        this.abv = abv != null ? Double.parseDouble(abv) : -1;
         this.score = score;
     }
 

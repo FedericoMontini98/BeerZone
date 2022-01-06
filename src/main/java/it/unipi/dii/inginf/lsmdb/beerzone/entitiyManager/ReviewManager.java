@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
@@ -13,7 +14,6 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionWork;
 
-import javax.print.Doc;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -57,7 +57,7 @@ public class ReviewManager {
     }
 
     /* ************************************************************************************************************/
-    /* *************************************  MongoDB Section  ******************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
     /* ************************************************************************************************************/
 
     public Review getReview(String username, String beerID) {
@@ -73,7 +73,7 @@ public class ReviewManager {
         return review;
     }
 
-    private boolean existReview(Review review) {
+    private boolean existsReview(Review review) {
         try {
             Document rev = reviewsCollection.find(and(eq("username", review.getUsername()),
                     eq("beer", review.getBeerID()))).first();
@@ -87,7 +87,7 @@ public class ReviewManager {
 
     /* add new review in mongoDB*/
     private boolean addReview(Review review) {
-        if (!existReview(review))
+        if (!existsReview(review))
             try {
                 reviewsCollection.insertOne(review.getReview());
                 return true;
@@ -101,6 +101,19 @@ public class ReviewManager {
         DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", review.getUsername()),
                 eq("beer", review.getBeerID())));
         return (deleteResult.getDeletedCount() == 1);
+    }
+
+    public ArrayList<Review> getBeerReviews(String beerID) {    // o Beer?
+        ArrayList<Review> reviews = new ArrayList<>();
+        try {
+            FindIterable<Document> iterable = reviewsCollection.find(eq("beer", beerID));
+            for (Document d: iterable) {
+                reviews.add(new Review(d));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return reviews;
     }
 
 

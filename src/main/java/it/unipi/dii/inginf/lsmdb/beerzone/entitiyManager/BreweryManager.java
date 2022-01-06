@@ -5,6 +5,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -28,6 +29,20 @@ public class BreweryManager {
         if (breweryManager == null)
             breweryManager = new BreweryManager();
         return breweryManager;
+    }
+
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
+
+    public boolean addBrewery(Brewery brewery) {
+        try {
+            breweriesCollection.insertOne(brewery.getBreweryDoc(false));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {

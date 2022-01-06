@@ -118,13 +118,25 @@ public class BeerManager {
         return beers;
     }
 
-    public DetailedBeer getBeer(String beerID) {
+    public Beer getBeer(String beerID) {
+        Beer beer = null;
+        try {
+            Document doc = beersCollection.find(eq("_id", new ObjectId(beerID)))
+                    .projection(include("name", "style", "abv", "rating")).first();
+            if (doc != null)
+                beer = new Beer(doc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beer;
+    }
+
+    public DetailedBeer getDetailedBeer(String beerID) {
         DetailedBeer beer = null;
         try {
             Document doc = beersCollection.find(eq("_id", new ObjectId(beerID))).first();
-            if (doc == null)
-                return null;
-            beer = new DetailedBeer(doc);
+            if (doc != null)
+                beer = new DetailedBeer(doc);
         } catch (Exception e) {
             e.printStackTrace();
         }

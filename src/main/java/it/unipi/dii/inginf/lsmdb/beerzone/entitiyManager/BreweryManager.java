@@ -5,6 +5,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
@@ -12,6 +13,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
@@ -73,11 +75,11 @@ public class BreweryManager {
 
     public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
         name = name != null ? name : "";
-        int limit = 20;
+        int limit = 7;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
-                regex("username", ".*" + name + ".*", "i")))
+                regex("username", "^" + name + ".*", "i")))
                 .skip(n).limit(limit+1)
                 .projection(include("name", "style", "abv", "rating"));
 
@@ -100,20 +102,23 @@ public class BreweryManager {
         return false;
     }
 
-    public ArrayList<ObjectId> getBeerList(int page, String name){
-        int limit = 20;
+    public ArrayList<Beer> getBreweryBeers(int page, String name){
+        int limit = 14;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1), exists("beers"),
-                        regex("username", ".*" + name + ".*", "i")))
+                        regex("username", "^" + name + ".*", "i")))
                 .skip(n).limit(limit+1)
                 .projection(include("username", "beers"));
 
-        ArrayList<ObjectId> beerList = new ArrayList<>();
-        for (Document beer: iterable) {
-            beerList.addAll(beer.getList("beers", ObjectId.class));
+        ArrayList<Beer> beerList = new ArrayList<>();
+        for (Document doc: iterable) {
+            List<Document> list = doc.getList("beers", Document.class);
+            for (Document d: list) {
+                beerList.add(new Beer(d.get("beer_id").toString(), d.getString("beer_name")));
+            }
         }
-        breweriesCollection.find(in("_id", beerList));
+        //breweriesCollection.find(in("_id", beerList));
         return beerList;
     }
 

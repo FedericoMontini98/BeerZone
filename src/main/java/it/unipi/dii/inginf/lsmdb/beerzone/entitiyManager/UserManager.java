@@ -20,6 +20,7 @@ import org.neo4j.driver.TransactionWork;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
@@ -128,6 +129,14 @@ public class UserManager {
         return false;
     }
 
+    public boolean AddAFavorite(FavoriteBeer fb, StandardUser s){
+        return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
+    }
+
+    //public boolean RemoveAFavorite(StandardUser s,){
+    //    return (s.removeFromFavorites() && )
+    //}
+
 
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
@@ -151,7 +160,7 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
+    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
             UserManager.getInstance().AddStandardUser(Username);
@@ -207,14 +216,14 @@ public class UserManager {
     public void getFavorites(StandardUser user){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
-            user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {
+            user.setFavorites(session.readTransaction(tx -> {
                 Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorites]->(B:Beer)" +
-                                " RETURN B.ID as ID",
+                                " RETURN B.ID as ID, F.date as Date",
                         parameters("username", user.getUsername()));
-                ArrayList<String> favorites = new ArrayList<>();
+                ArrayList<FavoriteBeer> favorites = new ArrayList<>();
                 while (result.hasNext()) {
                     Record r = result.next();
-                    favorites.add(r.get("ID").asString());
+                    favorites.add(new FavoriteBeer(r.get("ID").asString(),r.get("Date").asString()));
                 }
                 return favorites;
             }));

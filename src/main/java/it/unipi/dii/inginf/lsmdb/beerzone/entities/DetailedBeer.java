@@ -5,7 +5,7 @@ import org.bson.Document;
 
 public class DetailedBeer extends Beer {
     // id, name, style, score
-    private String brewery_id;
+    private String breweryID;
     //private int beerScore;
     private int numRating;
     //private String state;
@@ -28,17 +28,17 @@ public class DetailedBeer extends Beer {
 
     public DetailedBeer() {}
 
-    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, double score) {
+    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, String score) {
         super(beerID, beerName, style, abv, score);
     }
 
     public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable String breweryID, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
-        super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
-        this.brewery_id = brewery != null ? brewery : "";
+        super(beerID, beerName, style, abv, score);
+        this.breweryID = breweryID != null ? breweryID : "";
         this.numRating = 0;
         this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "=";
@@ -57,11 +57,11 @@ public class DetailedBeer extends Beer {
     }
 
     public DetailedBeer(String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable String breweryID, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
-        this(null, beerName, style, abv, score, brewery, availability, notes, url, retired, method, og, fg, ibu,
+        this(null, beerName, style, abv, score, breweryID, availability, notes, url, retired, method, og, fg, ibu,
                 color, phMash, fermentables, hops, other, yeast);
 
     }
@@ -77,8 +77,8 @@ public class DetailedBeer extends Beer {
         this.numRating = beer.getInteger("num_rating");
     }
 
-    public String getBrewery_id() {
-        return brewery_id;
+    public String getBreweryID() {
+        return breweryID;
     }
 
     public String getNumRating() {
@@ -145,8 +145,8 @@ public class DetailedBeer extends Beer {
         return yeast;
     }
 
-    public void setBrewery_id(String brewery_id) {
-        this.brewery_id = brewery_id;
+    public void setBreweryID(String breweryID) {
+        this.breweryID = breweryID;
     }
 
     public void setNumRating(int numRating) {
@@ -211,7 +211,7 @@ public class DetailedBeer extends Beer {
 
     public Document getBeerDoc() {
         Document doc = super.getBeerDoc();
-        doc.append("brewery", brewery_id).append("numRating", numRating)
+        doc.append("brewery", breweryID).append("numRating", numRating)
                 .append("method", method)
                 .append("og", og).append("fg", fg)
                 .append("ibu", ibu)

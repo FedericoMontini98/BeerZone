@@ -183,7 +183,7 @@ public class BeerManager {
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
     *  others users */
-    public List<String> getSuggested(StandardUser user){
+    public ArrayList<String> getSuggested(StandardUser user){
         //Looking for how many style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
@@ -201,12 +201,12 @@ public class BeerManager {
                 }
             }
             if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return Collections.emptyList();
+                return new ArrayList<String>();
             }
             //If less than 4 I return two suggestions for that style
             if(n_style==1){
                 String finalStyle_ = Style_1;
-                return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -225,7 +225,7 @@ public class BeerManager {
             else{
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
-                return session.readTransaction((TransactionWork<List<String>>) tx -> {
+                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -253,7 +253,7 @@ public class BeerManager {
         }
         catch(Exception e){
             e.printStackTrace();
-            return Collections.emptyList();
+            return new ArrayList<String>();
         }
     }
 

@@ -129,7 +129,7 @@ public class ReviewManager {
     private boolean addReview(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //Check if user exists
-            UserManager.getInstance().AddStandardUser(review.getUsername());
+            UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
             BeerManager.getInstance().AddBeer(beer);
             //Put the date in the right format

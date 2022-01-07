@@ -47,9 +47,15 @@ public class BeerManager {
         return beerManager;
     }
 
+    // TODO
     public void addNewBeer(DetailedBeer beer) {
-        Document beerDoc = beer.getBeerDoc(false);
-        beersCollection.insertOne(beerDoc);
+        try {
+            Document beerDoc = beer.getBeerDoc();
+            beersCollection.insertOne(beerDoc);
+            BreweryManager.getInstance().addBeerToBrewery(beer.getBrewery_id(), beer.getBeerID());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 // browse beer by brewery -> typeUser, @Nullable _idBrewery

@@ -15,7 +15,7 @@ public class Beer {
     public Beer() {}
 
     public Beer(@Nullable String beerID, String beerName, String style, @Nullable String abv, double score) {
-        this.beerID = beerID != null ? beerID : "-1";
+        this.beerID = beerID != null ? beerID : new ObjectId().toString();
         this.beerName = beerName;
         this.style = style;
         this.abv = abv != null ? Double.parseDouble(abv) : -1;
@@ -79,15 +79,12 @@ public class Beer {
         this.score = score;
     }
 
-    public Document getBeerDoc(boolean update) {
-        Document doc = new Document();
-        if (update)
-            doc.append("_id", new ObjectId(beerID));
-        doc.append("name", beerName)
+    public Document getBeerDoc() {
+        return new Document("_id", new ObjectId(beerID))
+                .append("name", beerName)
                 .append("style", style)
                 .append("abv", abv)
                 .append("rating", score);
-        return doc;
     }
 
     public Document getBeerNameDoc() {

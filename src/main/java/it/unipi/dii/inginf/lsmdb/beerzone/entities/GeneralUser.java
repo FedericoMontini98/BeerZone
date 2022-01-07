@@ -19,7 +19,7 @@ public abstract class GeneralUser {
     }
 
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
-        this.userID = id != null ? id : "-1";
+        this.userID = id != null ? id : new ObjectId().toString();
         this.email = email;
         this.username = username;
         this.password = password;
@@ -93,7 +93,8 @@ public abstract class GeneralUser {
     }
 
     protected Document getUserDoc() {
-        return new Document("username", username)
+        return new Document("_id", new ObjectId(userID))
+                .append("username", username)
                 .append("password", password)
                 .append("email", email)
                 .append("location", location)

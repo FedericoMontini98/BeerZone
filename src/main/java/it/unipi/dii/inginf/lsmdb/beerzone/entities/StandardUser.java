@@ -61,7 +61,7 @@ public class StandardUser extends GeneralUser {
     }
 
     public boolean removeFromFavorites(FavoriteBeer beer) {
-        return favorites.remove(beer);
+            return favorites.remove(beer);
     }
 
     public Document getUserDoc() {

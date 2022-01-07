@@ -3,7 +3,6 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
 
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class FavoriteBeer extends Beer {

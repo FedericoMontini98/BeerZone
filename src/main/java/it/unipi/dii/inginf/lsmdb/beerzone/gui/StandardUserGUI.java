@@ -440,7 +440,7 @@ public class StandardUserGUI {
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date reviewDate = new Date();
             String text = textArea.getText();
-            Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, null,  values[0].toString(), values[1].toString(), values[2].toString(),
+            Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
                                                                                                         values[3].toString(), values[4].toString());
             //ReviewManager.getInstance().addNewReview(rev);
         });

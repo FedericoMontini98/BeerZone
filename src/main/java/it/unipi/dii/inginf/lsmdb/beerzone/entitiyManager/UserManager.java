@@ -4,10 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -129,13 +126,15 @@ public class UserManager {
         return false;
     }
 
-    public boolean AddAFavorite(FavoriteBeer fb, StandardUser s){
+    /* Add a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    public boolean addAFavorite(FavoriteBeer fb, StandardUser s){
         return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
     }
 
-    //public boolean RemoveAFavorite(StandardUser s,){
-    //    return (s.removeFromFavorites() && )
-    //}
+    /* Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    public boolean removeAFavorite(StandardUser s, FavoriteBeer fb){
+        return (s.removeFromFavorites(fb) && removeFavorite(s.getUsername(),fb.getBeerID()));
+    }
 
 
     /* ************************************************************************************************************/
@@ -144,7 +143,7 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    public boolean AddStandardUser(String Username){
+    public boolean addStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MERGE (U:User{Username: $Username})" +
                     "ON CREATE" +
@@ -163,7 +162,7 @@ public class UserManager {
     private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
-            UserManager.getInstance().AddStandardUser(Username);
+            UserManager.getInstance().addStandardUser(Username);
             //Check if beer exists
             BeerManager.getInstance().AddBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
             //I put the date in the right format
@@ -185,7 +184,7 @@ public class UserManager {
     /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
      *  favorites */
-    public boolean removeFavorite(String Username, String BeerID){
+    private boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",

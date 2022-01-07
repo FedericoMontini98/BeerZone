@@ -5,7 +5,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -20,10 +19,10 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
@@ -44,16 +43,18 @@ public class ReviewManager {
         return reviewManager;
     }
 
-    // TODO
+    /* Add a new Review both on MongoDB and Neo4J */
     public boolean addNewReview(Review review) {
-        // call BeerManager.getBeer
-        boolean ok = addReview(review);// && addReview(review);
-        return false;
+        boolean result_1 = addReview(review);
+        boolean result_2 = addReview(review, BeerManager.getInstance().getBeer(review.getBeerID()));
+        return (result_1&&result_2);
     }
 
-    // TODO
-    public void deleteReview(Review review) {
-        // neo: username + beer_id
+    /* Delete a review both from MongoDB and Neo4J */
+    public boolean deleteReview(Review review) {
+        boolean result_1 = deleteReviewMongo(review);
+        boolean result_2 = removeReview(review.getUsername(), review.getBeerID());
+        return (result_1&&result_2);
     }
 
     /* ************************************************************************************************************/
@@ -125,25 +126,22 @@ public class ReviewManager {
     /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
      * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
-    public boolean addReview(Beer beer, StandardUser user ){
+    private boolean addReview(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //Check if user exists
-            session.run("MERGE (U:User{Username: $username})" +
-                    "ON CREATE" +
-                    "   SET U.Username=$username, U.ID=$id ",parameters("username",user.getUsername(),"id",user.getUserID()));
+            UserManager.getInstance().AddStandardUser(review.getUsername());
             //Check if beer exists
-            session.run("MERGE (B:Beer{ID: $id})" +
-                    "ON CREATE" +
-                    "   SET B.Name=$name, B.ID=$id ,B.Style=$style",parameters("name",beer.getBeerName(),"id",beer.getBeerID(),"style",beer.getStyle()));
-            Date date = new Date();
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
-            String str = formatter.format(date);
+            BeerManager.getInstance().AddBeer(beer);
+            //Put the date in the right format
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String str = formatter.format(review.getReviewDate());
+            //Create the relationship
             session.run("MATCH\n" +
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
                             "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
                             "CREATE (U)-[R:Reviewed{date:date($Date)}]->(B)\n",
-                    parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
+                    parameters( "Username", review.getUsername(), "BeerID", review.getBeerID(),"Date", str));
             return true;
         }
         catch(Exception e){
@@ -154,11 +152,11 @@ public class ReviewManager {
 
     /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer has been reviewed from this user */
-    public boolean removeReview(StandardUser user, Beer beer){
+    private boolean removeReview(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE R",
-                    parameters( "Username", user.getUsername(), "BeerID", beer.getBeerID()));
+                    parameters( "Username", Username, "BeerID", BeerID));
             return true;
         }
         catch(Exception e){

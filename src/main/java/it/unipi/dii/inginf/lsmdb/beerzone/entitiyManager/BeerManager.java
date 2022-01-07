@@ -48,8 +48,12 @@ public class BeerManager {
     }
 
     public void addNewBeer(DetailedBeer beer) {
-        Document beerDoc = beer.getBeerDoc(false);
-        beersCollection.insertOne(beerDoc);
+        try {
+            Document beerDoc = beer.getBeerDoc();
+            beersCollection.insertOne(beerDoc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 // browse beer by brewery -> typeUser, @Nullable _idBrewery
@@ -146,7 +150,7 @@ public class BeerManager {
 
     public long deleteBreweryFromBeers(String breweryID) {
         UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
-                unset("brewery"));
+                combine(unset("brewery"), set("retired", "t")));
         return updateResult.getMatchedCount();
     }
 

@@ -9,34 +9,35 @@ public class Beer {
     protected String beerID;
     protected String beerName;
     protected String style;
-    protected double abv;
-    protected double score;
+    protected Double abv;
+    protected Double score;
 
     public Beer() {}
 
-    public Beer(@Nullable String beerID, String beerName, String style, @Nullable String abv, double score) {
-        this.beerID = beerID != null ? beerID : "-1";
+    public Beer(@Nullable String beerID, String beerName, String style, @Nullable String abv, @Nullable String score) {
+        this.beerID = beerID != null ? beerID : new ObjectId().toString();
         this.beerName = beerName;
         this.style = style;
         this.abv = abv != null ? Double.parseDouble(abv) : -1;
-        this.score = score;
+        this.score = score != null ? Double.parseDouble(score) : -1;
     }
 
-    public Beer(String beerName, String style, String abv, double score) {
+    public Beer(String beerName, String style, String abv, @Nullable String score) {
         this(null, beerName, style, abv, score);
     }
 
-    public Beer(String beerID, String beerName, String style, String abv) {
-        this(beerID, beerName, style, abv, 0);
+    /*public Beer(String beerID, String beerName, String style, String abv) {
+        this(beerID, beerName, style, abv, "-1");
     }
+     */
 
     public Beer(String beerID, String beerName) {
-        this(beerID, beerName, "-", "-1", 0);
+        this(beerID, beerName, "-", "-1", "-1");
     }
 
     public Beer (Document beer) {
         this(beer.getObjectId("_id").toString(), beer.getString("name"), beer.getString("style"),
-                beer.getString("abv"), Double.parseDouble(beer.getString("rating")));
+                beer.get("abv").toString(), beer.get("rating").toString());
     }
 
     public String getBeerID() {
@@ -79,15 +80,12 @@ public class Beer {
         this.score = score;
     }
 
-    public Document getBeerDoc(boolean update) {
-        Document doc = new Document();
-        if (update)
-            doc.append("_id", new ObjectId(beerID));
-        doc.append("name", beerName)
+    public Document getBeerDoc() {
+        return new Document("_id", new ObjectId(beerID))
+                .append("name", beerName)
                 .append("style", style)
                 .append("abv", abv)
                 .append("rating", score);
-        return doc;
     }
 
     public Document getBeerNameDoc() {

@@ -55,8 +55,8 @@ public class Brewery extends GeneralUser {
         this.beers = beers;
     }
 
-    public boolean addToBrewery(Beer beer) {
-        return beers.add(beer);
+    public void addToBrewery(Beer beer) {
+        beers.add(beer);
     }
 
     public boolean deleteFromBrewery(Beer beer) {

@@ -11,7 +11,7 @@ import java.util.List;
 public class StandardUser extends GeneralUser {
     //private final GeneralUser user;
     private int age;
-    private List<String> favorites;
+    private ArrayList<FavoriteBeer> favorites;
 
     public StandardUser(String id, String email, String username, String password, int age, String location) {
         //user = new GeneralUser
@@ -42,7 +42,7 @@ public class StandardUser extends GeneralUser {
         return age;
     }
 
-    public List<String> getFavorites() {
+    public ArrayList<FavoriteBeer> getFavorites() {
         return favorites;
     }
 
@@ -50,17 +50,18 @@ public class StandardUser extends GeneralUser {
         this.age = age;
     }
 
-    public void setFavorites(List<String> favorites) {
+    public void setFavorites(ArrayList<FavoriteBeer> favorites) {
         this.favorites = favorites;
     }
 
-    public void addToFavorites(Beer beer) {
+    public boolean addToFavorites(FavoriteBeer fb) {
         //I add it to the current instance of this user
-        this.favorites.add(beer.getBeerID());
+        this.favorites.add(fb);
+        return true;
     }
 
     public boolean removeFromFavorites(FavoriteBeer beer) {
-        return favorites.remove(beer);
+            return favorites.remove(beer);
     }
 
     public Document getUserDoc() {

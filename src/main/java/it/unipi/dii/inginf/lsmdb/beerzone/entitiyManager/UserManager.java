@@ -4,10 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.FavoriteBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -17,9 +14,11 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionWork;
 
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
@@ -128,6 +127,16 @@ public class UserManager {
         return false;
     }
 
+    /* Add a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    public boolean addAFavorite(FavoriteBeer fb, StandardUser s){
+        return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
+    }
+
+    /* Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    public boolean removeAFavorite(StandardUser s, FavoriteBeer fb){
+        return (s.removeFromFavorites(fb) && removeFavorite(s.getUsername(),fb.getBeerID()));
+    }
+
 
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
@@ -135,10 +144,10 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    public boolean AddStandardUser(String Username){
+    public boolean addStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MERGE (U:User{Username: $Username})" +
-                    "ON CREATE" +
+            session.run("MERGE (U:User{Username: $Username}) \n" +
+                    "ON CREATE \n" +
                     "SET U.Username=$Username",parameters("Username",Username));
             return true;
         }
@@ -151,21 +160,22 @@ public class UserManager {
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
+    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
-            UserManager.getInstance().AddStandardUser(Username);
+            UserManager.getInstance().addStandardUser(Username);
             //Check if beer exists
             BeerManager.getInstance().AddBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
             //I put the date in the right format
-            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            String str = myFormatObj.format((TemporalAccessor)fv.getFavoriteDate());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String str = formatter.format(fv.getFavoriteDate());
             //Run the query
             session.run("MATCH\n" +
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
-                            "CREATE (U)-[F:Favorite{date:$Date}]->(B)\n",
-                    parameters("Username",Username, "BeerID", fv.getBeerID(), "Date", str));
+                            "MERGE (U)-[F:Favorite]->(B)\n" +
+                            " ON CREATE SET F.Date=date($date)",
+                    parameters("Username",Username, "BeerID", fv.getBeerID(), "date", str));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -176,7 +186,7 @@ public class UserManager {
     /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
      *  favorites */
-    public boolean removeFavorite(String Username, String BeerID){
+    private boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
@@ -207,14 +217,14 @@ public class UserManager {
     public void getFavorites(StandardUser user){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
-            user.setFavorites(session.readTransaction((TransactionWork<List<String>>) tx -> {
+            user.setFavorites(session.readTransaction(tx -> {
                 Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorites]->(B:Beer)" +
-                                " RETURN B.ID as ID",
+                                " RETURN B.ID as ID, F.date as Date",
                         parameters("username", user.getUsername()));
-                ArrayList<String> favorites = new ArrayList<>();
+                ArrayList<FavoriteBeer> favorites = new ArrayList<>();
                 while (result.hasNext()) {
                     Record r = result.next();
-                    favorites.add(r.get("ID").asString());
+                    favorites.add(new FavoriteBeer(r.get("ID").asString(),r.get("Date").asString()));
                 }
                 return favorites;
             }));

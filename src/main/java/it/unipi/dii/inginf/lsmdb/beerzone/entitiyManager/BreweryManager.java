@@ -75,7 +75,7 @@ public class BreweryManager {
 
     public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
         name = name != null ? name : "";
-        int limit = 12;
+        int limit = 13;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
@@ -103,7 +103,7 @@ public class BreweryManager {
     }
 
     public ArrayList<Beer> getBreweryBeers(int page, String name){
-        int limit = 12;
+        int limit = 13;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1), exists("beers"),

@@ -11,13 +11,18 @@ public class MongoManager {
     private static MongoClient mongoClient;
     private static MongoDatabase database;
 
-    /* connection string */
-    String localConnection = "mongodb://localhost:27018";
     //private String remoteConnection = "mongodb://172.16.4.57:27020";
 
     private MongoManager() {
-        mongoClient = MongoClients.create(localConnection);
-        database = mongoClient.getDatabase("BeerZone");
+        /* connection string */
+        //String localConnection = "mongodb://localhost:27018";
+        String replica1 = "172.16.4.57:27020";
+        String replica2 = "172.16.4.58:27020";
+        String replica3 = "172.16.4.59:27020";
+        String options = "replicaSet=lsmdb";
+        String remoteConnection = "mongodb://" + replica1 + "," + replica2 + "," + replica3 + "/?" + options;
+        mongoClient = MongoClients.create(remoteConnection);
+        database = mongoClient.getDatabase("beerzone");
     }
 
     public static MongoManager getInstance() {

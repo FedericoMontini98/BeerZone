@@ -56,17 +56,19 @@ public class BeerManager {
         }
     }
 
-// browse beer by brewery -> typeUser, @Nullable _idBrewery
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
         name = name != null ? name : "";
-        int limit = 20;
+        int limit = 14;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = beersCollection.find(or(
-                regex("name", ".*" + name + ".*", "i"),
-                regex("style", ".*" + name + ".*", "i")))
+                regex("name", "^" + name + ".*", "i"),
+                regex("style", "^" + name + ".*", "i")))
                 .skip(n).limit(limit+1)
                 .projection(include("name", "style", "abv", "rating"));
 
@@ -77,7 +79,7 @@ public class BeerManager {
         return beerList;
     }
 
-    public ArrayList<Beer> browseBeersByBrewery(int page, String breweryID) {
+    public ArrayList<Beer> browseBeersByBreweryID(int page, String breweryID) {
         if (breweryID == null)
             return null;
         int limit = 3;

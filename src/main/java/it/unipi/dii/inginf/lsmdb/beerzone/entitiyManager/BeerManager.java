@@ -205,12 +205,12 @@ public class BeerManager {
                 }
             }
             if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return new ArrayList<String>();
+                return new ArrayList<>();
             }
             //If less than 4 I return two suggestions for that style
             if(n_style==1){
                 String finalStyle_ = Style_1;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -229,7 +229,7 @@ public class BeerManager {
             else{
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -257,7 +257,7 @@ public class BeerManager {
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 

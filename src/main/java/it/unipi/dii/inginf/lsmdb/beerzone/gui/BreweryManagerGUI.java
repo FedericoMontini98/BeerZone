@@ -375,7 +375,7 @@ public class BreweryManagerGUI {
      */
     public static void createBreweryPage(JPanel containerPanel, JFrame frame,  GeneralUser user) {
         containerPanel.removeAll();
-        Brewery b = (Brewery) user;
+        StandardUser b = (StandardUser) user;
         JTextPane[] inputs = new JTextPane[4];
         //search brewery by brewery id
         Brewery brewery = new Brewery("2", "brewery@brewery.com", "brewery", "brewery", "location", "pub");
@@ -385,10 +385,10 @@ public class BreweryManagerGUI {
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp,"Brewery Name", b.getUsername(), 0, inputs);
-        BeerZoneGUI.addGenericFields(jp,"Email", b.getEmail(), 1, inputs);
-        BeerZoneGUI.addGenericFields(jp,"Location", b.getLocation(), 2, inputs);
-        BeerZoneGUI.addGenericFields(jp, "Brewery Type", b.getTypes(), 3, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Brewery Name", brewery.getUsername(), 0, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Email", brewery.getEmail(), 1, inputs);
+        BeerZoneGUI.addGenericFields(jp,"Location", brewery.getLocation(), 2, inputs);
+        BeerZoneGUI.addGenericFields(jp, "Brewery Type", brewery.getTypes(), 3, inputs);
 
         //get the beers associated with the brewery
         String[] beerId = {"1", "2", "3", "4"};
@@ -405,7 +405,7 @@ public class BreweryManagerGUI {
                 "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
                 "Hops", "Other", "Yeast");
             //DetailedBeer selBeer = searchBeerById(beerId[beerListCB.getSelectedIndex()]);
-            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, b);
+            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, brewery);
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));

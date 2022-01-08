@@ -781,7 +781,7 @@ public class BeerZoneGUI {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //send query to see what type of user it is
-                int res = BREWERY_MANAGER;
+                int res = STANDARD_USER;
                 if(res == BREWERY_MANAGER){
                     Brewery b = new Brewery("1", "email", "username", "password", "location", "types");
                     BreweryManagerGUI.breweryManagerSection(frame, b);

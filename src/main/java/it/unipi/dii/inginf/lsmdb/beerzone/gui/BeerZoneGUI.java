@@ -846,7 +846,11 @@ public class BeerZoneGUI {
     public void createAndShowGUI(){
         JFrame frame = new JFrame("BeerZone");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000, 600);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        double width = screenSize.getWidth();
+        double height = screenSize.getHeight();
+
+        frame.setSize(1000*(1920/(int)width), 600*(1080/(int)height));
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
         prepareLogRegister(frame);
         frame.setVisible(true);

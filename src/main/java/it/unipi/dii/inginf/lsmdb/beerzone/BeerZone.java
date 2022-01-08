@@ -2,6 +2,8 @@ package it.unipi.dii.inginf.lsmdb.beerzone;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.gui.BeerZoneGUI;
 
+import java.awt.*;
+
 public class BeerZone {
     public static void main(String[] args) {
         Runtime current = Runtime.getRuntime();

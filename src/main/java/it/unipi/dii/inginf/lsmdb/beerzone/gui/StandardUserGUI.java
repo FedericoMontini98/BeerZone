@@ -476,7 +476,6 @@ public class StandardUserGUI {
             for(int i = 0; i < spinners.length; i++)
                 values[i] = (Double)spinners[i].getValue();
 
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date reviewDate = new Date();
             Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
                                                                                                         values[3].toString(), values[4].toString());

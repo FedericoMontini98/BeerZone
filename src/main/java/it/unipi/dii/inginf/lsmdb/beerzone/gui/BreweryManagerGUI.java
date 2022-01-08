@@ -44,7 +44,7 @@ public class BreweryManagerGUI {
      */
     public static void breweryManagerSection(JFrame frame, Brewery b){
         JButton[] btnArray = new JButton[5];
-        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - BREWERY MANAGER");
+        frame.setTitle("BeerZone - BREWERY MANAGER");
         frame.setLayout(new GridLayout(1,2));
 
         JPanel ljp = new JPanel();

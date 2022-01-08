@@ -8,6 +8,7 @@ import javax.swing.table.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
@@ -29,15 +30,17 @@ public class BeerZoneGUI {
     /**
      * function that creates the table that allows the user to search the beers
      *
-     * @param containerPanel: panel containing the table
+     * @param rjp: panel containing the table
      * @param frame: frame used by the application
      * @param user: logged user
      */
-    public static void generateBrowseBeerMenu(JPanel containerPanel, JFrame frame, GeneralUser user) {
-        containerPanel.removeAll();
+    public static void generateBrowseBeerMenu(JPanel rjp, JFrame frame, GeneralUser user) {
+        rjp.removeAll();
+        JPanel tableContainer = new JPanel();
+        JTable browseTable = new JTable();
 
-        prepareBrowseBeerComponents(containerPanel, frame, user);
-        addNavigationBar(containerPanel);
+        prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable);
+        addNavigationBar(rjp, frame, tableContainer, browseTable, user);
 
         frame.repaint();
         frame.setVisible(true);
@@ -45,12 +48,13 @@ public class BeerZoneGUI {
 
     /**
      * function that prepares the components that are inside the browse beer section
-     *
-     * @param containerPanel: panel containing the table
-     * @param frame: frame used by the application
-     * @param user: logged user
+     *  @param rjp : panel containing the table
+     * @param frame : frame used by the application
+     * @param user : logged user
+     * @param tableContainer : panel containing the table
+     * @param browseTable: tabel containing the beers
      */
-    private static void prepareBrowseBeerComponents(JPanel containerPanel, JFrame frame, GeneralUser user) {
+    private static void prepareBrowseBeerComponents(JPanel rjp, JFrame frame, GeneralUser user, JPanel tableContainer, JTable browseTable) {
         JPanel searchPanel = new JPanel();
         searchPanel.setBackground(BACKGROUND_COLOR);
         searchPanel.setBorder(createEmptyBorder());
@@ -75,44 +79,46 @@ public class BeerZoneGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         searchPanel.setBackground(BACKGROUND_COLOR);
-        containerPanel.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
+        rjp.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        JPanel tableContainer = new JPanel();
-        JTable browseTable = new JTable();
-        prepareBrowseTable(browseTable, tableContainer, frame, user, 1);
+        prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null));
+
         JScrollPane jsc = new JScrollPane(browseTable);
         tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        containerPanel.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
+        rjp.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
     }
 
     /**
      * function that creates the navigation arrows
      *
-     * @param containerPanel: panel containing the table
+     * @param rjp: panel containing the section
+     * @param frame: frame used by the application
+     * @param tableContainer : panel containing the table
+     * @param browseTable: tabel containing the beers
+     * @param user: logged user
      */
-    private static void addNavigationBar(JPanel containerPanel) {
+    private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user) {
         JTextField currPage = new JTextField("1");
         currPage.setBackground(BACKGROUND_COLOR);
         currPage.setEditable(false);
         currPage.setBorder(createEmptyBorder());
         currPage.setFont(new Font("Arial", Font.BOLD, 15));
-        containerPanel.add(currPage, new GridBagConstraints(1,3,1,1,0,0,
+        rjp.add(currPage, new GridBagConstraints(1,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 90, 0, 0),0,0));
 
         JButton leftArr = new JButton("<");
         JButton rightArr = new JButton(">");
-        setNavButtonFunctionalities(leftArr, rightArr, currPage);
+        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user);
 
-        containerPanel.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
+        rjp.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
 
-        containerPanel.add(rightArr, new GridBagConstraints(2,3,1,1,0,0,
+        rjp.add(rightArr, new GridBagConstraints(2,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0,0));
-
     }
 
     /**
@@ -122,21 +128,29 @@ public class BeerZoneGUI {
      * @param rightArr: arrow that leads to the next page
      * @param currPage: current page
      */
-    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage) {
+    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user) {
         leftArr.setEnabled(false);
         leftArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
-            if(currNum == 1)
+            if(currNum == 2)
                 leftArr.setEnabled(false);
+            rightArr.setEnabled(true);
             currNum = currNum - 1;
+            System.out.println("Page Requested: " + currNum);
+            ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow);
             currPage.setText(String.valueOf(currNum));
         });
 
         rightArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
-            if(currNum == 0)
-                leftArr.setEnabled(true);
+            leftArr.setEnabled(true);
             currNum = currNum + 1;
+            System.out.println("Page Requested: " + currNum);
+            ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+            if(beerToShow.size() <= 12)
+                rightArr.setEnabled(false);
+            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow);
             currPage.setText(String.valueOf(currNum));
         });
     }
@@ -144,12 +158,13 @@ public class BeerZoneGUI {
     /**
      * function that creates the table inside the "browse beers" section
      * @param browseTable : table containing beers
-     * @param containerPanel : panel containing browseTable
+     * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
-     * @param user: logged user
+     * @param user : logged user
+     * @param beerToShow
      */
-    private static void prepareBrowseTable(JTable browseTable, JPanel containerPanel, JFrame frame, GeneralUser user, Integer currPage) {
-        containerPanel.removeAll();
+    private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow) {
+        tableContainer.removeAll();
 
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
@@ -158,8 +173,12 @@ public class BeerZoneGUI {
             }
         };
 
-        setTableSettings(tableModel, browseTable, containerPanel, frame, user);
-        BeerManager.getInstance().browseBeers(currPage, null);
+        setTableSettings(tableModel, browseTable, tableContainer, frame, user);
+
+        for(int i = 0; i < beerToShow.size(); i++)
+            tableModel.addRow(beerToStringArray(beerToShow.get(i)));
+
+        System.out.println("QUi: " + tableModel.getValueAt(0,1));
 
         frame.repaint();
         frame.setVisible(true);
@@ -496,7 +515,7 @@ public class BeerZoneGUI {
      * @param frame: frame used by the application
      */
     private static void prepareRegisterSection(JFrame frame) {
-        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - REGISTER");
+        frame.setTitle("BeerZone - REGISTER");
         JTextField[] inputs = new JTextField[6];
         frame.setLayout(new GridBagLayout());
         JPanel jp = new JPanel();
@@ -715,7 +734,7 @@ public class BeerZoneGUI {
     public static void prepareLogRegister(JFrame frame){
         frame.getContentPane().removeAll();
         frame.setLayout(new GridBagLayout());
-        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone");
+        frame.setTitle("BeerZone");
         setLoginButton(frame);
         setRegisterButton(frame);
         frame.repaint();
@@ -762,7 +781,7 @@ public class BeerZoneGUI {
      * @param frame: frame used by the application
      */
     public static void prepareLoginSection(JFrame frame) {
-        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - USER LOGIN");
+        frame.setTitle("BeerZone - USER LOGIN");
 
         JTextField[] inputs = new JTextField[2];
         frame.setLayout(new GridBagLayout());
@@ -831,7 +850,7 @@ public class BeerZoneGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
-        //prepareLogRegister(frame);
+        prepareLogRegister(frame);
         frame.setVisible(true);
     }
 }

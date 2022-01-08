@@ -37,7 +37,7 @@ public class BeerManager {
     //private final MongoManager mongoManager;
 
     private BeerManager(){
-        beersCollection = MongoManager.getInstance().getCollection("beer");
+        beersCollection = MongoManager.getInstance().getCollection("beers");
         NeoDBMS = Neo4jManager.getInstance();
     }
 
@@ -63,7 +63,7 @@ public class BeerManager {
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
         name = name != null ? name : "";
-        int limit = 14;
+        int limit = 12;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = beersCollection.find(or(
@@ -76,6 +76,7 @@ public class BeerManager {
         for (Document beer: iterable) {
             beerList.add(new Beer(beer));
         }
+        System.out.println(beerList.size());
         return beerList;
     }
 

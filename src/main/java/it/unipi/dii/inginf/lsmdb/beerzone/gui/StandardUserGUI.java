@@ -29,7 +29,7 @@ public class StandardUserGUI {
      */
     public static void standardUserSection(JFrame frame, StandardUser s){
         JButton[] btnArray = new JButton[5];
-        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - STANDARD USER");
+        frame.setTitle("BeerZone - STANDARD USER");
         frame.setLayout(new GridLayout(1,2));
         JPanel ljp = new JPanel();
         JPanel rjp = new JPanel();
@@ -478,7 +478,6 @@ public class StandardUserGUI {
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date reviewDate = new Date();
-            String text = textArea.getText();
             Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
                                                                                                         values[3].toString(), values[4].toString());
             ReviewManager.getInstance().addNewReview(rev);

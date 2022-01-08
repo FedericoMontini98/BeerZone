@@ -218,7 +218,7 @@ public class UserManager {
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction(tx -> {
-                Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorites]->(B:Beer)" +
+                Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorite]->(B:Beer)" +
                                 " RETURN B.ID as ID, F.date as Date",
                         parameters("username", user.getUsername()));
                 ArrayList<FavoriteBeer> favorites = new ArrayList<>();

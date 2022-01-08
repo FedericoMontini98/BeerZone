@@ -26,7 +26,7 @@ public class Brewery extends GeneralUser {
     public Brewery(Document doc) {
         //this.brewery = new GeneralUser(doc);
         super(doc);
-        this.types = doc.getString("types");
+        this.types = doc.get("types") != null ? doc.getString("types") : "--";
         this.beers = new ArrayList<>();
         List<Document> list = doc.getList("beers", Document.class);
         for (Document d: list) {

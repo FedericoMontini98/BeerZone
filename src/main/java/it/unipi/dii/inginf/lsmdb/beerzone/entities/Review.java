@@ -40,12 +40,16 @@ public class Review {
     }
 
     public Review(Document review) {
-        this(review.getString("beer"), review.getString("username"), review.getDate("date"),
-                review.get("look").toString(), review.get("smell").toString(),
-                review.get("taste").toString(), review.get("feel").toString(),
-                review.get("overall").toString());
+        this(review.get("beer") != null ? review.getString("beer") : "--",
+                review.get("username") != null ? review.getString("username") : "--",
+                review.get("date") != null ? review.getDate("date") : new Date(),
+                review.get("look") != null ? review.get("look").toString() : "0",
+                review.get("smell") != null ? review.get("smell").toString() : "0",
+                review.get("taste") != null ? review.get("taste").toString() : "0",
+                review.get("feel") != null ? review.get("feel").toString() : "0",
+                review.get("overall") != null ? review.get("overall").toString() : "0");
         this.reviewID = review.getObjectId("_id").toString();
-        this.score = review.getDouble("score");
+        this.score = review.get("score") != null ? Double.parseDouble(review.get("score").toString()) : 0;
     }
 
     public String getReviewID() {

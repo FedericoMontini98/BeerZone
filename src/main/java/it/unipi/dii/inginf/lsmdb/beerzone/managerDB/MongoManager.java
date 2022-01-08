@@ -20,8 +20,9 @@ public class MongoManager {
         String replica2 = "172.16.4.58:27020";
         String replica3 = "172.16.4.59:27020";
         String options = "replicaSet=lsmdb";
-        String remoteConnection = "mongodb://" + replica1 + "," + replica2 + "," + replica3 + "/?" + options;
-        mongoClient = MongoClients.create(remoteConnection);
+        String remoteCluster = "mongodb://" + replica1 + "," + replica2 + "," + replica3 + "/?" + options;
+        String localCluster = "mongodb://localhost:27018,localhost:27019,localhost:27020/?replicaSet=lsmdb";
+        mongoClient = MongoClients.create(remoteCluster);
         database = mongoClient.getDatabase("beerzone");
     }
 

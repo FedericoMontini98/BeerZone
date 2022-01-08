@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
+import com.mongodb.lang.NonNull;
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
 
@@ -67,14 +68,26 @@ public class DetailedBeer extends Beer {
     }
 
     public DetailedBeer (Document beer) {
-        this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
-                beer.getString("abv"), beer.getString("rating"), beer.getString("brewery"),
-                beer.getString("availability"), beer.getString("notes"), beer.getString("url"),
-                beer.getString("retired"), beer.getString("method"), beer.getString("og"),
-                beer.getString("fg"), beer.getString("ibu"), beer.getString("color"),
-                beer.getString("phMash"), beer.getString("fermentables"), beer.getString("hops"),
-                beer.getString("other"), beer.getString("yeast"));
-        this.numRating = beer.getInteger("num_rating");
+        this(beer.getString("_id"), beer.getString("name"),
+                beer.get("style") != null ? beer.getString("style") : "--",
+                beer.get("abv") != null ? beer.get("abv").toString() : "-1",
+                beer.get("rating") != null ? beer.get("rating").toString() : "0",
+                beer.get("brewery") != null ? beer.getString("brewery") : "--",
+                beer.get("availability") != null ? beer.getString("availability") : "--",
+                beer.get("notes") != null ? beer.getString("notes") : "--",
+                beer.get("url") != null ? beer.getString("url") : "--",
+                beer.get("retired") != null ? beer.getString("retired") : "t",
+                beer.get("method") != null ? beer.getString("method") : "--",
+                beer.get("og") != null ? beer.get("og").toString() : "-1",
+                beer.get("fg") != null ? beer.get("fg").toString() : "-1",
+                beer.get("ibu") != null ? beer.get("ibu").toString() : "-1",
+                beer.get("color") != null ? beer.get("color").toString() : "-1",
+                beer.get("phMash") != null ? beer.get("phMash").toString() : "-1",
+                beer.get("fermentables") != null ? beer.getString("fermentables") : "--",
+                beer.get("hops") != null ? beer.getString("hops") : "--",
+                beer.get("other") != null ? beer.getString("other") : "--",
+                beer.get("yeast") != null ? beer.getString("yeast") : "--");
+        this.numRating = beer.get("num_rating") != null ? beer.getInteger("num_rating") : 0;
     }
 
     public String getBreweryID() {

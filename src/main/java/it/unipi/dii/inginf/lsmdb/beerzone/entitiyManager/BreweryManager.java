@@ -26,7 +26,7 @@ public class BreweryManager {
 
     private BreweryManager() {
         //mongoManager = MongoManager.getInstance();
-        breweriesCollection = MongoManager.getInstance().getCollection("finalUsers");
+        breweriesCollection = MongoManager.getInstance().getCollection("users");
     }
 
     public static BreweryManager getInstance() {
@@ -103,7 +103,7 @@ public class BreweryManager {
     }
 
     public ArrayList<Beer> getBreweryBeers(int page, String name){
-        int limit = 14;
+        int limit = 13;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1), exists("beers"),

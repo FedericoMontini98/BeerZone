@@ -31,7 +31,7 @@ public class StandardUser extends GeneralUser {
     public StandardUser(Document doc) {
         //this.user = new GeneralUser(doc);
         super(doc);
-        this.age = doc.getInteger("age");
+        this.age = doc.get("age") != null ? doc.getInteger("age") : -1;
     }
 /*
     public GeneralUser getUser() {

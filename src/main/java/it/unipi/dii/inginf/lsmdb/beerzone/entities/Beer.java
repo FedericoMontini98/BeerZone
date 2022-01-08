@@ -40,7 +40,7 @@ public class Beer {
                 beer.getString("name"),
                 beer.getString("style"),
                 beer.get("abv").toString(),
-                (beer.get("rating") == null)?"0":beer.get("rating").toString());
+                (beer.get("rating") != null)?beer.get("rating").toString():"0");
     }
 
     public String getBeerID() {

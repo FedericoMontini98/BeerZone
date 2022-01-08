@@ -193,8 +193,8 @@ public class BeerZoneGUI {
         beerInfo[0] = b.getBeerID();
         beerInfo[1] = b.getBeerName();
         beerInfo[2] = b.getStyle();
-        beerInfo[3] = b.getAbv();
-        beerInfo[4] = (Objects.equals(b.getScore(), "-1.0"))? "--" : b.getScore();
+        beerInfo[3] = (Objects.equals(b.getAbv(), "-1.0"))?"NaN" : b.getAbv();
+        beerInfo[4] = (Objects.equals(b.getScore(), "0.0"))? "NaN" : b.getScore();
 
         return beerInfo;
     }
@@ -236,9 +236,7 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     String id = browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString();
-                    DetailedBeer b = new DetailedBeer(id, "name", "style", "52", "0.0", "brewery", "Availability", "Notes",
-                            "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
-                            "Hops", "Other", "Yeast");
+                    DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
                     createBeerPage(containerPanel, frame, b, user);
                 }
             }

@@ -57,6 +57,7 @@ public class StandardUser extends GeneralUser {
     public boolean addToFavorites(FavoriteBeer fb) {
         //I add it to the current instance of this user
         this.favorites.add(fb);
+        System.out.println(this.getFavorites().get(0).getBeerName());
         return true;
     }
 

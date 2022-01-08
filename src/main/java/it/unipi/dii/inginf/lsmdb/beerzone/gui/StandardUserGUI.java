@@ -278,8 +278,8 @@ public class StandardUserGUI {
         beerPreviewContainer.add(beerName, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
 
-        Date requestedDate = favoriteBeer.getFavoriteDate();
-        JTextField date = new JTextField((requestedDate == null)?"":requestedDate.toString());
+        String requestedDate = favoriteBeer.getFavoriteDate();
+        JTextField date = new JTextField((requestedDate == null)?"":requestedDate);
         date.setEditable(false);
         date.setBackground(BACKGROUND_COLOR_RECIPE);
         date.setBorder(createEmptyBorder());

@@ -6,27 +6,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class FavoriteBeer extends Beer {
-    private Date favoriteDate;
+    private String favoriteDate;
 
-    public FavoriteBeer(String beerID, String beerName, Date favoriteDate) {
+    public FavoriteBeer(String beerID, String beerName, String favoriteDate) {
         super(beerID, beerName);
         this.favoriteDate = favoriteDate;
     }
 
     public FavoriteBeer(String BeerID, String favoriteDate){
         super(BeerID, BeerManager.getInstance().getBeer(BeerID).getBeerName());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date date= new Date();
-        try {
-            date = sdf.parse(favoriteDate);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-        this.favoriteDate =date;
+        this.favoriteDate =favoriteDate;
     }
 
-    public FavoriteBeer(Beer beer, Date date) {
+    public FavoriteBeer(Beer beer, String date) {
         this(beer.getBeerID(), beer.getBeerName(), date);
     }
 
@@ -34,11 +26,11 @@ public class FavoriteBeer extends Beer {
     //     this(beerID, beerName, new Date());
     //  }
 
-    public Date getFavoriteDate() {
+    public String getFavoriteDate() {
         return favoriteDate;
     }
 
-    public void setFavoriteDate(Date favoriteDate) {
+    public void setFavoriteDate(String favoriteDate) {
         this.favoriteDate = favoriteDate;
     }
 }

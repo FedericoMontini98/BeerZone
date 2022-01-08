@@ -1,8 +1,7 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -79,10 +78,14 @@ public class BeerZoneGUI {
         containerPanel.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
+        JPanel tableContainer = new JPanel();
         JTable browseTable = new JTable();
-        prepareBrowseTable(browseTable, containerPanel, frame, user);
+        prepareBrowseTable(browseTable, tableContainer, frame, user, 1);
         JScrollPane jsc = new JScrollPane(browseTable);
-        containerPanel.add(jsc, new GridBagConstraints(0,1,3,1,0,0,
+        tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
+        containerPanel.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
     }
 
@@ -92,7 +95,7 @@ public class BeerZoneGUI {
      * @param containerPanel: panel containing the table
      */
     private static void addNavigationBar(JPanel containerPanel) {
-        JTextField currPage = new JTextField("0");
+        JTextField currPage = new JTextField("1");
         currPage.setBackground(BACKGROUND_COLOR);
         currPage.setEditable(false);
         currPage.setBorder(createEmptyBorder());
@@ -101,9 +104,26 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 90, 0, 0),0,0));
 
         JButton leftArr = new JButton("<");
-        leftArr.setEnabled(false);
+        JButton rightArr = new JButton(">");
+        setNavButtonFunctionalities(leftArr, rightArr, currPage);
+
         containerPanel.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
+
+        containerPanel.add(rightArr, new GridBagConstraints(2,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0,0));
+
+    }
+
+    /**
+     * function that sets the functionalities of the navigation arraws
+     *
+     * @param leftArr: arrow that leads to the previous page
+     * @param rightArr: arrow that leads to the next page
+     * @param currPage: current page
+     */
+    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage) {
+        leftArr.setEnabled(false);
         leftArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
             if(currNum == 1)
@@ -112,9 +132,6 @@ public class BeerZoneGUI {
             currPage.setText(String.valueOf(currNum));
         });
 
-        JButton rightArr = new JButton(">");
-        containerPanel.add(rightArr, new GridBagConstraints(2,3,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0,0));
         rightArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
             if(currNum == 0)
@@ -131,20 +148,21 @@ public class BeerZoneGUI {
      * @param frame : frame used by the application
      * @param user: logged user
      */
-    private static void prepareBrowseTable(JTable browseTable, JPanel containerPanel, JFrame frame, GeneralUser user) {
+    private static void prepareBrowseTable(JTable browseTable, JPanel containerPanel, JFrame frame, GeneralUser user, Integer currPage) {
+        containerPanel.removeAll();
+
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
             public boolean isCellEditable(int row, int column) {
-                //all cells false
                 return false;
             }
         };
 
         setTableSettings(tableModel, browseTable, containerPanel, frame, user);
-        Beer b1 = new Beer("1", "beer1", "style1", "1", "-1");
-        Beer b2 = new Beer("2", "beer2", "style2", "2", "4");
-        tableModel.addRow(beerToStringArray(b1));
-        tableModel.addRow(beerToStringArray(b2));
+        BeerManager.getInstance().browseBeers(currPage, null);
+
+        frame.repaint();
+        frame.setVisible(true);
     }
 
     /**
@@ -243,7 +261,7 @@ public class BeerZoneGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         toBrewery.addActionListener(e->{
-           BreweryManagerGUI.createBreweryPage(containerPanel, frame, user);
+           BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID());
         });
         createRecipeSection(containerPanel, 2, recipeTexts, user.getType());
 
@@ -289,7 +307,7 @@ public class BeerZoneGUI {
      * @param info: initial content of the input fiels
      * @param row: row taht will contain the elements
      */
-    public static void addGenericFields(JPanel containerPanel, String description, String info, int row, JTextPane[] inputs) {
+    public static void addGenericFields(JPanel containerPanel, String description, String info, int row, JTextPane[] inputs, boolean userRequest) {
         JTextField desc = new JTextField(description);
         desc.setFont(new Font("Arial", Font.BOLD, 14));
         desc.setEditable(false);
@@ -308,6 +326,7 @@ public class BeerZoneGUI {
         doc.setParagraphAttributes(0, doc.getLength(), center, false);
         infoPane.setFont(new Font("Arial", Font.PLAIN, 14));
         infoPane.setBorder(createEmptyBorder());
+        infoPane.setEditable(userRequest);
         containerPanel.add(infoPane, new GridBagConstraints(1,row,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 0, 15, 15),0, 0));
     }
@@ -477,7 +496,7 @@ public class BeerZoneGUI {
      * @param frame: frame used by the application
      */
     private static void prepareRegisterSection(JFrame frame) {
-        frame.setTitle("BeerZone - REGISTER");
+        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - REGISTER");
         JTextField[] inputs = new JTextField[6];
         frame.setLayout(new GridBagLayout());
         JPanel jp = new JPanel();
@@ -696,7 +715,7 @@ public class BeerZoneGUI {
     public static void prepareLogRegister(JFrame frame){
         frame.getContentPane().removeAll();
         frame.setLayout(new GridBagLayout());
-        frame.setTitle("BeerZone");
+        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone");
         setLoginButton(frame);
         setRegisterButton(frame);
         frame.repaint();
@@ -743,7 +762,7 @@ public class BeerZoneGUI {
      * @param frame: frame used by the application
      */
     public static void prepareLoginSection(JFrame frame) {
-        frame.setTitle("BeerZone - USER LOGIN");
+        frame.setTitle("it.unipi.dii.inginf.lsmdb.beerzone.BeerZone - USER LOGIN");
 
         JTextField[] inputs = new JTextField[2];
         frame.setLayout(new GridBagLayout());
@@ -781,13 +800,14 @@ public class BeerZoneGUI {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //send query to see what type of user it is
-                int res = BREWERY_MANAGER;
+                int res = STANDARD_USER;
                 if(res == BREWERY_MANAGER){
                     Brewery b = new Brewery("1", "email", "username", "password", "location", "types");
                     BreweryManagerGUI.breweryManagerSection(frame, b);
                 }
                 else if(res == STANDARD_USER) {
                     StandardUser s = new StandardUser("2", "email2", "username2", "password2", 20, "location");
+                    UserManager.getInstance().getFavorites(s);
                     StandardUserGUI.standardUserSection(frame, s);
                 }
                 else
@@ -811,7 +831,7 @@ public class BeerZoneGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
-        prepareLogRegister(frame);
+        //prepareLogRegister(frame);
         frame.setVisible(true);
     }
 }

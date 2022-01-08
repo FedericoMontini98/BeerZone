@@ -121,7 +121,6 @@ public class StandardUserGUI {
      * @param request: specifies if the request is for favorites or suggestions
      */
     private static void browseUserFavoritesSuggestions(JPanel rjp, JFrame frame, StandardUser s, Integer request) {
-        UserManager.getInstance().getFavorites(s);
         ArrayList<FavoriteBeer> favBeer = new ArrayList<>();
         ArrayList<FavoriteBeer> suggBeer = new ArrayList<>();
         if(Objects.equals(request, SUGGESTIONS)){
@@ -373,9 +372,10 @@ public class StandardUserGUI {
         }
         else{
             addFav.addActionListener(e -> {
-                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 Date dateFav = new Date();
-                FavoriteBeer fb = new FavoriteBeer(selBeer.getBeerID(), selBeer.getBeerName(), dateFav);
+                String dateStr = dateFormat.format(dateFav);
+                FavoriteBeer fb = new FavoriteBeer(selBeer.getBeerID(), selBeer.getBeerName(), dateStr);
                 UserManager.getInstance().addAFavorite(fb, s);
             });
         }

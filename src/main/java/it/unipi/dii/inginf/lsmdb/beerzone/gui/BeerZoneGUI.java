@@ -236,7 +236,10 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     String id = browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString();
-                    DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
+                    //DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
+                    DetailedBeer b = new DetailedBeer(id, "name", "style", "52", "0.0", "brewery", "Availability", "Notes",
+                            "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
+                            "Hops", "Other", "Yeast");
                     createBeerPage(containerPanel, frame, b, user);
                 }
             }

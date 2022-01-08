@@ -63,7 +63,7 @@ public class BeerManager {
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
         name = name != null ? name : "";
-        int limit = 12;
+        int limit = 13;
         int n = (page-1) * limit;
 
         FindIterable<Document> iterable = beersCollection.find(or(

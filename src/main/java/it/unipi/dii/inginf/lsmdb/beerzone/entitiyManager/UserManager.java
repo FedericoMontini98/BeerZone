@@ -145,8 +145,8 @@ public class UserManager {
      *  Both to reviews and User's files */
     public boolean addStandardUser(String Username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MERGE (U:User{Username: $Username})" +
-                    "ON CREATE" +
+            session.run("MERGE (U:User{Username: $Username}) \n" +
+                    "ON CREATE \n" +
                     "SET U.Username=$Username",parameters("Username",Username));
             return true;
         }

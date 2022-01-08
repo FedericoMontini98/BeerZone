@@ -36,8 +36,11 @@ public class Beer {
     }
 
     public Beer (Document beer) {
-        this(beer.getObjectId("_id").toString(), beer.getString("name"), beer.getString("style"),
-                beer.get("abv").toString(), beer.get("rating").toString());
+        this(beer.getObjectId("_id").toString(),
+                beer.getString("name"),
+                beer.getString("style"),
+                beer.get("abv").toString(),
+                (beer.get("rating") == null)?"0":beer.get("rating").toString());
     }
 
     public String getBeerID() {

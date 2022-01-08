@@ -82,11 +82,7 @@ public class BeerZoneGUI {
         rjp.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null));
-
-        JScrollPane jsc = new JScrollPane(browseTable);
-        tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null), rjp);
 
         rjp.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -112,7 +108,7 @@ public class BeerZoneGUI {
 
         JButton leftArr = new JButton("<");
         JButton rightArr = new JButton(">");
-        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user);
+        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user, rjp);
 
         rjp.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
@@ -128,7 +124,7 @@ public class BeerZoneGUI {
      * @param rightArr: arrow that leads to the next page
      * @param currPage: current page
      */
-    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user) {
+    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp) {
         leftArr.setEnabled(false);
         leftArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
@@ -138,7 +134,7 @@ public class BeerZoneGUI {
             currNum = currNum - 1;
             System.out.println("Page Requested: " + currNum);
             ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
-            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow);
+            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp);
             currPage.setText(String.valueOf(currNum));
         });
 
@@ -150,7 +146,7 @@ public class BeerZoneGUI {
             ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
             if(beerToShow.size() <= 12)
                 rightArr.setEnabled(false);
-            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow);
+            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp);
             currPage.setText(String.valueOf(currNum));
         });
     }
@@ -163,7 +159,7 @@ public class BeerZoneGUI {
      * @param user : logged user
      * @param beerToShow
      */
-    private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow) {
+    private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow, JPanel rjp) {
         tableContainer.removeAll();
 
         DefaultTableModel tableModel = new DefaultTableModel(){
@@ -173,12 +169,16 @@ public class BeerZoneGUI {
             }
         };
 
-        setTableSettings(tableModel, browseTable, tableContainer, frame, user);
+        setTableSettings(tableModel, browseTable, rjp, frame, user);
 
         for(int i = 0; i < beerToShow.size(); i++)
             tableModel.addRow(beerToStringArray(beerToShow.get(i)));
 
         System.out.println("QUi: " + tableModel.getValueAt(0,1));
+
+        JScrollPane jsc = new JScrollPane(browseTable);
+        tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         frame.repaint();
         frame.setVisible(true);

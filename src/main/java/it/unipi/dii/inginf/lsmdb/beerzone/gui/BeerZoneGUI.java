@@ -141,8 +141,8 @@ public class BeerZoneGUI {
         };
 
         setTableSettings(tableModel, browseTable, containerPanel, frame, user);
-        Beer b1 = new Beer("1", "beer1", "style1", "1", -1);
-        Beer b2 = new Beer("2", "beer2", "style2", "2", 4);
+        Beer b1 = new Beer("1", "beer1", "style1", "1", "-1");
+        Beer b2 = new Beer("2", "beer2", "style2", "2", "4");
         tableModel.addRow(beerToStringArray(b1));
         tableModel.addRow(beerToStringArray(b2));
     }
@@ -236,8 +236,8 @@ public class BeerZoneGUI {
         containerPanel.add(beerFields, new GridBagConstraints(0,0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        JButton toBrewery = new JButton(selBeer.getBrewery_id().equals("")?"No Corresponding Brewery":"Go to Brewery");
-        toBrewery.setEnabled(!selBeer.getBrewery_id().equals(""));
+        JButton toBrewery = new JButton(selBeer.getBreweryID().equals("")?"No Corresponding Brewery":"Go to Brewery");
+        toBrewery.setEnabled(!selBeer.getBreweryID().equals(""));
         if(Objects.equals(user.getType(), STANDARD_USER))
             containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -812,7 +812,6 @@ public class BeerZoneGUI {
         frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
         prepareLogRegister(frame);
-
         frame.setVisible(true);
     }
 }

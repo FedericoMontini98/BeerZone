@@ -14,6 +14,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionWork;
 
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
@@ -166,14 +167,15 @@ public class UserManager {
             //Check if beer exists
             BeerManager.getInstance().AddBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
             //I put the date in the right format
-            DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            String str = myFormatObj.format((TemporalAccessor)fv.getFavoriteDate());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String str = formatter.format(fv.getFavoriteDate());
             //Run the query
             session.run("MATCH\n" +
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
-                            "CREATE (U)-[F:Favorite{date:$Date}]->(B)\n",
-                    parameters("Username",Username, "BeerID", fv.getBeerID(), "Date", str));
+                            "MERGE (U)-[F:Favorite]->(B)\n" +
+                            " ON CREATE SET F.Date=date($date)",
+                    parameters("Username",Username, "BeerID", fv.getBeerID(), "date", str));
             return true;
         } catch (Exception e) {
             e.printStackTrace();

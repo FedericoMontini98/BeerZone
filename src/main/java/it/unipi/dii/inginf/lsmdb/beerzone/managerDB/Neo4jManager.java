@@ -35,7 +35,9 @@ public class Neo4jManager implements AutoCloseable{
     public void close() {
         if(neoInstance == null)
             throw new RuntimeException("Connection not created yet.");
-        else
+        else {
             neoInstance.driver.close();
+            System.out.println("Neo4j connection closed");
+        }
     }
 }

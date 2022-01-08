@@ -168,9 +168,9 @@ public class BeerManager {
     public boolean AddBeer (Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})" +
-                    "ON CREATE" +
-                    "SET nameStyle= $Style",parameters("Style",beer.getStyle()));
+            session.run("MERGE (S:Style{nameStyle: $Style})\n" +
+                    "ON CREATE\n" +
+                    "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
             session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
             //I create the relationship between the style node and the beer node
@@ -178,7 +178,7 @@ public class BeerManager {
                             "(B:Beer{ID:$BeerID}),\n" +
                             "(S:Style{nameStyle:$style})\n " +
                             "CREATE (B)-[Ss:SameStyle]->(S)\n",
-                    parameters( "BeerID", beer.getBeerID(), "styleName", beer.getStyle()));
+                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
             return true;
         }
         catch(Exception e){
@@ -194,7 +194,7 @@ public class BeerManager {
         try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
             Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
-                    "return  S.nameStyle",parameters("Username",user.getUsername()));
+                    "return  distinct S.nameStyle as Style",parameters("Username",user.getUsername()));
             String Style_1="",Style_2="";
             if(Style_records.hasNext()) {
                 Style_1= Style_records.next().get("Style").asString();
@@ -207,12 +207,12 @@ public class BeerManager {
                 }
             }
             if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return new ArrayList<String>();
+                return new ArrayList<>();
             }
             //If less than 4 I return two suggestions for that style
             if(n_style==1){
                 String finalStyle_ = Style_1;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -231,7 +231,7 @@ public class BeerManager {
             else{
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -259,7 +259,7 @@ public class BeerManager {
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 

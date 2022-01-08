@@ -134,7 +134,7 @@ public class ReviewManager {
             BeerManager.getInstance().AddBeer(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            String str = formatter.format(review.getReviewDate());
+            String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
             session.run("MATCH\n" +
                             "  (B:Beer),\n" +

@@ -57,16 +57,19 @@ public class BeerManager {
         }
     }
 
-    // TODO
     public boolean updateBeerRating(Review review) {
-        /*
         try {
-            UpdateResult updateResult = beersCollection.updateOne(eq("_id", review.getBeerID()),
-                    set());
+            Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
+            int num_rating = doc.getInteger("num_rating");
+            double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+            UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
+                    combine(set("rating", new_rating), set("num_rating", num_rating)));
+            return updateResult.getMatchedCount() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
-         */
+
         return false;
     }
 
@@ -146,6 +149,7 @@ public class BeerManager {
     }
 
     public long deleteBreweryFromBeers(String breweryID) {
+        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
         UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
                 combine(unset("brewery"), set("retired", "t")));
         return updateResult.getMatchedCount();

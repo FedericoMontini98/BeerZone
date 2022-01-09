@@ -6,17 +6,19 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 
+import static jdk.nashorn.internal.objects.NativeMath.round;
+
 public class Review {
     private String reviewID;
     private String beerID;
     private String username;
     private Date reviewDate;
-    private Double look;
-    private Double smell;
-    private Double taste;
-    private Double feel;
-    private Double overall;
-    private Double score;
+    private double look;
+    private double smell;
+    private double taste;
+    private double feel;
+    private double overall;
+    private double score;
 
     public Review(){}
 
@@ -40,7 +42,7 @@ public class Review {
     }
 
     public Review(Document review) {
-        this(review.get("beer") != null ? review.getString("beer") : "--",
+        this(review.get("beer_id") != null ? review.getObjectId("beer_id").toString() : "--",
                 review.get("username") != null ? review.getString("username") : "--",
                 review.get("date") != null ? review.getDate("date") : new Date(),
                 review.get("look") != null ? review.get("look").toString() : "0",
@@ -128,14 +130,13 @@ public class Review {
         this.score = Double.parseDouble(score);
     }
 
-    public void computeScore() {
-        score = look + smell + taste + feel + overall;
-        score /= 5;
+    protected void computeScore() {
+        score = (double) (Math.round(((look + smell + taste + feel + overall) / 5) * 100)) / 100;
     }
 
     public Document getReview() {
         return new Document("_id", new ObjectId(reviewID))
-                .append("beer", beerID)
+                .append("beer_id", new ObjectId(beerID))
                 .append("username", username)
                 .append("date", reviewDate)
                 .append("look", look)

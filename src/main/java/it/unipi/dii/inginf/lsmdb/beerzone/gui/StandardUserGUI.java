@@ -6,7 +6,6 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,7 +14,7 @@ import java.util.Objects;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class StandardUserGUI {
-    private static final Integer STANDARD_USER = 0;
+    //private static final Integer STANDARD_USER = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
     private static final Integer SUGGESTIONS = 0;

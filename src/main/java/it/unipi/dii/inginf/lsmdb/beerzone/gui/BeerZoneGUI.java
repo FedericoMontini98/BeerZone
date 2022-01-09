@@ -174,7 +174,6 @@ public class BeerZoneGUI {
         for(int i = 0; i < beerToShow.size(); i++)
             tableModel.addRow(beerToStringArray(beerToShow.get(i)));
 
-        System.out.println("QUi: " + tableModel.getValueAt(0,1));
 
         JScrollPane jsc = new JScrollPane(browseTable);
         tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,

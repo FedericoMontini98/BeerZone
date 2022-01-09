@@ -68,6 +68,10 @@ public class Review {
         return reviewDate.toString();
     }
 
+    public Date getReviewDateNeo() {
+        return reviewDate;
+    }
+
     public String getLook() {
         return String.valueOf(look);
     }

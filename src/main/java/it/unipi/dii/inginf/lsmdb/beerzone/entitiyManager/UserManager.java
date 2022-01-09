@@ -61,23 +61,33 @@ public class UserManager {
     }
 
     /* check if an email or a combination of an username/type=0 already exist in the users collection */
-    private boolean userExist(String email, int type, @Nullable String username) {
+    private boolean userExist(GeneralUser user) {
         Document doc = null;
-        if (type == 1) {    // Brewery
-            doc = usersCollection.find(eq("email", email)).first();
-        } else if (type == 0) { // StandardUser
-            if (username == null || username.isEmpty() || username.equals(" "))
-                return false;
-                //throw new RuntimeException("Username not valid");
-            doc = usersCollection.find(or(eq("email", email),
-                    and(eq("type", type), eq("username", username)))).first();
+        try {
+            doc = usersCollection.find(or(eq("email", user.getEmail()),
+                    and(eq("type", user.getType()), eq("username", user.getUsername())))).first();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         return !(doc == null || doc.isEmpty());
+    }
+
+    public boolean addUser(Brewery brewery) {
+        try {
+            if (userExist(brewery))
+                return false;
+            usersCollection.insertOne(brewery.getBreweryDoc(false));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean addUser(StandardUser user) {
         try {
+            if (userExist(user))
+                return false;
             usersCollection.insertOne(user.getUserDoc());
             return true;
         } catch (Exception e) {

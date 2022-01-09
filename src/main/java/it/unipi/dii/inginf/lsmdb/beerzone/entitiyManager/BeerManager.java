@@ -3,10 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.*;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -47,6 +44,10 @@ public class BeerManager {
         return beerManager;
     }
 
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
+
     public void addNewBeer(DetailedBeer beer) {
         try {
             Document beerDoc = beer.getBeerDoc();
@@ -56,9 +57,18 @@ public class BeerManager {
         }
     }
 
-    /* ************************************************************************************************************/
-    /* *************************************  MongoDB Section  ****************************************************/
-    /* ************************************************************************************************************/
+    // TODO
+    public boolean updateBeerRating(Review review) {
+        /*
+        try {
+            UpdateResult updateResult = beersCollection.updateOne(eq("_id", review.getBeerID()),
+                    set());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+         */
+        return false;
+    }
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
@@ -90,21 +100,6 @@ public class BeerManager {
         try {
             for (Document beerDoc : beersCollection.find(eq("brewery_id", breweryID))
                     .skip(n).limit(limit+1)) {
-                beerList.add(new Beer(beerDoc));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return beerList;
-    }
-
-    public ArrayList<Beer> browseBeersByStyle(String styleName) {
-        ArrayList<Beer> beerList = new ArrayList<>();
-        try {
-
-            for (Document beerDoc : beersCollection.find(
-                            regex("style", ".*" + styleName + ".*", "-i"))
-                    .limit(20)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {

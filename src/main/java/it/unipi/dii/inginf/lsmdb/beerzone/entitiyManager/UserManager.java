@@ -61,7 +61,7 @@ public class UserManager {
     }
 
     /* check if an email or a combination of an username/type=0 already exist in the users collection */
-    public boolean userExist(String email, int type, @Nullable String username) {
+    private boolean userExist(String email, int type, @Nullable String username) {
         Document doc = null;
         if (type == 1) {    // Brewery
             doc = usersCollection.find(eq("email", email)).first();
@@ -86,9 +86,9 @@ public class UserManager {
         return false;
     }
 
-    public GeneralUser login(String username, String password) {
+    public GeneralUser login(String email, String password) {
         try {
-            Document doc = usersCollection.find().first();
+            Document doc = usersCollection.find(eq("email", email)).first();
             if (doc != null) {
                 if (doc.getInteger("type") == 0) {
                     //System.out.println("standard: " + doc.getString("username"));

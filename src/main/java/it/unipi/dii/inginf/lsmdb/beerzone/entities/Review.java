@@ -1,6 +1,5 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -69,6 +68,10 @@ public class Review {
 
     public String getReviewDate() {
         return reviewDate.toString();
+    }
+
+    public Date getReviewDateNeo() {
+        return reviewDate;
     }
 
     public String getLook() {

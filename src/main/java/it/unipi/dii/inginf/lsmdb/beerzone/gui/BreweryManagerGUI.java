@@ -101,7 +101,7 @@ public class BreweryManagerGUI {
                                                         recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
                                                         recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
                                                         recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                    //BeerManager.getInstance().addNewBeerToBrewery(b, db);
+                    BeerManager.getInstance().addNewBeer(db);
                 }
             }
         });
@@ -413,9 +413,6 @@ public class BreweryManagerGUI {
         JButton goToBeer = new JButton("Go To Beer");
         goToBeer.setEnabled(dim != 0);
         goToBeer.addActionListener(e ->{
-            /*DetailedBeer selBeer = new DetailedBeer(beerId[beerListCB.getSelectedIndex()], "name", "style", "abv", "4.0", "brewery", "Availability", "Notes",
-                "Url", "Retired", "Method", "10", "20", "30", "40", "52", "Fermentables",
-                "Hops", "Other", "Yeast");*/
             DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(beerId[beerListCB.getSelectedIndex()]);
             BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, b);
         });
@@ -429,8 +426,10 @@ public class BreweryManagerGUI {
             b.setTypes(inputs[3].getText());
             BreweryManager.getInstance().updateBrewery(b);
         });
-        containerPanel.add(updateBrewery,  new GridBagConstraints(0, 2,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+        if(su == null) {
+            containerPanel.add(updateBrewery, new GridBagConstraints(0, 2, 2, 1, 0, 0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));
+        }
 
         JButton deleteBrewery = new JButton("Delete Brewery");
         deleteBrewery.setFont(new Font("Arial", Font.BOLD, 15));
@@ -440,8 +439,10 @@ public class BreweryManagerGUI {
         deleteBrewery.addActionListener(e->{
             BreweryManager.getInstance().deleteBrewery(b);
         });
-        containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3,2,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
+        if(su == null) {
+            containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3, 2, 1, 0, 0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));
+        }
 
         containerPanel.add(jp, new GridBagConstraints(0, 0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));

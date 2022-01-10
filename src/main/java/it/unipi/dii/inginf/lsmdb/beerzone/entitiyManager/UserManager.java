@@ -191,16 +191,13 @@ public class UserManager {
             UserManager.getInstance().addStandardUser(Username);
             //Check if beer exists
             BeerManager.getInstance().AddBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
-            //I put the date in the right format
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            String str = formatter.format(fv.getFavoriteDate());
             //Run the query
             session.run("MATCH\n" +
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
                             "MERGE (U)-[F:Favorite]->(B)\n" +
-                            " ON CREATE SET F.Date=date($date)",
-                    parameters("Username",Username, "BeerID", fv.getBeerID(), "date", str));
+                            " ON CREATE SET F.date=date($date)",
+                    parameters("Username",Username, "BeerID", fv.getBeerID(), "date", fv.getFavoriteDate()));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -244,7 +241,7 @@ public class UserManager {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction(tx -> {
                 Result result = tx.run("MATCH (U:User{Username:$username})-[F:Favorite]->(B:Beer)" +
-                                " RETURN B.ID as ID, F.date as Date",
+                                " RETURN B.ID as ID, toString(F.date) as Date",
                         parameters("username", user.getUsername()));
                 ArrayList<FavoriteBeer> favorites = new ArrayList<>();
                 while (result.hasNext()) {

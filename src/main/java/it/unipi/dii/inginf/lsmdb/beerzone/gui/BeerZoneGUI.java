@@ -157,7 +157,6 @@ public class BeerZoneGUI {
      * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
      * @param user : logged user
-     * @param beerToShow
      */
     private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow, JPanel rjp) {
         tableContainer.removeAll();
@@ -171,10 +170,8 @@ public class BeerZoneGUI {
 
         setTableSettings(tableModel, browseTable, rjp, frame, user);
 
-        for(int i = 0; i < beerToShow.size(); i++)
-            tableModel.addRow(beerToStringArray(beerToShow.get(i)));
+        for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
 
-        System.out.println("QUi: " + tableModel.getValueAt(0,1));
 
         JScrollPane jsc = new JScrollPane(browseTable);
         tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
@@ -277,9 +274,7 @@ public class BeerZoneGUI {
             containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        toBrewery.addActionListener(e->{
-           BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID());
-        });
+        toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID()));
         createRecipeSection(containerPanel, 2, recipeTexts, user.getType());
 
         if(Objects.equals(user.getType(), STANDARD_USER))
@@ -352,7 +347,7 @@ public class BeerZoneGUI {
      * function that creates the fields of the beer page
      *
      * @param fieldName : Name of the field
-     * @param containerPanel : panal containing the field
+     * @param containerPanel : panel containing the field
      * @param row: GridBagConstraint gridy
      * @param column: GridBagConstraint gridx
      */
@@ -485,9 +480,9 @@ public class BeerZoneGUI {
      * @param inputData: array to be filled with the values in the JTextFields inside the inputs vector
      * @return correctData: value representing the correctness of the data
      */
-    private static Boolean readLoginInputs(JTextField[] inputs, String[] inputData) {
+    private static GeneralUser readLoginInputs(JTextField[] inputs, String[] inputData) {
         boolean correctData = true;
-
+        GeneralUser gu = null;
         for (int i = 0; i < inputs.length; i++) {
             if (!inputs[i].getText().equals("")) {
                 inputData[i] = inputs[i].getText();
@@ -497,14 +492,17 @@ public class BeerZoneGUI {
                 correctData = false;
             }
         }
-
         if (correctData) {
             //ask database for user existance
-            //if(user doesn't exist)
-            //  correctData = false
+            gu = UserManager.getInstance().login(inputData[0], inputData[1]);
+            if(gu == null){
+                for(JTextField input: inputs){
+                    input.setText("");
+                    input.setBackground(Color.RED);
+                }
+            }
         }
-
-        return correctData;
+        return gu;
     }
 
     /**
@@ -581,30 +579,41 @@ public class BeerZoneGUI {
         String[] inputData = new String[6];
         final String[] bg = {null};
         registerButton.addActionListener(e -> {
-            Boolean correctData = readRegisterInputs(rb1, rb2, inputs, inputData);
+            boolean registrationOk;
+            boolean correctData = readRegisterInputs(rb1, rb2, inputs, inputData);
             if(correctData) {
-                bg[0] = readUserType(rb1, rb2);
+                bg[0] = readUserType(rb1);
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 if(Objects.equals(bg[0], "Brewery Manager")){
-                    Brewery b = new Brewery("1", inputData[EMAIL_ROW], inputData[USERNAME_ROW], inputData[PASSWORD_ROW], inputData[LOCATION_ROW], inputData[VARIABLE_ROW]);
-                    //BreweryManager.getInstance().addBrewery(b);
-                    BreweryManagerGUI.breweryManagerSection(frame, b);
+                    Brewery b = new Brewery(null, inputData[EMAIL_ROW], inputData[USERNAME_ROW], inputData[PASSWORD_ROW], inputData[LOCATION_ROW], inputData[VARIABLE_ROW]);
+                    registrationOk = BreweryManager.getInstance().addBrewery(b);
+                    if(registrationOk)
+                        BreweryManagerGUI.breweryManagerSection(frame, b);
                 }
                 else{
-                    StandardUser s = new StandardUser("2", inputData[EMAIL_ROW], inputData[USERNAME_ROW], inputData[PASSWORD_ROW], Integer.parseInt(inputData[VARIABLE_ROW]), inputData[LOCATION_ROW]);
-                    StandardUserGUI.standardUserSection(frame, s);
+                    StandardUser s = new StandardUser(null, inputData[EMAIL_ROW], inputData[USERNAME_ROW], inputData[PASSWORD_ROW], Integer.parseInt(inputData[VARIABLE_ROW]), inputData[LOCATION_ROW]);
+                    registrationOk = UserManager.getInstance().addUser(s);
+                    if(registrationOk)
+                        StandardUserGUI.standardUserSection(frame, s);
                 }
+
+                if(!registrationOk){
+                    for (JTextField input : inputs) {
+                        input.setText("");
+                        input.setBackground(Color.RED);
+                    }
+                }
+
             }
         });
     }
 
     /**
      * @param rb1 : RadioButton 1
-     * @param rb2: RadioButton 2
      * @return String containing the correspnding type of user
      */
-    private static String readUserType(JRadioButton rb1, JRadioButton rb2) {
+    private static String readUserType(JRadioButton rb1) {
         if(rb1.isSelected())
             return "Standard User";
         else
@@ -641,7 +650,20 @@ public class BeerZoneGUI {
                     inputs[i].setBackground(Color.RED);
                     correctData = false;
                 }
-                if (i == (PASS_CONFIRMATION_ROW - 1) && !inputs[i - 1].getText().equals(inputs[i].getText())) {
+                if(i == VARIABLE_ROW && rb1.isSelected()){
+                    inputs[i].setBackground(Color.YELLOW);
+                    try{
+                        int age = Integer.parseInt(inputs[i].getText());
+                        if(age < 18) {
+                            inputs[i].setText("You must be at least 18 years old");
+                            correctData = false;
+                        }
+                    }catch(NumberFormatException nfe){
+                        inputs[i].setText("Insert an integer");
+                        correctData = false;
+                    }
+                }
+                if (i == (PASS_CONFIRMATION_ROW) && !inputs[i - 1].getText().equals(inputs[i].getText())) {
                     inputs[i].setBackground(Color.RED);
                     inputs[i].setText("");
                     inputs[i - 1].setBackground(Color.RED);
@@ -806,29 +828,25 @@ public class BeerZoneGUI {
      *  @param jp : JPanel that contains the login components
      * @param frame : frame used by the application
      * @param loginButton : login button
-     * @param inputs
      */
     private static void createLoginButton(JPanel jp, JFrame frame, JButton loginButton, JTextField[] inputs) {
         GridBagConstraints gbc = new GridBagConstraints();
         String[] inputData = new String[2];
         loginButton.addActionListener(e -> {
-            Boolean correctData = readLoginInputs(inputs, inputData);
-            if(correctData) {
+            GeneralUser loggedUser = readLoginInputs(inputs, inputData);
+            if(loggedUser != null) {
                 frame.getContentPane().removeAll();
                 frame.repaint();
                 //send query to see what type of user it is
-                int res = STANDARD_USER;
-                if(res == BREWERY_MANAGER){
-                    Brewery b = new Brewery("1", "email", "username", "password", "location", "types");
+                if(loggedUser.getType() == BREWERY_MANAGER){
+                    Brewery b = (Brewery)loggedUser;
                     BreweryManagerGUI.breweryManagerSection(frame, b);
                 }
-                else if(res == STANDARD_USER) {
-                    StandardUser s = new StandardUser("2", "email2", "username2", "password2", 20, "location");
+                else{
+                    StandardUser s = (StandardUser)loggedUser;
                     UserManager.getInstance().getFavorites(s);
                     StandardUserGUI.standardUserSection(frame, s);
                 }
-                else
-                    System.out.println("data not correct");
             }
             else
                 System.out.println("Missing or incorrect data");
@@ -846,11 +864,12 @@ public class BeerZoneGUI {
     public void createAndShowGUI(){
         JFrame frame = new JFrame("BeerZone");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         double width = screenSize.getWidth();
         double height = screenSize.getHeight();
 
-        frame.setSize(1000*(1920/(int)width), 600*(1080/(int)height));
+        frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
         prepareLogRegister(frame);
         frame.setVisible(true);

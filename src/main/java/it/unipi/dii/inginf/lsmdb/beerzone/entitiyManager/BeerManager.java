@@ -56,6 +56,7 @@ public class BeerManager {
     public boolean updateBeerRating(Review review) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            assert doc != null;
             double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
             int num_rating = doc.getInteger("num_rating");
             double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
@@ -275,11 +276,10 @@ public class BeerManager {
                                 "WITH collect(B) as Fv\n" +
                                 "MATCH ()-[F1:Favorite]->(B1:Beer)\n" +
                                 "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT F1) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 10",
+                                "RETURN COUNT(DISTINCT F1) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 8",
                         parameters( "starting_Date", Starting_date));
                 ArrayList<FavoriteBeer> MostLiked = new ArrayList<>();
                 //Saving the results in a List before returning it
-
                 while (result.hasNext()) {
                     Record r = result.next();
                     MostLiked.add(new FavoriteBeer(new Beer(r.get("ID").asString(),r.get("Name").asString()),null));

@@ -1,12 +1,9 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
-
-import static jdk.nashorn.internal.objects.NativeMath.round;
 
 public class Review {
     private String reviewID;

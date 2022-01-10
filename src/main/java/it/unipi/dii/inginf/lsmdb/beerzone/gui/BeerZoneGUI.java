@@ -157,7 +157,6 @@ public class BeerZoneGUI {
      * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
      * @param user : logged user
-     * @param beerToShow
      */
     private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow, JPanel rjp) {
         tableContainer.removeAll();
@@ -348,7 +347,7 @@ public class BeerZoneGUI {
      * function that creates the fields of the beer page
      *
      * @param fieldName : Name of the field
-     * @param containerPanel : panal containing the field
+     * @param containerPanel : panel containing the field
      * @param row: GridBagConstraint gridy
      * @param column: GridBagConstraint gridx
      */
@@ -493,7 +492,6 @@ public class BeerZoneGUI {
                 correctData = false;
             }
         }
-
         if (correctData) {
             //ask database for user existance
             gu = UserManager.getInstance().login(inputData[0], inputData[1]);
@@ -504,7 +502,6 @@ public class BeerZoneGUI {
                 }
             }
         }
-
         return gu;
     }
 
@@ -582,7 +579,7 @@ public class BeerZoneGUI {
         String[] inputData = new String[6];
         final String[] bg = {null};
         registerButton.addActionListener(e -> {
-            boolean registrationOk = false;
+            boolean registrationOk;
             boolean correctData = readRegisterInputs(rb1, rb2, inputs, inputData);
             if(correctData) {
                 bg[0] = readUserType(rb1);
@@ -831,7 +828,6 @@ public class BeerZoneGUI {
      *  @param jp : JPanel that contains the login components
      * @param frame : frame used by the application
      * @param loginButton : login button
-     * @param inputs
      */
     private static void createLoginButton(JPanel jp, JFrame frame, JButton loginButton, JTextField[] inputs) {
         GridBagConstraints gbc = new GridBagConstraints();

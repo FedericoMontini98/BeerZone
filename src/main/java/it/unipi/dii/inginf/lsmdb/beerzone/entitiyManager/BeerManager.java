@@ -1,26 +1,22 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
-
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.TransactionWork;
-
 
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
@@ -271,7 +267,7 @@ public class BeerManager {
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
-            return session.readTransaction((TransactionWork<ArrayList<FavoriteBeer>>) tx -> {
+            return session.readTransaction(tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
                                 "WHERE F.date>=date($starting_Date)\n" +
                                 "WITH collect(B) as Fv\n" +

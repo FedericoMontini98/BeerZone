@@ -57,7 +57,9 @@ public class BeerManager {
     public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
-            double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
+            double rating = 0;
+            if (doc.get("rating") != null)
+                rating = Double.parseDouble(doc.get("rating").toString());
             int num_rating = doc.getInteger("num_rating");
             double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
             beer.setNumRating(num_rating);

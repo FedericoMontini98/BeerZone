@@ -3,10 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.*;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -264,7 +261,7 @@ public class BeerManager {
     }
 
     /* Function that calculate the most favorite beers in the past month */
-    public List<String> getMostFavoriteThisMonth (){
+    public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
@@ -274,7 +271,7 @@ public class BeerManager {
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
-            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+            return session.readTransaction((TransactionWork<ArrayList<FavoriteBeer>>) tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
                                 "WHERE F.date>=date($starting_Date)\n" +
                                 "WITH collect(B) as Fv\n" +
@@ -282,20 +279,20 @@ public class BeerManager {
                                 "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
                                 "MATCH ()-[F2:Favorite]->(B1)\n" +
                                 "WHERE F2.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
+                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
-                ArrayList<String> MostLiked = new ArrayList<>();
+                ArrayList<FavoriteBeer> MostLiked = new ArrayList<>();
                 //Saving the results in a List before returning it
                 while (result.hasNext()) {
                     Record r = result.next();
-                    MostLiked.add(r.get("ID").asString());
+                    MostLiked.add(new FavoriteBeer(new Beer(r.get("ID").asString(),r.get("Name").asString()),null));
                 }
                 return MostLiked;
             });
         }
         catch(Exception e){
             e.printStackTrace();
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
     }
 }

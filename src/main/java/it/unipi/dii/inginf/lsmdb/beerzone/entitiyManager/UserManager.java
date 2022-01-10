@@ -171,7 +171,7 @@ public class UserManager {
                             "  (B:Beer{ID:$BeerID}),\n" +
                             "  (U:User{Username:$Username})\n" +
                             "MERGE (U)-[F:Favorite]->(B)\n" +
-                            " ON CREATE SET F.Date=date($date)",
+                            " ON CREATE SET F.date=date($date)",
                     parameters("Username",Username, "BeerID", fv.getBeerID(), "date", fv.getFavoriteDate()));
             return true;
         } catch (Exception e) {

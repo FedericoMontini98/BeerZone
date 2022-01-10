@@ -45,7 +45,7 @@ public class StandardUserGUI {
         btnArray[2].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
         btnArray[3] = new JButton("View Trending Beers");
-        btnArray[3].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
+        btnArray[3].addActionListener(e -> browseTrending(rjp, frame, s));
 
         btnArray[4] = new JButton("Browse Beer");
         btnArray[4].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, s));
@@ -54,6 +54,10 @@ public class StandardUserGUI {
         btnArray[5].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
 
         setLeftStandardUserButton(btnArray, ljp);
+
+        ljp.setBorder(BorderFactory.createLineBorder(Color.black));
+        ljp.setBackground(BACKGROUND_COLOR);
+        frame.getContentPane().add(ljp);
 
         rjp.setBorder(BorderFactory.createLineBorder(Color.black));
         rjp.setBackground(BACKGROUND_COLOR);
@@ -591,7 +595,7 @@ public class StandardUserGUI {
      * @param s : logged user
      */
     private static void browseTrending(JPanel rjp, JFrame frame, StandardUser s) {
-        /*ArrayList<FavoriteBeer> trendingBeers;
+        ArrayList<FavoriteBeer> trendingBeers;
         trendingBeers=BeerManager.getInstance().getMostFavoriteThisMonth();
 
 
@@ -600,7 +604,7 @@ public class StandardUserGUI {
         beerContainer.setBackground(BACKGROUND_COLOR);
         createTrendingSection(trendingBeers, beerContainer, rjp, frame, s);
         frame.repaint();
-        frame.setVisible(true);*/
+        frame.setVisible(true);
     }
 
     /** Function that create the trending beers page
@@ -611,7 +615,7 @@ public class StandardUserGUI {
      * @param s : logged user
      */
     private static void createTrendingSection(ArrayList<FavoriteBeer> trendingBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
-       /*beerContainer.removeAll();
+       beerContainer.removeAll();
         //Empty trending section
         if(trendingBeers.size() == 0){
             JTextField err = new JTextField("Actually there are no trending beers. Please insert some favorites and review some beers to get started!");
@@ -634,7 +638,7 @@ public class StandardUserGUI {
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         frame.repaint();
-        frame.setVisible(true);*/
+        frame.setVisible(true);
     }
 
 }

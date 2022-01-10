@@ -628,7 +628,7 @@ public class StandardUserGUI {
         }
         //print Results found
         for(int j=0; j<trendingBeers.size();j++){
-            JTextField position = new JTextField("#"+Integer.toString(j+1));
+            JTextField position = new JTextField("#"+ (j + 1));
             position.setBackground(BACKGROUND_COLOR_RECIPE);
             position.setBorder(createEmptyBorder());
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());

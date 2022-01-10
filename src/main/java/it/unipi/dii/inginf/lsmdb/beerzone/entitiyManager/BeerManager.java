@@ -270,7 +270,6 @@ public class BeerManager {
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
-            System.out.println(Starting_date);
             //I commit the query and return the value
             return session.readTransaction((TransactionWork<ArrayList<FavoriteBeer>>) tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +

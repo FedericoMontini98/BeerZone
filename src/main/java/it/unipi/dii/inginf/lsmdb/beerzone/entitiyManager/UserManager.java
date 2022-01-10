@@ -96,10 +96,25 @@ public class UserManager {
         return false;
     }
 
+    /*
+    *
+    *
+            Document userDoc = users.find(eq("email", email)).first();
+            if (userDoc == null || userDoc.isEmpty())
+                return -1;
+
+            if (!password.equals(userDoc.getString("password")))
+                return -1;
+    *
+    * */
+
+
     public GeneralUser login(String email, String password) {
         try {
             Document doc = usersCollection.find(eq("email", email)).first();
             if (doc != null) {
+                if (!password.equals(doc.getString("password")))
+                    return null;
                 if (doc.getInteger("type") == 0) {
                     //System.out.println("standard: " + doc.getString("username"));
                     return new StandardUser(doc);

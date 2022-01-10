@@ -607,6 +607,7 @@ public class BeerZoneGUI {
                         input.setBackground(Color.RED);
                     }
                 }
+
             }
         });
     }

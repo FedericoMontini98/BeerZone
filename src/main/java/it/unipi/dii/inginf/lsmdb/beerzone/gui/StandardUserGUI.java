@@ -27,7 +27,7 @@ public class StandardUserGUI {
      * @param s: brewery informations
      */
     public static void standardUserSection(JFrame frame, StandardUser s){
-        JButton[] btnArray = new JButton[5];
+        JButton[] btnArray = new JButton[6];
         frame.setTitle("BeerZone - STANDARD USER");
         frame.setLayout(new GridLayout(1,2));
         JPanel ljp = new JPanel();
@@ -44,16 +44,16 @@ public class StandardUserGUI {
         btnArray[2] = new JButton("View Suggestions");
         btnArray[2].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
-        btnArray[3] = new JButton("Browse Beer");
-        btnArray[3].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, s));
+        btnArray[3] = new JButton("View Trending Beers");
+        btnArray[3].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
-        btnArray[4] = new JButton("Logout");
-        btnArray[4].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
+        btnArray[4] = new JButton("Browse Beer");
+        btnArray[4].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, s));
+
+        btnArray[5] = new JButton("Logout");
+        btnArray[5].addActionListener(e -> BeerZoneGUI.prepareLogRegister(frame));
 
         setLeftStandardUserButton(btnArray, ljp);
-        ljp.setBorder(BorderFactory.createLineBorder(Color.black));
-        ljp.setBackground(BACKGROUND_COLOR);
-        frame.getContentPane().add(ljp);
 
         rjp.setBorder(BorderFactory.createLineBorder(Color.black));
         rjp.setBackground(BACKGROUND_COLOR);
@@ -317,12 +317,15 @@ public class StandardUserGUI {
         gbc.ipadx = 22;
         gbc.gridy = 2;
         jp.add(btnArray[2], gbc);
-        gbc.ipadx = 50;
-        gbc.gridy = 3;
+        gbc.ipadx=5;
+        gbc.gridy=3;
         jp.add(btnArray[3], gbc);
-        gbc = new GridBagConstraints(0,4,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
+        gbc.ipadx = 50;
+        gbc.gridy = 4;
         jp.add(btnArray[4], gbc);
+        gbc = new GridBagConstraints(0,5,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
+        jp.add(btnArray[5], gbc);
     }
 
     /**
@@ -581,4 +584,57 @@ public class StandardUserGUI {
             rjp.add(spinner, new GridBagConstraints(2,row,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(15, 20, 0, 0),20,5));
     }
+
+    /**
+     * @param rjp : JPanel containing the Trending page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
+    private static void browseTrending(JPanel rjp, JFrame frame, StandardUser s) {
+        /*ArrayList<FavoriteBeer> trendingBeers;
+        trendingBeers=BeerManager.getInstance().getMostFavoriteThisMonth();
+
+
+        rjp.removeAll();
+        JPanel beerContainer = new JPanel(new GridBagLayout());
+        beerContainer.setBackground(BACKGROUND_COLOR);
+        createTrendingSection(trendingBeers, beerContainer, rjp, frame, s);
+        frame.repaint();
+        frame.setVisible(true);*/
+    }
+
+    /** Function that create the trending beers page
+     * @param trendingBeers : ArrayList of most favorite beer of this month
+     * @param beerContainer : JPanel containing the beers
+     * @param rjp : JPanel containing the Trending page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
+    private static void createTrendingSection(ArrayList<FavoriteBeer> trendingBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
+       /*beerContainer.removeAll();
+        //Empty trending section
+        if(trendingBeers.size() == 0){
+            JTextField err = new JTextField("Actually there are no trending beers. Please insert some favorites and review some beers to get started!");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            beerContainer.add(err);
+            rjp.add(beerContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        //Results found
+        for(int j = 0; j < 10; j++){
+            JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
+            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            createBeerPreview(beerPreviewContainer, trendingBeers.get(10), rjp, frame, s);
+            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2,(j < 2)?0:1,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+        }
+        rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);*/
+    }
+
 }

@@ -266,10 +266,11 @@ public class BeerManager {
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
             //Subtract a month
-            MyLDTObj.minus(Period.ofMonths(1));
+            MyLDTObj=MyLDTObj.minus(Period.ofMonths(1));
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
+            System.out.println(Starting_date);
             //I commit the query and return the value
             return session.readTransaction((TransactionWork<ArrayList<FavoriteBeer>>) tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
@@ -277,12 +278,11 @@ public class BeerManager {
                                 "WITH collect(B) as Fv\n" +
                                 "MATCH ()-[F1:Favorite]->(B1:Beer)\n" +
                                 "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
-                                "MATCH ()-[F2:Favorite]->(B1)\n" +
-                                "WHERE F2.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 10",
+                                "RETURN COUNT(DISTINCT F1) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
                 ArrayList<FavoriteBeer> MostLiked = new ArrayList<>();
                 //Saving the results in a List before returning it
+
                 while (result.hasNext()) {
                     Record r = result.next();
                     MostLiked.add(new FavoriteBeer(new Beer(r.get("ID").asString(),r.get("Name").asString()),null));

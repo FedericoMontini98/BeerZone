@@ -626,13 +626,18 @@ public class StandardUserGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
             return;
         }
-        //Results found
-        for(int j = 0; j < 10; j++){
+        //print Results found
+        for(int j=0; j<trendingBeers.size();j++){
+            JTextField position = new JTextField("#"+Integer.toString(j+1));
+            position.setBackground(BACKGROUND_COLOR_RECIPE);
+            position.setBorder(createEmptyBorder());
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
             beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
             beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            createBeerPreview(beerPreviewContainer, trendingBeers.get(10), rjp, frame, s);
-            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2,(j < 2)?0:1,1,1,0,0,
+            createBeerPreview(beerPreviewContainer, trendingBeers.get(j), rjp, frame, s);
+            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,

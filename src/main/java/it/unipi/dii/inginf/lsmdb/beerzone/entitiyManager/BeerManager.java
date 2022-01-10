@@ -40,6 +40,10 @@ public class BeerManager {
         return beerManager;
     }
 
+    /* ************************************************************************************************************/
+    /* *************************************  MongoDB Section  ****************************************************/
+    /* ************************************************************************************************************/
+
     public void addNewBeer(DetailedBeer beer) {
         try {
             Document beerDoc = beer.getBeerDoc();
@@ -49,9 +53,21 @@ public class BeerManager {
         }
     }
 
-    /* ************************************************************************************************************/
-    /* *************************************  MongoDB Section  ****************************************************/
-    /* ************************************************************************************************************/
+    public boolean updateBeerRating(Review review) {
+        try {
+            Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
+            int num_rating = doc.getInteger("num_rating");
+            double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+            UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
+                    combine(set("rating", new_rating), set("num_rating", num_rating)));
+            return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
@@ -83,21 +99,6 @@ public class BeerManager {
         try {
             for (Document beerDoc : beersCollection.find(eq("brewery_id", breweryID))
                     .skip(n).limit(limit+1)) {
-                beerList.add(new Beer(beerDoc));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return beerList;
-    }
-
-    public ArrayList<Beer> browseBeersByStyle(String styleName) {
-        ArrayList<Beer> beerList = new ArrayList<>();
-        try {
-
-            for (Document beerDoc : beersCollection.find(
-                            regex("style", ".*" + styleName + ".*", "-i"))
-                    .limit(20)) {
                 beerList.add(new Beer(beerDoc));
             }
         } catch (Exception e) {
@@ -144,6 +145,7 @@ public class BeerManager {
     }
 
     public long deleteBreweryFromBeers(String breweryID) {
+        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
         UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
                 combine(unset("brewery"), set("retired", "t")));
         return updateResult.getMatchedCount();

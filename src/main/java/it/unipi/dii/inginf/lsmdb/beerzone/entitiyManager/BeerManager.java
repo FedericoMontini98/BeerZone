@@ -18,9 +18,7 @@ import org.neo4j.driver.TransactionWork;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
@@ -31,7 +29,6 @@ public class BeerManager {
     private final MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
-    //private final MongoManager mongoManager;
 
     private BeerManager(){
         beersCollection = MongoManager.getInstance().getCollection("beers");
@@ -57,19 +54,21 @@ public class BeerManager {
         }
     }
 
-    public boolean updateBeerRating(Review review) {
+    public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
             double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
             int num_rating = doc.getInteger("num_rating");
             double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+            beer.setNumRating(num_rating);
+            beer.setScore(new_rating);
+
             UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
                     combine(set("rating", new_rating), set("num_rating", num_rating)));
             return updateResult.getMatchedCount() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -101,7 +100,7 @@ public class BeerManager {
         ArrayList<Beer> beerList = new ArrayList<>();
         //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
         try {
-            for (Document beerDoc : beersCollection.find(eq("brewery_id", breweryID))
+            for (Document beerDoc : beersCollection.find(eq("brewery_id", new ObjectId(breweryID)))
                     .skip(n).limit(limit+1)) {
                 beerList.add(new Beer(beerDoc));
             }
@@ -114,7 +113,7 @@ public class BeerManager {
     public ArrayList<Beer> getBeersFromBrewery(Brewery brewery) {
         ArrayList<Beer> beers = new ArrayList<>();
         try {
-            for (Document beer : beersCollection.find(in("_id", brewery.getBeers()))) {
+            for (Document beer : beersCollection.find(in("_id", brewery.getBeersID()))) {
                 beers.add(new Beer(beer));
             }
         } catch (Exception e) {
@@ -149,9 +148,9 @@ public class BeerManager {
     }
 
     public long deleteBreweryFromBeers(String breweryID) {
-        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
-        UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
-                combine(unset("brewery"), set("retired", "t")));
+        UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
+        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
+                combine(unset("brewery_id"), set("retired", "t")));
         return updateResult.getMatchedCount();
     }
 

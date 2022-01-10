@@ -21,11 +21,9 @@ import static com.mongodb.client.model.Updates.addToSet;
 
 public class BreweryManager {
     private static BreweryManager breweryManager;
-    //private final MongoManager mongoManager;
     private final MongoCollection<Document> breweriesCollection;
 
     private BreweryManager() {
-        //mongoManager = MongoManager.getInstance();
         breweriesCollection = MongoManager.getInstance().getCollection("users");
     }
 

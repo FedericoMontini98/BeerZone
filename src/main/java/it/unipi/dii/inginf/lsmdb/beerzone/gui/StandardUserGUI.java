@@ -77,8 +77,8 @@ public class StandardUserGUI {
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), 0, inputs, true);
-        BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(),1, inputs, true);
+        BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), 0, inputs, false);
+        BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(),1, inputs, false);
         BeerZoneGUI.addGenericFields(jp, "Age", Integer.toString(s.getAge()), 2, inputs, true);
         BeerZoneGUI.addGenericFields(jp, "Location", s.getLocation(), 3, inputs, true);
 
@@ -87,10 +87,14 @@ public class StandardUserGUI {
 
         JButton updateUser = new JButton("Update User");
         updateUser.addActionListener(e->{
-            s.setUsername(inputs[0].getText());
-            s.setEmail(inputs[1].getText());
-            s.setAge(Integer.parseInt(inputs[2].getText()));
-            s.setLocation(inputs[3].getText());
+            inputs[2].setBackground(Color.WHITE);
+            try{
+                int newAge = Integer.parseInt(inputs[2].getText());
+                s.setAge(newAge);
+            }catch(NumberFormatException nfe){
+             inputs[2].setText("Insert an integer");
+             inputs[2].setBackground(Color.YELLOW);
+            }
             UserManager.getInstance().updateUser(s);
         });
         rjp.add(updateUser,  new GridBagConstraints(0, 1,2,1,0,0,
@@ -101,8 +105,9 @@ public class StandardUserGUI {
         deleteUser.setBackground(Color.RED);
         deleteUser.setPreferredSize(new Dimension(200, 40));
         deleteUser.setForeground(Color.WHITE);
-        deleteUser.addActionListener(e->{
+        deleteUser.addActionListener(e-> {
             UserManager.getInstance().deleteUser(s);
+            BeerZoneGUI.prepareLogRegister(frame);
         });
         rjp.add(deleteUser, new GridBagConstraints(0, 2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
@@ -136,8 +141,8 @@ public class StandardUserGUI {
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createFavoriteSuggestionSection((request == SUGGESTIONS)?suggBeer:favBeer, 0, beerContainer, rjp, frame, s, request);
-        createFavoriteSuggestionPageButtons((request == SUGGESTIONS)?suggBeer:favBeer, beerContainer, rjp, frame, s, request);
+        createFavoriteSuggestionSection((Objects.equals(request, SUGGESTIONS))?suggBeer:favBeer, 0, beerContainer, rjp, frame, s, request);
+        createFavoriteSuggestionPageButtons((Objects.equals(request, SUGGESTIONS))?suggBeer:favBeer, beerContainer, rjp, frame, s, request);
 
         frame.repaint();
         frame.setVisible(true);
@@ -230,8 +235,8 @@ public class StandardUserGUI {
      */
     private static void createFavoriteSuggestionSection(ArrayList<FavoriteBeer> list, int page, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s, Integer request) {
         beerContainer.removeAll();
-        if(page == 0 && list.size() == 0){
-            JTextField err = new JTextField((request == FAVORITES)?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
+        if(list.size() == 0){
+            JTextField err = new JTextField((Objects.equals(request, FAVORITES))?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
             err.setBackground(BACKGROUND_COLOR);
             err.setBorder(createEmptyBorder());
             beerContainer.add(err);
@@ -388,9 +393,7 @@ public class StandardUserGUI {
      */
     private static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, StandardUser s) {
         JButton returnToBrowse = new JButton("Go Back");
-        returnToBrowse.addActionListener(e ->{
-            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, s);
-        });
+        returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, s));
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0, 0));

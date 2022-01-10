@@ -101,7 +101,7 @@ public class BreweryManagerGUI {
                                                         recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
                                                         recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
                                                         recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                    //BeerManager.getInstance().addNewBeerToBrewery(b, db);
+                    BeerManager.getInstance().addNewBeer(db);
                 }
             }
         });

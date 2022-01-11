@@ -136,12 +136,15 @@ public class ReviewManager {
             Bson sortScore = sort(descending("monthly_score"));
             Bson limitResult = limit(8);
             Bson lookupBeers = lookup("beers", "_id", "_id", "beer");
-            Bson newRoot = replaceRoot(new Document("newRoot",
-                    new Document("$mergeObjects", Arrays.asList(
-                            new Document("$arrayElemAt", Arrays.asList("$beer", 0)), "$$ROOT"))));
+            Bson newRoot = new Document("$replaceRoot",
+                    new Document("newRoot",
+                            new Document("$mergeObjects", Arrays.asList(new Document("$arrayElemAt", Arrays.asList("$beer", 0L)), "$$ROOT"))));
             Bson projectResult = project(fields(include("name", "style", "abv", "rating", "monthly_score")));
             list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRound,
-                    lookupBeers, newRoot, projectResult));
+                    lookupBeers, newRoot,projectResult));
+            for (Document d: list) {
+                System.out.println(d);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

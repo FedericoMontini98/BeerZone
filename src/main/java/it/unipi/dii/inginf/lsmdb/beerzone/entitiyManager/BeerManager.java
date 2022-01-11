@@ -55,17 +55,17 @@ public class BeerManager {
     public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
-            double rating = 0;
-            if (doc.get("rating") != null)
-                rating = Double.parseDouble(doc.get("rating").toString());
-            int num_rating = doc.getInteger("num_rating");
-            double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
-            beer.setNumRating(num_rating);
-            beer.setScore(new_rating);
+            if (doc != null) {
+                double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
+                int num_rating = doc.getInteger("num_rating");
+                double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+                beer.setNumRating(num_rating);
+                beer.setScore(new_rating);
 
-            UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
-                    combine(set("rating", new_rating), set("num_rating", num_rating)));
-            return updateResult.getMatchedCount() == 1;
+                UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
+                        combine(set("rating", new_rating), set("num_rating", num_rating)));
+                return updateResult.getMatchedCount() == 1;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -152,6 +152,16 @@ public class BeerManager {
         //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
                 combine(unset("brewery_id"), set("retired", "t")));
         return updateResult.getMatchedCount();
+    }
+
+    public ArrayList<Beer> getHighestAvgScoreBeers() {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: ReviewManager.getInstance().getHighestAvgScoreBeers()) {
+            Beer b = new Beer(doc);
+            b.setScore(doc.get("monthly_score") != null ? Double.parseDouble(doc.get("monthly_score").toString()) : -1);
+            beers.add(b);
+        }
+        return beers;
     }
 
 

@@ -439,7 +439,7 @@ public class StandardUserGUI {
         JTextField reviewAvg = new JTextField("3.0");
         JSpinner[] spinners = new JSpinner[5];
 
-        Review rev = ReviewManager.getInstance().getReview(selBeer.getBeerID(), s.getUsername());
+        Review rev = ReviewManager.getInstance().getReview(s.getUsername(),selBeer.getBeerID());
         prepareAverageSection(reviewAvg, rjp);
         prepareVotesPanel(reviewAvg, spinners, rjp);
 

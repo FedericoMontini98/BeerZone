@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 
 public class Review {
-    private String reviewID;
+    //private String reviewID;
     private String beerID;
     private String username;
     private Date reviewDate;
@@ -25,7 +25,7 @@ public class Review {
     }
 
     public Review(String beerID, String username, Date reviewDate, String look, String smell,
-                  String taste, String feel, String overall) {
+                  String taste, String feel, String overall, String score) {
         this.beerID = beerID;
         this.username = username;
         this.reviewDate = reviewDate;
@@ -34,8 +34,9 @@ public class Review {
         this.taste = Double.parseDouble(taste);
         this.feel = Double.parseDouble(feel);
         this.overall = Double.parseDouble(overall);
-        this.reviewID = new ObjectId().toString();
-        computeScore();
+        //this.reviewID = new ObjectId().toString();
+        this.score = Double.parseDouble(score);
+        //computeScore();
     }
 
     public Review(Document review) {
@@ -46,14 +47,16 @@ public class Review {
                 review.get("smell") != null ? review.get("smell").toString() : "0",
                 review.get("taste") != null ? review.get("taste").toString() : "0",
                 review.get("feel") != null ? review.get("feel").toString() : "0",
-                review.get("overall") != null ? review.get("overall").toString() : "0");
-        this.reviewID = review.getObjectId("_id").toString();
-        this.score = review.get("score") != null ? Double.parseDouble(review.get("score").toString()) : 0;
+                review.get("overall") != null ? review.get("overall").toString() : "0",
+                review.get("score") != null ? review.get("score").toString() : "0");
+        //this.reviewID = review.getObjectId("_id").toString();
+        //this.score = review.get("score") != null ? Double.parseDouble(review.get("score").toString()) : 0;
     }
 
-    public String getReviewID() {
+    /*public String getReviewID() {
         return reviewID;
     }
+     */
 
     public String getBeerID() {
         return beerID;
@@ -136,8 +139,7 @@ public class Review {
     }
 
     public Document getReview() {
-        return new Document("_id", new ObjectId(reviewID))
-                .append("beer_id", new ObjectId(beerID))
+        return new Document("beer_id", new ObjectId(beerID))
                 .append("username", username)
                 .append("date", reviewDate)
                 .append("look", look)

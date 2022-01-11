@@ -8,6 +8,7 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -16,7 +17,7 @@ import org.neo4j.driver.Session;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
@@ -27,7 +28,6 @@ public class BeerManager {
     private final MongoCollection<Document> beersCollection;
     private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
-    //private final MongoManager mongoManager;
 
     private BeerManager(){
         beersCollection = MongoManager.getInstance().getCollection("beers");
@@ -53,13 +53,15 @@ public class BeerManager {
         }
     }
 
-    public boolean updateBeerRating(Review review) {
+    public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
-            assert doc != null;
             double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
             int num_rating = doc.getInteger("num_rating");
             double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+            beer.setNumRating(num_rating);
+            beer.setScore(new_rating);
+
             UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
                     combine(set("rating", new_rating), set("num_rating", num_rating)));
             return updateResult.getMatchedCount() == 1;
@@ -98,7 +100,7 @@ public class BeerManager {
         ArrayList<Beer> beerList = new ArrayList<>();
         //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
         try {
-            for (Document beerDoc : beersCollection.find(eq("brewery_id", breweryID))
+            for (Document beerDoc : beersCollection.find(eq("brewery_id", new ObjectId(breweryID)))
                     .skip(n).limit(limit+1)) {
                 beerList.add(new Beer(beerDoc));
             }
@@ -111,7 +113,7 @@ public class BeerManager {
     public ArrayList<Beer> getBeersFromBrewery(Brewery brewery) {
         ArrayList<Beer> beers = new ArrayList<>();
         try {
-            for (Document beer : beersCollection.find(in("_id", brewery.getBeers()))) {
+            for (Document beer : beersCollection.find(in("_id", brewery.getBeersID()))) {
                 beers.add(new Beer(beer));
             }
         } catch (Exception e) {
@@ -146,9 +148,9 @@ public class BeerManager {
     }
 
     public long deleteBreweryFromBeers(String breweryID) {
-        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
-        UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
-                combine(unset("brewery"), set("retired", "t")));
+        UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
+        //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
+                combine(unset("brewery_id"), set("retired", "t")));
         return updateResult.getMatchedCount();
     }
 
@@ -164,9 +166,9 @@ public class BeerManager {
     public boolean AddBeer (Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})\n" +
-                    "ON CREATE\n" +
-                    "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
+            session.run("MERGE (S:Style{nameStyle: $Style})" +
+                    "ON CREATE" +
+                    "SET nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
             session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
             //I create the relationship between the style node and the beer node
@@ -174,7 +176,7 @@ public class BeerManager {
                             "(B:Beer{ID:$BeerID}),\n" +
                             "(S:Style{nameStyle:$style})\n " +
                             "CREATE (B)-[Ss:SameStyle]->(S)\n",
-                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
+                    parameters( "BeerID", beer.getBeerID(), "styleName", beer.getStyle()));
             return true;
         }
         catch(Exception e){
@@ -190,7 +192,7 @@ public class BeerManager {
         try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
             Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
-                    "return  distinct S.nameStyle as Style",parameters("Username",user.getUsername()));
+                    "return  S.nameStyle",parameters("Username",user.getUsername()));
             String Style_1="",Style_2="";
             if(Style_records.hasNext()) {
                 Style_1= Style_records.next().get("Style").asString();

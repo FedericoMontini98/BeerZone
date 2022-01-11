@@ -30,15 +30,10 @@ public class Brewery extends GeneralUser {
         this.beers = new ArrayList<>();
         List<Document> list = doc.getList("beers", Document.class);
         for (Document d: list) {
-            beers.add(new Beer(d.get("beer_id").toString(), d.getString("beer_name")));
+            beers.add(new Beer(d.getObjectId("beer_id").toString(), d.getString("beer_name")));
         }
     }
 
-/*
-    public GeneralUser getBrewery() {
-        return brewery;
-    }
-*/
     public String getTypes() {
         return types;
     }
@@ -69,6 +64,14 @@ public class Brewery extends GeneralUser {
             beersList.add( b.getBeerNameDoc());
         }
         return beersList;
+    }
+
+    public List<ObjectId> getBeersID() {
+        ArrayList<ObjectId> beerList = new ArrayList<>();
+        for (Beer b: beers) {
+            beerList.add(new ObjectId(b.getBeerID()));
+        }
+        return beerList;
     }
 
     public Document getBreweryDoc(boolean update) {

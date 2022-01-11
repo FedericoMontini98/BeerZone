@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 import com.mongodb.lang.NonNull;
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 public class DetailedBeer extends Beer {
     // id, name, style, score
@@ -72,7 +73,7 @@ public class DetailedBeer extends Beer {
                 beer.get("style") != null ? beer.getString("style") : "--",
                 beer.get("abv") != null ? beer.get("abv").toString() : "-1",
                 beer.get("rating") != null ? beer.get("rating").toString() : "0",
-                beer.get("brewery") != null ? beer.getString("brewery") : "--",
+                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "--",
                 beer.get("availability") != null ? beer.getString("availability") : "--",
                 beer.get("notes") != null ? beer.getString("notes") : "--",
                 beer.get("url") != null ? beer.getString("url") : "--",
@@ -224,7 +225,8 @@ public class DetailedBeer extends Beer {
 
     public Document getBeerDoc() {
         Document doc = super.getBeerDoc();
-        doc.append("brewery", breweryID).append("numRating", numRating)
+        doc.append("brewery_id", new ObjectId(breweryID))
+                .append("numRating", numRating)
                 .append("method", method)
                 .append("og", og).append("fg", fg)
                 .append("ibu", ibu)

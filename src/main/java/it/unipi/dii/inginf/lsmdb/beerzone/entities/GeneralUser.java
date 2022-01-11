@@ -81,19 +81,7 @@ public abstract class GeneralUser {
         return type == 0;
     }
 
-    protected Document getUserDoc(boolean update) {
-        Document doc = new Document();
-        if (update)
-            doc.append("_id", new ObjectId(userID));
-        doc.append("username", username)
-                .append("password", password)
-                .append("email", email)
-                .append("location", location)
-                .append("type", type);
-        return doc;
-    }
-
-    protected Document getUserDoc() {
+    public Document getUserDoc() {
         return new Document("_id", new ObjectId(userID))
                 .append("username", username)
                 .append("password", password)

@@ -24,7 +24,7 @@ public class StandardUserGUI {
      * function that creates the user section
      *
      * @param frame: frame used by the application
-     * @param s: brewery informations
+     * @param s: brewery information
      */
     public static void standardUserSection(JFrame frame, StandardUser s){
         JButton[] btnArray = new JButton[6];
@@ -125,7 +125,7 @@ public class StandardUserGUI {
      *
      * @param rjp: JPanel containing the userFavorites or UserSuggestions
      * @param frame: frame used by the application
-     * @param s: brewery informations
+     * @param s: brewery information
      * @param request: specifies if the request is for favorites or suggestions
      */
     private static void browseUserFavoritesSuggestions(JPanel rjp, JFrame frame, StandardUser s, Integer request) {
@@ -188,15 +188,15 @@ public class StandardUserGUI {
     }
 
     /**
-     * funtion that sets the functionalities of the buttons
+     * function that sets the functionalities of the buttons
      *
      * @param rightArr: button to increment page
      * @param leftArr: button to decrement page
      * @param currPage: current page
      * @param list: list of user favorites/suggested beers
-     * @param beerContainer: JPanle containing beer infos
+     * @param beerContainer: JPanel containing beer infos
      * @param rjp: JPanel containing the section
-     * @param frame: frame used by the applcation
+     * @param frame: frame used by the application
      * @param s: logged user
      * @param request: type of request
      */
@@ -227,7 +227,7 @@ public class StandardUserGUI {
     }
 
     /**
-     * function that creates the beers section relative to favorites or suggestions
+     * function that creates the beers' section relative to favorites or suggestions
      *
      * @param list: list of the user favorites/suggested beers
      * @param page: current page
@@ -271,7 +271,7 @@ public class StandardUserGUI {
      * @param favoriteBeer: beer infos
      * @param rjp: JPanel containing the section
      * @param frame: frame used by the application
-     * @param s: loged user
+     * @param s: logged user
      */
     private static void createBeerPreview(JPanel beerPreviewContainer, FavoriteBeer favoriteBeer, JPanel rjp, JFrame frame, StandardUser s) {
         JTextPane beerName = new JTextPane();
@@ -486,9 +486,9 @@ public class StandardUserGUI {
                 values[i] = (Double)spinners[i].getValue();
 
             Date reviewDate = new Date();
-            Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
+            /*Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
                                                                                                         values[3].toString(), values[4].toString());
-            ReviewManager.getInstance().addNewReview(rev);
+            ReviewManager.getInstance().addNewReview(rev);*/
         });
 
         btnPanel.add(subReviewBtn, new GridBagConstraints(1,0,1,1,0,0,

@@ -1,7 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.*;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
@@ -13,6 +12,8 @@ import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
+
 
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -70,7 +71,6 @@ public class BeerManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -207,12 +207,12 @@ public class BeerManager {
                 }
             }
             if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return new ArrayList<>();
+                return new ArrayList<String>();
             }
             //If less than 4 I return two suggestions for that style
             if(n_style==1){
                 String finalStyle_ = Style_1;
-                return session.readTransaction(tx -> {
+                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -231,7 +231,7 @@ public class BeerManager {
             else{
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
-                return session.readTransaction(tx -> {
+                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -259,41 +259,43 @@ public class BeerManager {
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<>();
+            return new ArrayList<String>();
         }
     }
 
     /* Function that calculate the most favorite beers in the past month */
-    public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
+    public List<String> getMostFavoriteThisMonth (){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
             //Subtract a month
-            MyLDTObj=MyLDTObj.minus(Period.ofMonths(1));
+            MyLDTObj.minus(Period.ofMonths(1));
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
-            return session.readTransaction(tx -> {
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
                                 "WHERE F.date>=date($starting_Date)\n" +
                                 "WITH collect(B) as Fv\n" +
                                 "MATCH ()-[F1:Favorite]->(B1:Beer)\n" +
                                 "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT F1) AS Conta,B1.ID AS ID,B1.Name as Name ORDER BY Conta DESC LIMIT 8",
+                                "MATCH ()-[F2:Favorite]->(B1)\n" +
+                                "WHERE F2.date>=date($starting_Date)\n" +
+                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
-                ArrayList<FavoriteBeer> MostLiked = new ArrayList<>();
+                ArrayList<String> MostLiked = new ArrayList<>();
                 //Saving the results in a List before returning it
                 while (result.hasNext()) {
                     Record r = result.next();
-                    MostLiked.add(new FavoriteBeer(new Beer(r.get("ID").asString(),r.get("Name").asString()),null));
+                    MostLiked.add(r.get("ID").asString());
                 }
                 return MostLiked;
             });
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
     }
 

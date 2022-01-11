@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
@@ -9,6 +10,7 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -19,12 +21,13 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Sorts.descending;
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
@@ -119,6 +122,30 @@ public class ReviewManager {
             e.printStackTrace();
         }
         return reviews;
+    }
+
+    public AggregateIterable<Document> getHighestAvgScoreBeers() {
+        AggregateIterable<Document> list = null;
+        try {
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime last_month = LocalDateTime.now().minusMonths(1);
+            Bson matchDate = match(and(lt("date", today), gt("date", last_month)));
+            Bson groupBeer = group("$beer_id", avg("monthly_score", "$score"));
+            Bson projectRound = project(new Document("monthly_score",
+                    new Document("$round", Arrays.asList("$monthly_score", 2))));
+            Bson sortScore = sort(descending("monthly_score"));
+            Bson limitResult = limit(8);
+            Bson lookupBeers = lookup("beers", "_id", "_id", "beer");
+            Bson newRoot = replaceRoot(new Document("newRoot",
+                    new Document("$mergeObjects", Arrays.asList(
+                            new Document("$arrayElemAt", Arrays.asList("$beer", 0)), "$$ROOT"))));
+            Bson projectResult = project(fields(include("name", "style", "abv", "rating", "monthly_score")));
+            list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRound,
+                    lookupBeers, newRoot, projectResult));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
 

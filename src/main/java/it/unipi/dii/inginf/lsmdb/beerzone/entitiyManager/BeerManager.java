@@ -194,7 +194,7 @@ public class BeerManager {
         try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
             Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
-                    "return  S.nameStyle",parameters("Username",user.getUsername()));
+                    "return  distinct S.nameStyle as Style",parameters("Username",user.getUsername()));
             String Style_1="",Style_2="";
             if(Style_records.hasNext()) {
                 Style_1= Style_records.next().get("Style").asString();
@@ -207,12 +207,12 @@ public class BeerManager {
                 }
             }
             if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return new ArrayList<String>();
+                return new ArrayList<>();
             }
             //If less than 4 I return two suggestions for that style
             if(n_style==1){
                 String finalStyle_ = Style_1;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
@@ -231,17 +231,17 @@ public class BeerManager {
             else{
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
-                return session.readTransaction((TransactionWork<ArrayList<String>>) tx -> {
+                return session.readTransaction(tx -> {
                     Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
                             "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_1));
-                    ArrayList<String> Suggested = new ArrayList<>();
+                    ArrayList<String> suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
-                        Suggested.add(r.get("ID").asString());
+                        suggested.add(r.get("ID").asString());
                     }
                     Result result_2 = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
                             "WITH COLLECT(B) as BeersWithSameStyle\n" +
@@ -251,51 +251,49 @@ public class BeerManager {
                             "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_2));
                     while (result_2.hasNext()) {
                         Record r = result_2.next();
-                        Suggested.add(r.get("ID").asString());
+                        suggested.add(r.get("ID").asString());
                     }
-                    return Suggested;
+                    return suggested;
                 });
             }
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 
     /* Function that calculate the most favorite beers in the past month */
-    public List<String> getMostFavoriteThisMonth (){
+    public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
             //Subtract a month
-            MyLDTObj.minus(Period.ofMonths(1));
+            MyLDTObj=MyLDTObj.minus(Period.ofMonths(1));
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
-            return session.readTransaction((TransactionWork<List<String>>) tx -> {
+            return session.readTransaction(tx -> {
                 Result result = tx.run("MATCH ()-[F:Favorite]->(B:Beer)\n" +
                                 "WHERE F.date>=date($starting_Date)\n" +
                                 "WITH collect(B) as Fv\n" +
                                 "MATCH ()-[F1:Favorite]->(B1:Beer)\n" +
                                 "WHERE (B1) in Fv AND F1.date>=date($starting_Date)\n" +
-                                "MATCH ()-[F2:Favorite]->(B1)\n" +
-                                "WHERE F2.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT F2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
+                                "RETURN COUNT(DISTINCT F1) AS Count,B1.ID AS ID ORDER BY Count DESC LIMIT 8",
                         parameters( "starting_Date", Starting_date));
-                ArrayList<String> MostLiked = new ArrayList<>();
+                ArrayList<FavoriteBeer> MostLiked = new ArrayList<>();
                 //Saving the results in a List before returning it
                 while (result.hasNext()) {
                     Record r = result.next();
-                    MostLiked.add(r.get("ID").asString());
+                    MostLiked.add(new FavoriteBeer(r.get("ID").asString(),null));
                 }
                 return MostLiked;
             });
         }
         catch(Exception e){
             e.printStackTrace();
-            return Collections.emptyList();
+            return new ArrayList<FavoriteBeer>();
         }
     }
 

@@ -10,13 +10,16 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mongodb.client.model.Accumulators.avg;
+import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Updates.addToSet;
 
 public class BreweryManager {
@@ -78,8 +81,7 @@ public class BreweryManager {
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
                 regex("username", "^" + name + ".*", "i")))
-                .skip(n).limit(limit+1)
-                .projection(include("name", "style", "abv", "rating"));
+                .skip(n).limit(limit+1);
 
         ArrayList<Brewery> breweryList = new ArrayList<>();
         for (Document brewery: iterable) {
@@ -113,7 +115,7 @@ public class BreweryManager {
         for (Document doc: iterable) {
             List<Document> list = doc.getList("beers", Document.class);
             for (Document d: list) {
-                beerList.add(new Beer(d.get("beer_id").toString(), d.getString("beer_name")));
+                beerList.add(new Beer(d.getObjectId("beer_id").toString(), d.getString("beer_name")));
             }
         }
         //breweriesCollection.find(in("_id", beerList));
@@ -136,5 +138,14 @@ public class BreweryManager {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public double getBreweryScore(String breweryID) {
+        try {
+            return BeerManager.getInstance().getBreweryScore(new ObjectId(breweryID));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }

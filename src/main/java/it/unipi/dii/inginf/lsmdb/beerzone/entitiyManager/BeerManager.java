@@ -8,6 +8,7 @@ import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -20,8 +21,10 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
@@ -164,6 +167,36 @@ public class BeerManager {
             beers.add(b);
         }
         return beers;
+    }
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature)) {
+            Beer b = new Beer(doc);
+            b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
+            beers.add(b);
+        }
+        return beers;
+    }
+
+    double getBreweryScore(ObjectId breweryID) {
+        try {
+            Bson matchBrewery = match(eq("brewery_id", breweryID));
+            Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
+            Bson projectResult = project(new Document("brewery_score",
+                    new Document("$round", Arrays.asList("$avg_score", 2))));
+
+            Document doc = beersCollection.aggregate(
+                    Arrays.asList(matchBrewery, groupBrewery, projectResult)).first();
+            if (doc != null) {
+                return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
 

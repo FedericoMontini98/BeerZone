@@ -148,4 +148,13 @@ public class BreweryManager {
         }
         return -1;
     }
+
+    public double getWeightedBreweryScore(String breweryID) {
+        try {
+            return BeerManager.getInstance().getWeightedBreweryScore(new ObjectId(breweryID));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }

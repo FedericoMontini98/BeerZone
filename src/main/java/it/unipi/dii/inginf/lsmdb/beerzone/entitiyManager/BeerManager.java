@@ -56,7 +56,7 @@ public class BeerManager {
             e.printStackTrace();
         }
     }
-
+/*
     public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
@@ -76,6 +76,7 @@ public class BeerManager {
         }
         return false;
     }
+ */
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
@@ -169,11 +170,12 @@ public class BeerManager {
         return beers;
     }
 
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
-        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature)) {
+        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature,
+                getBreweryScore(new ObjectId(brewery.getUserID())))) {
             Beer b = new Beer(doc);
             b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
             beers.add(b);
@@ -190,6 +192,28 @@ public class BeerManager {
 
             Document doc = beersCollection.aggregate(
                     Arrays.asList(matchBrewery, groupBrewery, projectResult)).first();
+            if (doc != null) {
+                return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    double getWeightedBreweryScore(ObjectId breweryID) {
+        try {
+            Bson initialMatch = match(and(eq("brewery_id", breweryID), gt("num_rating", 0)));
+            Bson groupBrewery = group(new Document("_id", "$brewery_id")
+                    .append("rating_sum", new Document("$sum",
+                            new Document("$multiply", Arrays.asList("$rating", "$num_rating"))))
+                    .append("tot_num_rating",
+                            new Document("$sum", "$num_rating")));
+            Bson projectRound = project(new Document("brewery_score", new Document("$round",
+                    Arrays.asList(new Document("$divide", Arrays.asList("$rating_sum", "$tot_num_rating")), 2))));
+
+            Document doc = beersCollection.aggregate(
+                    Arrays.asList(initialMatch, groupBrewery, projectRound)).first();
             if (doc != null) {
                 return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
             }

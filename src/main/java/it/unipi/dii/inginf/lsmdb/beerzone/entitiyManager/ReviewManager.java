@@ -40,7 +40,7 @@ public class ReviewManager {
 
     private ReviewManager() {
         //mongoManager = MongoManager.getInstance();
-        reviewsCollection = MongoManager.getInstance().getCollection("reviews");
+        reviewsCollection = MongoManager.getInstance().getCollection("reviewsNumber");
         NeoDBMS = Neo4jManager.getInstance();
     }
 
@@ -99,7 +99,7 @@ public class ReviewManager {
         if (!existsReview(review)) {
             try {
                 reviewsCollection.insertOne(review.getReview());
-                return BeerManager.getInstance().updateBeerRating(review, beer);
+                return updateBeerRating(beer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -107,7 +107,8 @@ public class ReviewManager {
         return false;
     }
 
-    private boolean deleteReviewMongo(String username, String beerID) {
+    // TODO
+    private boolean deleteReviewMongo(String username, String beerID) { // serve detailedbeer
         DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", username),
                 eq("beer_id", new ObjectId(beerID))));
         //chiamata a beer deletereview
@@ -125,6 +126,31 @@ public class ReviewManager {
             e.printStackTrace();
         }
         return reviews;
+    }
+
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+    boolean updateBeerRating(DetailedBeer beer) {
+        try {
+            Bson matchBeers = match(eq("beer_id", new ObjectId(beer.getBeerID())));
+            Bson groupBeers = group("$beer_id", avg("avg_score", "$score"),
+                    sum("num_rating", 1));
+            Bson projectRoundScore = project(new Document("rating",
+                    new Document("$round", Arrays.asList("$avg_score", 2))).append("num_rating", 1));
+            Bson mergeResult = merge("beers");
+            Document aggregation = reviewsCollection.aggregate(Arrays.asList(matchBeers, groupBeers,
+                    projectRoundScore, mergeResult)).first();
+            if (aggregation != null) {
+                if (aggregation.get("rating") != null)
+                    beer.setScore(Double.parseDouble(aggregation.get("rating").toString()));
+                if (aggregation.get("num_rating") != null)
+                    beer.setNumRating(aggregation.getInteger("num_rating"));
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     AggregateIterable<Document> getHighestAvgScoreBeers() {
@@ -153,7 +179,7 @@ public class ReviewManager {
         return list;
     }
 
-    public AggregateIterable<Document> getBeersUnderAvgFeatureScore(Brewery brewery, String feature){
+    public AggregateIterable<Document> getBeersUnderAvgFeatureScore(Brewery brewery, String feature, double breweryScore){
         AggregateIterable<Document> list = null;
         try {
             LocalDateTime today = LocalDateTime.now();
@@ -163,8 +189,7 @@ public class ReviewManager {
             Bson groupBeer = group("$beer_id", avg("feature_score", "$" + feature));
             Bson projectRoundScore = project(new Document("feature_score",
                     new Document("$round", Arrays.asList("$feature_score", 2))));
-            Bson matchBreweryScore = match(lt("feature_score",
-                    BreweryManager.getInstance().getBreweryScore(brewery.getUserID())));
+            Bson matchBreweryScore = match(lt("feature_score", breweryScore));
             Bson sortResult = sort(ascending("feature_score"));
             Bson lookupBeers =  lookup("beers", "_id", "_id", "beer");
             Bson newRoot = new Document("$replaceRoot", new Document("newRoot", new Document("$mergeObjects",

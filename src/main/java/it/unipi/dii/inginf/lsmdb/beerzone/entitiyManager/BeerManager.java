@@ -176,17 +176,17 @@ public class BeerManager {
     public boolean AddBeer (Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})" +
-                    "ON CREATE" +
-                    "SET nameStyle= $Style",parameters("Style",beer.getStyle()));
+            session.run("MERGE (S:Style{nameStyle: $Style})\n" +
+                    "ON CREATE\n" +
+                    "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
             session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
             //I create the relationship between the style node and the beer node
             session.run("MATCH\n" +
                             "(B:Beer{ID:$BeerID}),\n" +
                             "(S:Style{nameStyle:$style})\n " +
-                            "CREATE (B)-[Ss:SameStyle]->(S)\n",
-                    parameters( "BeerID", beer.getBeerID(), "styleName", beer.getStyle()));
+                            "MERGE (B)-[Ss:SameStyle]->(S)\n",
+                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
             return true;
         }
         catch(Exception e){

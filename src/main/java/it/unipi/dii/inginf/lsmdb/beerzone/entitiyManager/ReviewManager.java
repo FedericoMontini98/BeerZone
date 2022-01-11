@@ -174,7 +174,9 @@ public class ReviewManager {
                             "  (B:Beer),\n" +
                             "  (U:User)\n" +
                             "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
-                            "CREATE (U)-[R:Reviewed{date:date($Date)}]->(B)\n",
+                            "MERGE (U)-[R:Reviewed]->(B)\n" +
+                            "ON CREATE\n" +
+                            "SET R.date=date($Date)",
                     parameters( "Username", review.getUsername(), "BeerID", review.getBeerID(),"Date", str));
             return true;
         }

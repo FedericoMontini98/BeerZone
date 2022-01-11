@@ -268,11 +268,22 @@ public class StandardUserGUI {
      * function that creates the single beer infos
      *
      * @param beerPreviewContainer: JPanel containing the single beer
-     * @param favoriteBeer: beer infos
-     * @param rjp: JPanel containing the section
-     * @param frame: frame used by the application
-     * @param s: logged user
+     * @param BeerName: beer name
      */
+    private static void createBeerPreview(JPanel beerPreviewContainer, String BeerName) {
+        JTextPane beerName = new JTextPane();
+        beerName.setEditable(false);
+        beerName.setText(BeerName);
+        beerName.setPreferredSize(new Dimension(150, 40));
+        StyledDocument doc = beerName.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+        beerPreviewContainer.add(beerName, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+    }
+
     private static void createBeerPreview(JPanel beerPreviewContainer, FavoriteBeer favoriteBeer, JPanel rjp, JFrame frame, StandardUser s) {
         JTextPane beerName = new JTextPane();
         beerName.setEditable(false);
@@ -435,7 +446,7 @@ public class StandardUserGUI {
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
         prepareReturnToBeerButton(rjp, btnPanel, frame, selBeer, s);
-        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s);
+        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer,s);
         rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
@@ -468,7 +479,6 @@ public class StandardUserGUI {
      * @param spinners : list of spinners to compute the average value
      * @param reviewAvg : field with the average vote
      * @param selBeer : beer selected by the user
-     * @param s : logged user
      */
     private static void prepareSubmitReviewButton(JPanel btnPanel, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, StandardUser s) {
         JButton subReviewBtn = new JButton("Submit");
@@ -595,14 +605,135 @@ public class StandardUserGUI {
      * @param s : logged user
      */
     private static void browseTrending(JPanel rjp, JFrame frame, StandardUser s) {
-        ArrayList<FavoriteBeer> trendingBeers;
-        trendingBeers=BeerManager.getInstance().getMostFavoriteThisMonth();
+        rjp.removeAll();
+        JButton[] btnArray = new JButton[3];
+        btnArray[0] = new JButton("Browse most favorite beers of the month");
+        btnArray[0].addActionListener(e -> BrowseMostFavoriteMonthly(rjp, frame, s));
 
+        btnArray[1] = new JButton("Browse most reviewed beers of the month");
+        btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame));
 
+        btnArray[2] = new JButton("Browse top scored beers of the month");
+        btnArray[2].addActionListener(e -> browseHighestAvgScoreMonthly(rjp, frame, s));
+
+        setRightStandardUserButton(btnArray, rjp);
+
+        rjp.setBorder(BorderFactory.createLineBorder(Color.black));
+        rjp.setBackground(BACKGROUND_COLOR);
+        frame.getContentPane().add(rjp);
+
+        frame.setVisible(true);
+
+    }
+
+    private static void browseHighestAvgScoreMonthly(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<Beer> bestBeers;
+        bestBeers=BeerManager.getInstance().getHighestAvgScoreBeers();
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createTrendingSection(trendingBeers, beerContainer, rjp, frame, s);
+        createBestBeersSection(bestBeers, beerContainer, rjp, frame, s);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /**
+     * @param rjp JPanel containing the Trending page
+     * @param frame frame used by the application
+     */
+    private static void browseMostReviewedMonthly(JPanel rjp, JFrame frame) {
+        ArrayList<String> ReviewedBeers;
+        ReviewedBeers=ReviewManager.getInstance().mostReviewedBeers();
+        rjp.removeAll();
+        JPanel beerContainer = new JPanel(new GridBagLayout());
+        beerContainer.setBackground(BACKGROUND_COLOR);
+        createReviewedSection(ReviewedBeers, beerContainer, rjp, frame);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /** Create the right section to see the most favorite beer of the month
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
+    private static void BrowseMostFavoriteMonthly(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<FavoriteBeer> favoriteBeers;
+        favoriteBeers=BeerManager.getInstance().getMostFavoriteThisMonth();
+        rjp.removeAll();
+        JPanel beerContainer = new JPanel(new GridBagLayout());
+        beerContainer.setBackground(BACKGROUND_COLOR);
+        createFavoriteSection(favoriteBeers, beerContainer, rjp, frame, s);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private static void createBestBeersSection(ArrayList<Beer> bestBeers, JPanel beerContainer, JPanel rjp,JFrame frame, StandardUser s){
+        beerContainer.removeAll();
+        //Empty trending section
+        if(bestBeers.size() == 0){
+            JTextField err = new JTextField("Actually there are no trending beers. Please insert some favorites and review some beers to get started!");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            beerContainer.add(err);
+            rjp.add(beerContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        //print Results found
+        for(int j=0; j<bestBeers.size();j++){
+            JTextField position = new JTextField("#"+ (j + 1));
+            position.setBackground(BACKGROUND_COLOR_RECIPE);
+            position.setBorder(createEmptyBorder());
+            JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
+            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            createBeerPreview(beerPreviewContainer, new FavoriteBeer(bestBeers.get(j),null), rjp, frame, s);
+            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+        }
+        rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /** Create the section that shows the most reviewed beers
+     * @param reviewedBeers : List of name of the beers
+     * @param beerContainer : Cont
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     */
+    private static void createReviewedSection(ArrayList<String> reviewedBeers, JPanel beerContainer, JPanel rjp, JFrame frame) {
+        beerContainer.removeAll();
+        //Empty trending section
+        if(reviewedBeers.size() == 0){
+            JTextField err = new JTextField("Actually there are no trending beers. Please insert some favorites and review some beers to get started!");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            beerContainer.add(err);
+            rjp.add(beerContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        //print Results found
+        for(int j=0; j<reviewedBeers.size();j++){
+            JTextField position = new JTextField("#"+ (j + 1));
+            position.setBackground(BACKGROUND_COLOR_RECIPE);
+            position.setBorder(createEmptyBorder());
+            JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
+            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            createBeerPreview(beerPreviewContainer, reviewedBeers.get(j));
+            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+        }
+        rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
     }
@@ -614,8 +745,8 @@ public class StandardUserGUI {
      * @param frame : frame used by the application
      * @param s : logged user
      */
-    private static void createTrendingSection(ArrayList<FavoriteBeer> trendingBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
-       beerContainer.removeAll();
+    private static void createFavoriteSection(ArrayList<FavoriteBeer> trendingBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
+        beerContainer.removeAll();
         //Empty trending section
         if(trendingBeers.size() == 0){
             JTextField err = new JTextField("Actually there are no trending beers. Please insert some favorites and review some beers to get started!");
@@ -644,6 +775,19 @@ public class StandardUserGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    /**
+     * @param btnArray Buttons to constraint
+     * @param rjp JPanel containing the buttons
+     */
+    private static void setRightStandardUserButton(JButton[] btnArray, JPanel rjp) {
+        rjp.add(btnArray[0], new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),35,30));
+        rjp.add(btnArray[1], new GridBagConstraints(0,1,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
+        rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),50,30));
     }
 
 }

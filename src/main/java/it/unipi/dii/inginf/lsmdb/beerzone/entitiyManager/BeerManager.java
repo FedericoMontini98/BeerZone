@@ -170,6 +170,18 @@ public class BeerManager {
         return beers;
     }
 
+    public boolean updateBeer(DetailedBeer beer) {
+        try {
+            UpdateResult updateResult = beersCollection.replaceOne(eq("_id", new ObjectId(beer.getBeerID())),
+                    (beer.getBeerDoc()));
+            if (updateResult.getMatchedCount() == 1)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {

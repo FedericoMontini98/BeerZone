@@ -56,9 +56,9 @@ public class ReviewManager {
     }
 
     /* Delete a review both from MongoDB and Neo4J */
-    public boolean deleteReview(Review review) {
-        boolean result_1 = deleteReviewMongo(review);
-        boolean result_2 = removeReview(review.getUsername(), review.getBeerID());
+    public boolean deleteReview(String username, String beerID) {
+        boolean result_1 = deleteReviewMongo(username, beerID);
+        boolean result_2 = removeReview(username, beerID);
         return (result_1&&result_2);
     }
 
@@ -105,9 +105,9 @@ public class ReviewManager {
         return false;
     }
 
-    private boolean deleteReviewMongo(Review review) {
-        DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", review.getUsername()),
-                eq("beer_id", new ObjectId(review.getBeerID()))));
+    private boolean deleteReviewMongo(String username, String beerID) {
+        DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", username),
+                eq("beer_id", new ObjectId(beerID))));
         return (deleteResult.getDeletedCount() == 1);
     }
 

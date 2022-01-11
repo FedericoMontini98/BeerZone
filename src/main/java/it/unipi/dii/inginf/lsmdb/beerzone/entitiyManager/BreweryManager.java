@@ -78,8 +78,7 @@ public class BreweryManager {
 
         FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
                 regex("username", "^" + name + ".*", "i")))
-                .skip(n).limit(limit+1)
-                .projection(include("name", "style", "abv", "rating"));
+                .skip(n).limit(limit+1);
 
         ArrayList<Brewery> breweryList = new ArrayList<>();
         for (Document brewery: iterable) {

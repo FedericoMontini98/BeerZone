@@ -24,6 +24,9 @@ public class BeerZoneGUI {
     private static final Integer STANDARD_USER = 0;
     private static final Integer BREWERY_MANAGER = 1;
 
+    private static final Integer BEER_TABLE = 0;
+    private static final Integer BREWERY_TABLE = 1;
+
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
 
@@ -38,9 +41,11 @@ public class BeerZoneGUI {
         rjp.removeAll();
         JPanel tableContainer = new JPanel();
         JTable browseTable = new JTable();
+        Integer[] tableType = new Integer[1];
+        tableType[0] = BEER_TABLE;
 
-        prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable);
-        addNavigationBar(rjp, frame, tableContainer, browseTable, user);
+        prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
+        addNavigationBar(rjp, frame, tableContainer, browseTable, user, tableType);
 
         frame.repaint();
         frame.setVisible(true);
@@ -54,7 +59,7 @@ public class BeerZoneGUI {
      * @param tableContainer : panel containing the table
      * @param browseTable: tabel containing the beers
      */
-    private static void prepareBrowseBeerComponents(JPanel rjp, JFrame frame, GeneralUser user, JPanel tableContainer, JTable browseTable) {
+    private static void prepareBrowseBeerComponents(JPanel rjp, JFrame frame, GeneralUser user, JPanel tableContainer, JTable browseTable, Integer[] tableType) {
         JPanel searchPanel = new JPanel();
         searchPanel.setBackground(BACKGROUND_COLOR);
         searchPanel.setBorder(createEmptyBorder());
@@ -67,13 +72,21 @@ public class BeerZoneGUI {
 
         JButton submitChoice1 = new JButton("<html><center>Search<br>Beer by<br>Name</center></html>");
         submitChoice1.setPreferredSize(new Dimension(120, 50));
-        submitChoice1.addActionListener(e -> beerInput.setText(""));
+        submitChoice1.addActionListener(e -> {
+            beerInput.setText("");
+            tableType[0] = BEER_TABLE;
+            prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
+        });
         searchPanel.add(submitChoice1, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         JButton submitChoice2 = new JButton("<html><center>Search<br>Brewery by<br>Name</html></center>");
         submitChoice2.setPreferredSize(new Dimension(120, 50));
-        submitChoice2.addActionListener(e -> beerInput.setText(""));
+        submitChoice2.addActionListener(e -> {
+            beerInput.setText("");
+            tableType[0] = BREWERY_TABLE;
+            prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
+        });
         if(Objects.equals(user.getType(), STANDARD_USER))
             searchPanel.add(submitChoice2, new GridBagConstraints(1,0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -82,7 +95,10 @@ public class BeerZoneGUI {
         rjp.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null), rjp);
+        if(Objects.equals(tableType[0], BEER_TABLE))
+            prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null), rjp, tableType);
+        else
+            prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, 1, BreweryManager.getInstance().browseBreweries(1, null), rjp, tableType);
 
         rjp.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -97,7 +113,7 @@ public class BeerZoneGUI {
      * @param browseTable: tabel containing the beers
      * @param user: logged user
      */
-    private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user) {
+    private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user, Integer[] tableType) {
         JTextField currPage = new JTextField("1");
         currPage.setBackground(BACKGROUND_COLOR);
         currPage.setEditable(false);
@@ -108,7 +124,7 @@ public class BeerZoneGUI {
 
         JButton leftArr = new JButton("<");
         JButton rightArr = new JButton(">");
-        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user, rjp);
+        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user, rjp, tableType);
 
         rjp.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
@@ -124,7 +140,7 @@ public class BeerZoneGUI {
      * @param rightArr: arrow that leads to the next page
      * @param currPage: current page
      */
-    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp) {
+    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp, Integer[] tableType) {
         leftArr.setEnabled(false);
         leftArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
@@ -132,9 +148,14 @@ public class BeerZoneGUI {
                 leftArr.setEnabled(false);
             rightArr.setEnabled(true);
             currNum = currNum - 1;
-            System.out.println("Page Requested: " + currNum);
-            ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
-            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp);
+            if(tableType[0] == BEER_TABLE) {
+                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+                prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp, tableType);
+            }
+            else{
+                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, null);
+                prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, currNum, breweryToShow, rjp, tableType);
+            }
             currPage.setText(String.valueOf(currNum));
         });
 
@@ -142,11 +163,18 @@ public class BeerZoneGUI {
             int currNum = Integer.parseInt(currPage.getText());
             leftArr.setEnabled(true);
             currNum = currNum + 1;
-            System.out.println("Page Requested: " + currNum);
-            ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
-            if(beerToShow.size() <= 12)
-                rightArr.setEnabled(false);
-            prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp);
+            if(tableType[0] == BEER_TABLE) {
+                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+                if(beerToShow.size() <= 12)
+                    rightArr.setEnabled(false);
+                prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp, tableType);
+            }
+            else{
+                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, null);
+                if(breweryToShow.size() <= 12)
+                    rightArr.setEnabled(false);
+                prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, currNum, breweryToShow, rjp, tableType);
+            }
             currPage.setText(String.valueOf(currNum));
         });
     }
@@ -158,7 +186,7 @@ public class BeerZoneGUI {
      * @param frame : frame used by the application
      * @param user : logged user
      */
-    private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow, JPanel rjp) {
+    private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Beer> beerToShow, JPanel rjp, Integer[] tableType) {
         tableContainer.removeAll();
 
         DefaultTableModel tableModel = new DefaultTableModel(){
@@ -168,8 +196,8 @@ public class BeerZoneGUI {
             }
         };
 
-        setTableSettings(tableModel, browseTable, rjp, frame, user);
-
+        setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
+        beerToShow.remove(beerToShow.size() - 1);
         for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
 
 
@@ -181,6 +209,49 @@ public class BeerZoneGUI {
         frame.setVisible(true);
     }
 
+    /**
+     * function that creates the table inside the "browse beers" section
+     * @param browseTable : table containing beers
+     * @param tableContainer : panel containing browseTable
+     * @param frame : frame used by the application
+     * @param user : logged user
+     */
+    private static void prepareBrowseTableBrewery(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, Integer currPage, ArrayList<Brewery> breweryToShow, JPanel rjp, Integer[] tableType) {
+        tableContainer.removeAll();
+
+        DefaultTableModel tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
+        breweryToShow.remove(breweryToShow.size() - 1);
+        for (Brewery brewery : breweryToShow) tableModel.addRow(breweryToStringArray(brewery));
+
+
+        JScrollPane jsc = new JScrollPane(browseTable);
+        tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /**
+     * @param b: beer info to put in an array
+     * @return beerInfo: array of info
+     */
+    private static String[] breweryToStringArray(Brewery b) {
+        String[] beerInfo = new String[4];
+        beerInfo[0] = b.getUserID();
+        beerInfo[1] = b.getUsername();
+        beerInfo[2] = b.getLocation();
+        beerInfo[3] = b.getTypes();
+
+        return beerInfo;
+    }
     /**
      * @param b: beer info to put in an array
      * @return beerInfo: array of info
@@ -201,15 +272,19 @@ public class BeerZoneGUI {
      *
      * @param tableModel: table model
      * @param browseTable: Jpanel with the table
-     * @param containerPanel: Jpanel that contains the section
+     * @param rjp: Jpanel that contains the section
      * @param frame: frame used by the application
      */
-    private static void setTableSettings(DefaultTableModel tableModel, JTable browseTable, JPanel containerPanel, JFrame frame, GeneralUser user) {
-        tableModel.addColumn("BeerID");
-        tableModel.addColumn("Beer Name");
-        tableModel.addColumn("Style");
-        tableModel.addColumn("Abv");
-        tableModel.addColumn("Rate");
+    private static void setTableSettings(DefaultTableModel tableModel, JTable browseTable, JPanel rjp, JFrame frame, GeneralUser user, Integer[] tableType) {
+        tableModel.addColumn((Objects.equals(tableType[0], BEER_TABLE))?"BeerID":"BreweryID");
+        tableModel.addColumn((Objects.equals(tableType[0], BEER_TABLE))?"Beer Name":"Brewery Name");
+        tableModel.addColumn((Objects.equals(tableType[0], BEER_TABLE))?"Style":"Location");
+
+        if(Objects.equals(tableType[0], BEER_TABLE)) {
+            tableModel.addColumn("Abv");
+            tableModel.addColumn("Rate");
+        }
+
         browseTable.setModel(tableModel);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -217,15 +292,20 @@ public class BeerZoneGUI {
         browseTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         browseTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
         browseTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-        browseTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-        browseTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        if(Objects.equals(tableType[0], BEER_TABLE)) {
+            browseTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+            browseTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        }
 
         browseTable.setModel(tableModel);
         TableColumnModel tcm = browseTable.getColumnModel();
-        browseTable.getColumnModel().getColumn(1).setPreferredWidth(170);
-        browseTable.getColumnModel().getColumn(2).setPreferredWidth(160);
-        browseTable.getColumnModel().getColumn(3).setPreferredWidth(10);
-        browseTable.getColumnModel().getColumn(4).setPreferredWidth(10);
+        browseTable.getColumnModel().getColumn(1).setPreferredWidth((Objects.equals(tableType[0], BEER_TABLE))?170:175);
+        browseTable.getColumnModel().getColumn(2).setPreferredWidth((Objects.equals(tableType[0], BEER_TABLE))?160:165);
+        if(Objects.equals(tableType[0], BEER_TABLE)) {
+            browseTable.getColumnModel().getColumn(3).setPreferredWidth(10);
+            browseTable.getColumnModel().getColumn(4).setPreferredWidth(10);
+        }
+
         tcm.removeColumn(tcm.getColumn(0));
         browseTable.setRowHeight(30);
         browseTable.addMouseListener(new MouseAdapter() {
@@ -233,8 +313,12 @@ public class BeerZoneGUI {
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
                     String id = browseTable.getModel().getValueAt(browseTable.getSelectedRow(),0).toString();
-                    DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
-                    createBeerPage(containerPanel, frame, b, user);
+                    if(Objects.equals(tableType[0], BEER_TABLE)) {
+                        DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
+                        createBeerPage(rjp, frame, b, user);
+                    }
+                    else
+                        BreweryManagerGUI.createBreweryPage(rjp, frame, user, id);
                 }
             }
         });
@@ -429,7 +513,7 @@ public class BeerZoneGUI {
                 inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
                 if(recipeCB.getSelectedIndex() == 0){
                     inputRecipe.setText("'Choose an option' is not a valid recipe section");
-                    inputRecipe.setForeground(Color.RED);
+                    inputRecipe.setForeground(Color.YELLOW);
                 }
             }
         });
@@ -489,7 +573,7 @@ public class BeerZoneGUI {
                 inputData[i] = inputs[i].getText();
                 inputs[i].setBackground(Color.WHITE);
             } else {
-                inputs[i].setBackground(Color.RED);
+                inputs[i].setBackground(Color.YELLOW);
                 correctData = false;
             }
         }
@@ -499,7 +583,7 @@ public class BeerZoneGUI {
             if(gu == null){
                 for(JTextField input: inputs){
                     input.setText("");
-                    input.setBackground(Color.RED);
+                    input.setBackground(Color.YELLOW);
                 }
             }
         }
@@ -602,7 +686,7 @@ public class BeerZoneGUI {
                 if(!registrationOk){
                     for (JTextField input : inputs) {
                         input.setText("");
-                        input.setBackground(Color.RED);
+                        input.setBackground(Color.YELLOW);
                     }
                 }
 
@@ -633,8 +717,8 @@ public class BeerZoneGUI {
     private static Boolean readRegisterInputs(JRadioButton rb1, JRadioButton rb2, JTextField[] inputs, String[] inputData) {
         boolean correctData = true;
         if(!rb1.isSelected() && !rb2.isSelected()) {
-            rb1.setBackground(Color.RED);
-            rb2.setBackground(Color.RED);
+            rb1.setBackground(Color.YELLOW);
+            rb2.setBackground(Color.YELLOW);
             correctData = false;
         }
         else {
@@ -648,14 +732,14 @@ public class BeerZoneGUI {
                     inputData[i] = inputs[i].getText();
                     inputs[i].setBackground(Color.WHITE);
                 } else {
-                    inputs[i].setBackground(Color.RED);
+                    inputs[i].setBackground(Color.YELLOW);
                     correctData = false;
                 }
                 if(i == VARIABLE_ROW && rb1.isSelected()){
-                    inputs[i].setBackground(Color.YELLOW);
                     try{
                         int age = Integer.parseInt(inputs[i].getText());
                         if(age < 18) {
+                            inputs[i].setBackground(Color.YELLOW);
                             inputs[i].setText("You must be at least 18 years old");
                             correctData = false;
                         }
@@ -665,11 +749,19 @@ public class BeerZoneGUI {
                     }
                 }
                 if (i == (PASS_CONFIRMATION_ROW) && !inputs[i - 1].getText().equals(inputs[i].getText())) {
-                    inputs[i].setBackground(Color.RED);
+                    inputs[i].setBackground(Color.YELLOW);
                     inputs[i].setText("");
-                    inputs[i - 1].setBackground(Color.RED);
+                    inputs[i - 1].setBackground(Color.YELLOW);
                     inputs[i - 1].setText("");
                     correctData = false;
+                }
+                if(i == EMAIL_ROW){
+                    int pos = inputs[i].getText().indexOf('@');
+                    if((pos <= 0) || (pos == inputs[i].getText().length() - 1)){
+                        inputs[i].setText("Invalid mail");
+                        inputs[i].setBackground(Color.YELLOW);
+                        correctData = false;
+                    }
                 }
             }
         }

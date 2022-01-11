@@ -696,7 +696,7 @@ public class StandardUserGUI {
         }
         //print Results found
         for(int j=0; j<bestBeers.size();j++){
-            JTextField position = new JTextField("#"+ (j + 1));
+            JTextField position = new JTextField((j+1)+"° with score: " + bestBeers.get(j).getScore()+"/5");
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
             prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, new FavoriteBeer(bestBeers.get(j),null), rjp, frame, s);

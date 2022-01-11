@@ -284,6 +284,15 @@ public class StandardUserGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
     }
 
+    /**
+     * function that creates the single beer infos
+     *
+     * @param beerPreviewContainer: JPanel containing the single beer
+     * @param favoriteBeer: beer infos
+     * @param rjp: JPanel containing the section
+     * @param frame: frame used by the application
+     * @param s: loged user
+     */
     private static void createBeerPreview(JPanel beerPreviewContainer, FavoriteBeer favoriteBeer, JPanel rjp, JFrame frame, StandardUser s) {
         JTextPane beerName = new JTextPane();
         beerName.setEditable(false);
@@ -367,7 +376,7 @@ public class StandardUserGUI {
         btnPanel.add(addFav, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, selBeer, s));
+        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, selBeer, s, reviewBeer));
         reviewBeer.setPreferredSize(new Dimension(130,26));
         btnPanel.add(reviewBeer, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -425,7 +434,7 @@ public class StandardUserGUI {
      * @param selBeer: beer selected by the user
      * @param s: logged user
      */
-    private static void reviewBeerPage(JFrame frame, JPanel rjp,  DetailedBeer selBeer, StandardUser s) {
+    private static void reviewBeerPage(JFrame frame, JPanel rjp,  DetailedBeer selBeer, StandardUser s, JButton reviewBeer) {
         rjp.removeAll();
         JTextField reviewAvg = new JTextField("3.0");
         JSpinner[] spinners = new JSpinner[5];
@@ -441,12 +450,16 @@ public class StandardUserGUI {
             spinners[2].setValue(Double.parseDouble(rev.getTaste()));
             spinners[3].setValue(Double.parseDouble(rev.getFeel()));
             spinners[4].setValue(Double.parseDouble(rev.getOverall()));
+            reviewBeer.setText("Update review");
+        }
+        else{
+
         }
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
         prepareReturnToBeerButton(rjp, btnPanel, frame, selBeer, s);
-        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer,s);
+        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s);
         rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
@@ -479,6 +492,7 @@ public class StandardUserGUI {
      * @param spinners : list of spinners to compute the average value
      * @param reviewAvg : field with the average vote
      * @param selBeer : beer selected by the user
+     * @param s : logged user
      */
     private static void prepareSubmitReviewButton(JPanel btnPanel, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, StandardUser s) {
         JButton subReviewBtn = new JButton("Submit");
@@ -496,9 +510,9 @@ public class StandardUserGUI {
                 values[i] = (Double)spinners[i].getValue();
 
             Date reviewDate = new Date();
-            /*Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
-                                                                                                        values[3].toString(), values[4].toString());
-            ReviewManager.getInstance().addNewReview(rev);*/
+            Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
+                                                                                                        values[3].toString(), values[4].toString(), Double.toString(avg));
+            ReviewManager.getInstance().addNewReview(rev, selBeer);
         });
 
         btnPanel.add(subReviewBtn, new GridBagConstraints(1,0,1,1,0,0,
@@ -613,7 +627,7 @@ public class StandardUserGUI {
         btnArray[1] = new JButton("Browse most reviewed beers of the month");
         btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame));
 
-        btnArray[2] = new JButton("Browse top scored beers of the month");
+        btnArray[2] = new JButton("Browse highest scored beers of the month");
         btnArray[2].addActionListener(e -> browseHighestAvgScoreMonthly(rjp, frame, s));
 
         setRightStandardUserButton(btnArray, rjp);
@@ -683,21 +697,26 @@ public class StandardUserGUI {
         //print Results found
         for(int j=0; j<bestBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
-            position.setBackground(BACKGROUND_COLOR_RECIPE);
-            position.setBorder(createEmptyBorder());
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
-            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, new FavoriteBeer(bestBeers.get(j),null), rjp, frame, s);
-            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static void prepareBeerPreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
+        position.setBackground(BACKGROUND_COLOR_RECIPE);
+        position.setBorder(createEmptyBorder());
+        beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+        beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
     }
 
     /** Create the section that shows the most reviewed beers
@@ -721,16 +740,9 @@ public class StandardUserGUI {
         //print Results found
         for(int j=0; j<reviewedBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
-            position.setBackground(BACKGROUND_COLOR_RECIPE);
-            position.setBorder(createEmptyBorder());
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
-            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, reviewedBeers.get(j));
-            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -760,16 +772,9 @@ public class StandardUserGUI {
         //print Results found
         for(int j=0; j<trendingBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
-            position.setBackground(BACKGROUND_COLOR_RECIPE);
-            position.setBorder(createEmptyBorder());
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
-            beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, trendingBeers.get(j), rjp, frame, s);
-            beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-            beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -787,7 +792,7 @@ public class StandardUserGUI {
         rjp.add(btnArray[1], new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
         rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),50,30));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
     }
 
 }

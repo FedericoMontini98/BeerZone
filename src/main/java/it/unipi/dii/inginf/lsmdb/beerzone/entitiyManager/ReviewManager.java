@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
@@ -9,19 +10,24 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.*;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Sorts.descending;
 import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
@@ -118,6 +124,30 @@ public class ReviewManager {
         return reviews;
     }
 
+    public AggregateIterable<Document> getHighestAvgScoreBeers() {
+        AggregateIterable<Document> list = null;
+        try {
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime last_month = LocalDateTime.now().minusMonths(1);
+            Bson matchDate = match(and(lt("date", today), gt("date", last_month)));
+            Bson groupBeer = group("$beer_id", avg("monthly_score", "$score"));
+            Bson projectRound = project(new Document("monthly_score",
+                    new Document("$round", Arrays.asList("$monthly_score", 2))));
+            Bson sortScore = sort(descending("monthly_score"));
+            Bson limitResult = limit(8);
+            Bson lookupBeers = lookup("beers", "_id", "_id", "beer");
+            Bson newRoot = replaceRoot(new Document("newRoot",
+                    new Document("$mergeObjects", Arrays.asList(
+                            new Document("$arrayElemAt", Arrays.asList("$beer", 0)), "$$ROOT"))));
+            Bson projectResult = project(fields(include("name", "style", "abv", "rating", "monthly_score")));
+            list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRound,
+                    lookupBeers, newRoot, projectResult));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
@@ -167,35 +197,37 @@ public class ReviewManager {
     }
 
     /* Function used to calculate the IDs of the most reviewed beers this month */
-    public ArrayList<String> mostReviewedBeers(){
+    public List<String> mostReviewedBeers(){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
             //Subtract a month
-            MyLDTObj=MyLDTObj.minus(Period.ofMonths(1));
+            MyLDTObj.minus(Period.ofMonths(1));
             DateTimeFormatter myFormatObj  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             //Convert it into a string with the chosen format
             String Starting_date = MyLDTObj.format(myFormatObj);
             //I commit the query and return the value
-            return session.readTransaction(tx -> {
+            return session.readTransaction((TransactionWork<List<String>>) tx -> {
                 Result result = tx.run("MATCH ()-[R:Reviewed]->(B:Beer)\n" +
                                 "WHERE R.date>=date($starting_Date)\n" +
                                 "WITH collect(B) as Rw\n" +
                                 "MATCH ()-[R1:Reviewed]->(B1:Beer)\n" +
                                 "WHERE (B1) in Rw AND R1.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT R1) AS Conta,B1.Name AS Name ORDER BY Conta DESC LIMIT 8",
+                                "MATCH ()-[R2:Reviewed]->(B1)\n" +
+                                "WHERE R2.date>=date($starting_Date)\n" +
+                                "RETURN COUNT(DISTINCT R2) AS Conta,B1.ID AS ID ORDER BY Conta DESC LIMIT 10",
                         parameters( "starting_Date", Starting_date));
-                ArrayList<String> MostReviewed= new ArrayList<>();
+                ArrayList<String> MostLiked = new ArrayList<>();
                 while (result.hasNext()) {
                     Record r = result.next();
-                    MostReviewed.add(r.get("Name").asString());
+                    MostLiked.add(r.get("ID").asString());
                 }
-                return MostReviewed;
+                return MostLiked;
             });
         }
         catch(Exception e){
             e.printStackTrace();
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
     }
 }

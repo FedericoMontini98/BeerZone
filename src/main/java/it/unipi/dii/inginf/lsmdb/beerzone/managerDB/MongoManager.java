@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.managerDB;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -20,7 +21,8 @@ public class MongoManager {
         String replica2 = "172.16.4.58:27020";
         String replica3 = "172.16.4.59:27020";
         String options = "replicaSet=lsmdb";
-        String remoteCluster = "mongodb://" + replica1 + "," + replica2 + "," + replica3 + "/?" + options;
+        ConnectionString remoteCluster = new ConnectionString("mongodb://" +
+                replica1 + "," + replica2 + "," + replica3 + "/?" + options);
         String localCluster = "mongodb://localhost:27018,localhost:27019,localhost:27020/?replicaSet=lsmdb";
         mongoClient = MongoClients.create(remoteCluster);
         database = mongoClient.getDatabase("beerzone");

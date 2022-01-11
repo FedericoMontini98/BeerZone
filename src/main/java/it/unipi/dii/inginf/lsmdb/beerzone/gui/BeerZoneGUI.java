@@ -240,6 +240,7 @@ public class BeerZoneGUI {
         });
     }
 
+
     /**
      * function that creates the page containing all the information of a specific beer
      *

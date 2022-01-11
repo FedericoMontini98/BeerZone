@@ -304,8 +304,4 @@ public class BeerManager {
             return new ArrayList<>();
         }
     }
-
-    public ArrayList<Beer> getHighestAvgScoreBeers() {
-        return new ArrayList<>();
-    }
 }

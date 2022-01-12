@@ -86,7 +86,7 @@ public class BreweryManagerGUI {
         JTextField[] inputs = new JTextField[2];
         String[] recipeTexts = new String[16];
         createInputField(containerPanel, inputs);
-        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER);
+        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         btn.addActionListener(e->{
@@ -407,12 +407,12 @@ public class BreweryManagerGUI {
         }
         JComboBox<String> beerListCB = new JComboBox<>(beerName);
         beerListCB.setVisible(true);
-        beerListCB.setPreferredSize(new Dimension(200, 30));
+        beerListCB.setPreferredSize(new Dimension(220, 30));
         ComboPopup popup = (ComboPopup) beerListCB.getUI().getAccessibleChild(beerListCB, 0);
-        ((JComponent) popup).setPreferredSize(new Dimension(200, 90));
+        ((JComponent) popup).setPreferredSize(new Dimension(220, 90));
         ((JComponent) popup).setLayout(new GridLayout(1, 1));
         containerPanel.add(beerListCB, new GridBagConstraints(0, 1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 40, 15, 0),0,0));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 15, 10),0,0));
 
         JButton goToBeer = new JButton("Go To Beer");
         goToBeer.setEnabled(dim != 0);

@@ -41,11 +41,14 @@ public class BeerZoneGUI {
         rjp.removeAll();
         JPanel tableContainer = new JPanel();
         JTable browseTable = new JTable();
+        JTextField beerInput = new JTextField();
+        JTextField currPage = new JTextField("1");
+        JPanel searchPanel = new JPanel();
         Integer[] tableType = new Integer[1];
         tableType[0] = BEER_TABLE;
 
-        prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
-        addNavigationBar(rjp, frame, tableContainer, browseTable, user, tableType);
+        prepareBrowseComponents(rjp, frame, user, tableContainer, beerInput, searchPanel, browseTable, tableType, currPage);
+        addNavigationBar(rjp, frame, tableContainer, browseTable, user, tableType, beerInput, currPage);
 
         frame.repaint();
         frame.setVisible(true);
@@ -57,14 +60,13 @@ public class BeerZoneGUI {
      * @param frame : frame used by the application
      * @param user : logged user
      * @param tableContainer : panel containing the table
-     * @param browseTable: tabel containing the beers
      */
-    private static void prepareBrowseBeerComponents(JPanel rjp, JFrame frame, GeneralUser user, JPanel tableContainer, JTable browseTable, Integer[] tableType) {
-        JPanel searchPanel = new JPanel();
+    private static void prepareBrowseComponents(JPanel rjp, JFrame frame, GeneralUser user, JPanel tableContainer, JTextField beerInput, JPanel searchPanel, JTable browseTable, Integer[] tableType, JTextField currPage) {
+        tableContainer.removeAll();
+        searchPanel.removeAll();
         searchPanel.setBackground(BACKGROUND_COLOR);
         searchPanel.setBorder(createEmptyBorder());
 
-        JTextField beerInput = new JTextField();
         beerInput.setFont(new Font("Arial", Font.PLAIN, 15));
         beerInput.setPreferredSize(new Dimension(200,30));
         searchPanel.add(beerInput, new GridBagConstraints(0,0,1,1,0,0,
@@ -73,9 +75,11 @@ public class BeerZoneGUI {
         JButton submitChoice1 = new JButton("<html><center>Search<br>Beer by<br>Name</center></html>");
         submitChoice1.setPreferredSize(new Dimension(120, 50));
         submitChoice1.addActionListener(e -> {
-            beerInput.setText("");
+            if(!Objects.equals(tableType[0], BEER_TABLE))
+                beerInput.setText("");
             tableType[0] = BEER_TABLE;
-            prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
+            currPage.setText("1");
+            prepareBrowseComponents(rjp, frame, user, tableContainer, beerInput, searchPanel, browseTable, tableType, currPage);
         });
         searchPanel.add(submitChoice1, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -83,25 +87,29 @@ public class BeerZoneGUI {
         JButton submitChoice2 = new JButton("<html><center>Search<br>Brewery by<br>Name</html></center>");
         submitChoice2.setPreferredSize(new Dimension(120, 50));
         submitChoice2.addActionListener(e -> {
-            beerInput.setText("");
+            if(!Objects.equals(tableType[0], BREWERY_TABLE))
+                beerInput.setText("");
+            currPage.setText("1");
             tableType[0] = BREWERY_TABLE;
-            prepareBrowseBeerComponents(rjp, frame, user, tableContainer, browseTable, tableType);
+            prepareBrowseComponents(rjp, frame, user, tableContainer, beerInput, searchPanel, browseTable, tableType, currPage);
         });
-        if(Objects.equals(user.getType(), STANDARD_USER))
-            searchPanel.add(submitChoice2, new GridBagConstraints(1,0,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        searchPanel.add(submitChoice2, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         searchPanel.setBackground(BACKGROUND_COLOR);
         rjp.add(searchPanel, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         if(Objects.equals(tableType[0], BEER_TABLE))
-            prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, null), rjp, tableType);
+            prepareBrowseTable(browseTable, tableContainer, frame, user, 1, BeerManager.getInstance().browseBeers(1, beerInput.getText()), rjp, tableType);
         else
-            prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, 1, BreweryManager.getInstance().browseBreweries(1, null), rjp, tableType);
+            prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, 1, BreweryManager.getInstance().browseBreweries(1, beerInput.getText()), rjp, tableType);
 
         rjp.add(tableContainer, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
+        frame.repaint();
+        frame.setVisible(true);
     }
 
     /**
@@ -113,8 +121,7 @@ public class BeerZoneGUI {
      * @param browseTable: tabel containing the beers
      * @param user: logged user
      */
-    private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user, Integer[] tableType) {
-        JTextField currPage = new JTextField("1");
+    private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user, Integer[] tableType, JTextField beerInput, JTextField currPage) {
         currPage.setBackground(BACKGROUND_COLOR);
         currPage.setEditable(false);
         currPage.setBorder(createEmptyBorder());
@@ -124,7 +131,7 @@ public class BeerZoneGUI {
 
         JButton leftArr = new JButton("<");
         JButton rightArr = new JButton(">");
-        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user, rjp, tableType);
+        setNavButtonFunctionalities(leftArr, rightArr, currPage, browseTable, tableContainer, frame, user, rjp, tableType, beerInput);
 
         rjp.add(leftArr, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 92, 0, 0),0,0));
@@ -140,7 +147,7 @@ public class BeerZoneGUI {
      * @param rightArr: arrow that leads to the next page
      * @param currPage: current page
      */
-    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp, Integer[] tableType) {
+    private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp, Integer[] tableType, JTextField beerInput) {
         leftArr.setEnabled(false);
         leftArr.addActionListener(e -> {
             int currNum = Integer.parseInt(currPage.getText());
@@ -148,12 +155,12 @@ public class BeerZoneGUI {
                 leftArr.setEnabled(false);
             rightArr.setEnabled(true);
             currNum = currNum - 1;
-            if(tableType[0] == BEER_TABLE) {
-                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+            if(Objects.equals(tableType[0], BEER_TABLE)) {
+                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, beerInput.getText());
                 prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp, tableType);
             }
             else{
-                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, null);
+                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, beerInput.getText());
                 prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, currNum, breweryToShow, rjp, tableType);
             }
             currPage.setText(String.valueOf(currNum));
@@ -163,14 +170,14 @@ public class BeerZoneGUI {
             int currNum = Integer.parseInt(currPage.getText());
             leftArr.setEnabled(true);
             currNum = currNum + 1;
-            if(tableType[0] == BEER_TABLE) {
-                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, null);
+            if(Objects.equals(tableType[0], BEER_TABLE)) {
+                ArrayList<Beer> beerToShow = BeerManager.getInstance().browseBeers(currNum, beerInput.getText());
                 if(beerToShow.size() <= 12)
                     rightArr.setEnabled(false);
                 prepareBrowseTable(browseTable, tableContainer, frame, user, currNum, beerToShow, rjp, tableType);
             }
             else{
-                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, null);
+                ArrayList<Brewery> breweryToShow = BreweryManager.getInstance().browseBreweries(currNum, beerInput.getText());
                 if(breweryToShow.size() <= 12)
                     rightArr.setEnabled(false);
                 prepareBrowseTableBrewery(browseTable, tableContainer, frame, user, currNum, breweryToShow, rjp, tableType);
@@ -197,7 +204,9 @@ public class BeerZoneGUI {
         };
 
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
-        beerToShow.remove(beerToShow.size() - 1);
+        if(beerToShow.size() > 13)
+            beerToShow.remove(beerToShow.size() - 1);
+
         for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
 
 
@@ -341,14 +350,14 @@ public class BeerZoneGUI {
         prepareRecipeText(recipeTexts, selBeer);
         beerFields.setBackground(BACKGROUND_COLOR);
         beerFields.setLayout(new GridBagLayout());
-        createBeerFields("Beer Name", beerFields, 0, 0);
-        createBeerFields("Style", beerFields, 1, 0);
-        createBeerFields("Rating", beerFields, 2, 0);
-        createBeerFields("Num. of Ratings", beerFields, 3, 0);
-        createBeerFields(selBeer.getBeerName(), beerFields, 0, 1);
-        createBeerFields(selBeer.getStyle(), beerFields, 1, 1);
-        createBeerFields(selBeer.getScore(), beerFields, 2, 1);
-        createBeerFields(selBeer.getNumRating(), beerFields, 3, 1);
+        createBeerFields("Beer Name", beerFields, 0, 0, false);
+        createBeerFields("Style", beerFields, 1, 0, false);
+        createBeerFields("Rating", beerFields, 2, 0, false);
+        createBeerFields("Num. of Ratings", beerFields, 3, 0, false);
+        createBeerFields(selBeer.getBeerName(), beerFields, 0, 1, (Objects.equals(selBeer.getBreweryID(), user.getUserID())));
+        createBeerFields(selBeer.getStyle(), beerFields, 1, 1, (Objects.equals(selBeer.getBreweryID(), user.getUserID())));
+        createBeerFields(selBeer.getScore(), beerFields, 2, 1, false);
+        createBeerFields(selBeer.getNumRating(), beerFields, 3, 1, false);
 
         containerPanel.add(beerFields, new GridBagConstraints(0,0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -360,7 +369,7 @@ public class BeerZoneGUI {
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID()));
-        createRecipeSection(containerPanel, 2, recipeTexts, user.getType());
+        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())));
 
         if(Objects.equals(user.getType(), STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, selBeer, user);
@@ -436,7 +445,7 @@ public class BeerZoneGUI {
      * @param row: GridBagConstraint gridy
      * @param column: GridBagConstraint gridx
      */
-    private static void createBeerFields(String fieldName, JPanel containerPanel, int row, int column) {
+    private static void createBeerFields(String fieldName, JPanel containerPanel, int row, int column, boolean enabled) {
         JTextPane description = new JTextPane();
         JTextField desc = new JTextField(fieldName);
         if(column == 0){
@@ -456,7 +465,7 @@ public class BeerZoneGUI {
             description.setText(fieldName);
             description.setCaretPosition(0);
             description.setBackground(Color.WHITE);
-            description.setEditable(false);
+            description.setEditable(enabled);
             description.setFont(new Font("Arial", Font.PLAIN, 14));
             JScrollPane jsp = new JScrollPane(description);
             jsp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -475,7 +484,7 @@ public class BeerZoneGUI {
      * @param recipeTexts: array containing the recipe text
      * @param userType: type of user requesting the section
      */
-    public static void createRecipeSection(JPanel containerPanel, int panelRow, String[] recipeTexts, Integer userType) {
+    public static void createRecipeSection(JPanel containerPanel, int panelRow, String[] recipeTexts, Integer userType, boolean editable) {
         JPanel recipePanel = new JPanel();
         recipePanel.setBackground(BACKGROUND_COLOR_RECIPE);
         recipePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -498,7 +507,7 @@ public class BeerZoneGUI {
         JTextArea inputRecipe = new JTextArea(4, 20);
         inputRecipe.setText((Objects.equals(userType, BREWERY_MANAGER))? "Choose an option, write the description and then press the 'Confirm' button"
                 : "Choose an option and then press the 'Confirm' button");
-        inputRecipe.setEditable(Objects.equals(userType, BREWERY_MANAGER));
+        inputRecipe.setEditable(editable);
         inputRecipe.setLineWrap(true);
         inputRecipe.setWrapStyleWord(true);
         inputRecipe.setCaretPosition(0);

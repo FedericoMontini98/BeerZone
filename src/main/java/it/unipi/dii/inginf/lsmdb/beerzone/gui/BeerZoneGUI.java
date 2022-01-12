@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
+import com.mongodb.gridfs.GridFS;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
@@ -374,15 +375,6 @@ public class BeerZoneGUI {
 
         toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID(), Objects.equals(user.getUserID(), selBeer.getBreweryID())));
         createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())));
-        if(Objects.equals(selBeer.getBreweryID(),user.getUserID())){
-            JButton deleteBeer = new JButton("Delete Beer");
-            deleteBeer.setEnabled(true);
-            containerPanel.add(deleteBeer, new GridBagConstraints(0,1,2,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-            //deleteBeer.addActionListener(e-> );
-        }
-
-
 
         if(Objects.equals(user.getType(), STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, selBeer, user);
@@ -528,25 +520,38 @@ public class BeerZoneGUI {
         recipePanel.add(jsc, new GridBagConstraints(0, 2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
 
-        JButton confirmSection = new JButton("Confirm description");
-        recipeCB.addItemListener(e -> {
-            if(e.getStateChange() == ItemEvent.SELECTED) {
-                inputRecipe.setForeground(Color.BLACK);
-                inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
-                if(recipeCB.getSelectedIndex() == 0){
-                    inputRecipe.setText("'Choose an option' is not a valid recipe section");
-                    inputRecipe.setForeground(Color.RED);
-                }
-            }
-        });
+        if(editable){
+            JPanel btnPanel = new JPanel();
+            btnPanel.setBackground(BACKGROUND_COLOR);
+            btnPanel.setBorder(createEmptyBorder());
+            JButton deleteBeer = new JButton("Delete Beer");
+            deleteBeer.setEnabled(true);
+            btnPanel.add(deleteBeer, new GridBagConstraints(0,0,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 5),0,0));
+            //deleteBeer.addActionListener(e-> );
 
-        confirmSection.addActionListener(e->{
-            if(recipeCB.getSelectedIndex() != 0)
-                recipeTexts[recipeCB.getSelectedIndex()] = inputRecipe.getText();
-        });
-        if(Objects.equals(userType, BREWERY_MANAGER))
-            recipePanel.add(confirmSection, new GridBagConstraints(0, 3,1,1,0,0,
-                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+            JButton updateBeer = new JButton("Update Beer");
+            recipeCB.addItemListener(e -> {
+                if(e.getStateChange() == ItemEvent.SELECTED) {
+                    inputRecipe.setForeground(Color.BLACK);
+                    inputRecipe.setText(recipeTexts[recipeCB.getSelectedIndex()]);
+                    if(recipeCB.getSelectedIndex() == 0){
+                        inputRecipe.setText("'Choose an option' is not a valid recipe section");
+                        inputRecipe.setForeground(Color.RED);
+                    }
+                }
+            });
+
+            updateBeer.addActionListener(e->{
+                if(recipeCB.getSelectedIndex() != 0)
+                    recipeTexts[recipeCB.getSelectedIndex()] = inputRecipe.getText();
+            });
+            btnPanel.add(updateBeer, new GridBagConstraints(1, 0,1,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 5, 0, 0),0,0));
+
+            containerPanel.add(btnPanel, new GridBagConstraints(0,3,2,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10,0,10,0),0,0));
+        }
 
         containerPanel.add(recipePanel, new GridBagConstraints(0, panelRow, 2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),30,10));

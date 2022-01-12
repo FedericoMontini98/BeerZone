@@ -3,11 +3,16 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -876,10 +881,22 @@ public class BeerZoneGUI {
         frame.getContentPane().removeAll();
         frame.setLayout(new GridBagLayout());
         frame.setTitle("BeerZone");
+        setBeerZoneImage(frame);
         setLoginButton(frame);
         setRegisterButton(frame);
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static void setBeerZoneImage(JFrame frame) {
+        try{
+            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            frame.getContentPane().add(picLabel, new GridBagConstraints(0,0,2,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),0,0));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -889,7 +906,7 @@ public class BeerZoneGUI {
      */
     private static void setRegisterButton(JFrame frame){
         JButton btn = new JButton("Register");
-        GridBagConstraints gbc = new GridBagConstraints(1,0,1,1,0,0,
+        GridBagConstraints gbc = new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 10, 0, 10),100,10);
         btn.addActionListener(e -> {
             frame.getContentPane().removeAll();
@@ -906,7 +923,7 @@ public class BeerZoneGUI {
      */
     private static void setLoginButton(JFrame frame) {
         JButton btn = new JButton("Login");
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
+        GridBagConstraints gbc = new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0),115,10);
         btn.addActionListener(e -> {
             frame.getContentPane().removeAll();
@@ -990,6 +1007,13 @@ public class BeerZoneGUI {
      */
     public void createAndShowGUI(){
         JFrame frame = new JFrame("BeerZone");
+        try{
+            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            frame.setIconImage(myPicture);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

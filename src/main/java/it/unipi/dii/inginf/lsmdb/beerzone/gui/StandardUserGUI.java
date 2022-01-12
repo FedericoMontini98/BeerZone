@@ -40,7 +40,7 @@ public class StandardUserGUI {
         ljp.setLayout(new GridBagLayout());
         rjp.setLayout(new GridBagLayout());
         try{
-            BufferedImage myPicture = ImageIO.read(new URL());
+            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
             JLabel picLabel = new JLabel(new ImageIcon(myPicture));
             rjp.add(picLabel);
         } catch (IOException e) {

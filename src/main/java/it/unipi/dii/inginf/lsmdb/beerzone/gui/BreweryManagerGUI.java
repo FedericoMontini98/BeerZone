@@ -3,11 +3,15 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -48,6 +52,13 @@ public class BreweryManagerGUI {
         JPanel rjp = new JPanel();
         rjp.setLayout(new GridBagLayout());
         ljp.setLayout(new GridBagLayout());
+        try{
+            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            rjp.add(picLabel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         btnArray[0] = new JButton("Brewery Page");
         btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, b, b.getUserID(), true));
         btnArray[1] = new JButton("Add beer");

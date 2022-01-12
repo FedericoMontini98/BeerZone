@@ -3,9 +3,14 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,6 +39,13 @@ public class StandardUserGUI {
         JPanel rjp = new JPanel();
         ljp.setLayout(new GridBagLayout());
         rjp.setLayout(new GridBagLayout());
+        try{
+            BufferedImage myPicture = ImageIO.read(new URL());
+            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            rjp.add(picLabel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         btnArray[0] = new JButton("User Page");
         btnArray[0].addActionListener(e -> createUserPage(rjp, frame, s));

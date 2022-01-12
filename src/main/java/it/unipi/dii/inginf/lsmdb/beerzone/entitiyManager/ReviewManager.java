@@ -5,6 +5,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
@@ -27,6 +28,7 @@ import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static org.neo4j.driver.Values.parameters;
 
@@ -38,7 +40,7 @@ public class ReviewManager {
 
     private ReviewManager() {
         //mongoManager = MongoManager.getInstance();
-        reviewsCollection = MongoManager.getInstance().getCollection("reviews");
+        reviewsCollection = MongoManager.getInstance().getCollection("reviewsNumber");
         NeoDBMS = Neo4jManager.getInstance();
     }
 
@@ -97,7 +99,7 @@ public class ReviewManager {
         if (!existsReview(review)) {
             try {
                 reviewsCollection.insertOne(review.getReview());
-                return BeerManager.getInstance().updateBeerRating(review, beer);
+                return updateBeerRating(beer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -105,9 +107,11 @@ public class ReviewManager {
         return false;
     }
 
-    private boolean deleteReviewMongo(String username, String beerID) {
+    // TODO
+    private boolean deleteReviewMongo(String username, String beerID) { // serve detailedbeer
         DeleteResult deleteResult = reviewsCollection.deleteOne(and(eq("username", username),
                 eq("beer_id", new ObjectId(beerID))));
+        //chiamata a beer deletereview
         return (deleteResult.getDeletedCount() == 1);
     }
 
@@ -124,30 +128,82 @@ public class ReviewManager {
         return reviews;
     }
 
-    public AggregateIterable<Document> getHighestAvgScoreBeers() {
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+    boolean updateBeerRating(DetailedBeer beer) {
+        try {
+            Bson matchBeers = match(eq("beer_id", new ObjectId(beer.getBeerID())));
+            Bson groupBeers = group("$beer_id", avg("avg_score", "$score"),
+                    sum("num_rating", 1));
+            Bson projectRoundScore = project(new Document("rating",
+                    new Document("$round", Arrays.asList("$avg_score", 2))).append("num_rating", 1));
+            Bson mergeResult = merge("beers");
+            Document aggregation = reviewsCollection.aggregate(Arrays.asList(matchBeers, groupBeers,
+                    projectRoundScore, mergeResult)).first();
+            if (aggregation != null) {
+                if (aggregation.get("rating") != null)
+                    beer.setScore(Double.parseDouble(aggregation.get("rating").toString()));
+                if (aggregation.get("num_rating") != null)
+                    beer.setNumRating(aggregation.getInteger("num_rating"));
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    AggregateIterable<Document> getHighestAvgScoreBeers() {
         AggregateIterable<Document> list = null;
         try {
             LocalDateTime today = LocalDateTime.now();
             LocalDateTime last_month = LocalDateTime.now().minusMonths(1);
             Bson matchDate = match(and(lt("date", today), gt("date", last_month)));
             Bson groupBeer = group("$beer_id", avg("monthly_score", "$score"));
-            Bson projectRound = project(new Document("monthly_score",
+            Bson projectRoundScore = project(new Document("monthly_score",
                     new Document("$round", Arrays.asList("$monthly_score", 2))));
             Bson sortScore = sort(descending("monthly_score"));
             Bson limitResult = limit(8);
-            Bson lookupBeers = lookup("beers", "_id", "_id", "beer");
-            Bson newRoot = new Document("$replaceRoot",
-                    new Document("newRoot",
-                            new Document("$mergeObjects", Arrays.asList(new Document("$arrayElemAt", Arrays.asList("$beer", 0L)), "$$ROOT"))));
+            Bson lookupBeers =  lookup("beers", "_id", "_id", "beer");
+            Bson newRoot = new Document("$replaceRoot", new Document("newRoot", new Document("$mergeObjects",
+                    Arrays.asList(new Document("$arrayElemAt", Arrays.asList("$beer", 0L)), "$$ROOT"))));
             Bson projectResult = project(fields(include("name", "style", "abv", "rating", "monthly_score")));
-            list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRound,
-                    lookupBeers, newRoot,projectResult));
+            list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRoundScore,
+                    lookupBeers, newRoot, projectResult));
+            /*for (Document d: list) {
+                System.out.println(d);
+            }*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public AggregateIterable<Document> getBeersUnderAvgFeatureScore(Brewery brewery, String feature, double breweryScore){
+        AggregateIterable<Document> list = null;
+        try {
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime past = LocalDateTime.now().minusMonths(6);
+            Bson initialMatch = match(and(lt("date", today), gt("date", past),
+                    in("beer_id", brewery.getBeersID())));
+            Bson groupBeer = group("$beer_id", avg("feature_score", "$" + feature));
+            Bson projectRoundScore = project(new Document("feature_score",
+                    new Document("$round", Arrays.asList("$feature_score", 2))));
+            Bson matchBreweryScore = match(lt("feature_score", breweryScore));
+            Bson sortResult = sort(ascending("feature_score"));
+            Bson lookupBeers =  lookup("beers", "_id", "_id", "beer");
+            Bson newRoot = new Document("$replaceRoot", new Document("newRoot", new Document("$mergeObjects",
+                    Arrays.asList(new Document("$arrayElemAt", Arrays.asList("$beer", 0L)), "$$ROOT"))));
+            Bson projectResult = project(fields(include("name", "style", "abv", "rating", "feature_score")));
+            list = reviewsCollection.aggregate(Arrays.asList(initialMatch, groupBeer, projectRoundScore,
+                    matchBreweryScore, sortResult, lookupBeers, newRoot, projectResult));
             for (Document d: list) {
                 System.out.println(d);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return list;
     }
 

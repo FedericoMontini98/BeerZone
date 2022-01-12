@@ -39,7 +39,7 @@ public class Beer {
         this(beer.getObjectId("_id").toString(), beer.getString("name"),
                 beer.get("style") != null ? beer.getString("style") : "--",
                 beer.get("abv") != null ? beer.get("abv").toString() : "-1",
-                beer.get("rating") != null ? beer.get("rating").toString() : "0");
+                beer.get("rating") != null ? beer.get("rating").toString() : "-1");
     }
 
     public String getBeerID() {

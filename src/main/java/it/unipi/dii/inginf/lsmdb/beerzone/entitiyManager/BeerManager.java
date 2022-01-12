@@ -8,6 +8,8 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
+
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -18,8 +20,10 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
@@ -51,7 +55,7 @@ public class BeerManager {
             e.printStackTrace();
         }
     }
-
+/*
     public boolean updateBeerRating(Review review, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
@@ -71,6 +75,7 @@ public class BeerManager {
         }
         return false;
     }
+ */
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
@@ -162,6 +167,71 @@ public class BeerManager {
             beers.add(b);
         }
         return beers;
+    }
+
+    public boolean updateBeer(DetailedBeer beer) {
+        try {
+            UpdateResult updateResult = beersCollection.replaceOne(eq("_id", new ObjectId(beer.getBeerID())),
+                    (beer.getBeerDoc()));
+            if (updateResult.getMatchedCount() == 1)
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature,
+                getBreweryScore(new ObjectId(brewery.getUserID())))) {
+            Beer b = new Beer(doc);
+            b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
+            beers.add(b);
+        }
+        return beers;
+    }
+
+    double getBreweryScore(ObjectId breweryID) {
+        try {
+            Bson matchBrewery = match(eq("brewery_id", breweryID));
+            Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
+            Bson projectResult = project(new Document("brewery_score",
+                    new Document("$round", Arrays.asList("$avg_score", 2))));
+
+            Document doc = beersCollection.aggregate(
+                    Arrays.asList(matchBrewery, groupBrewery, projectResult)).first();
+            if (doc != null) {
+                return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    double getWeightedBreweryScore(ObjectId breweryID) {
+        try {
+            Bson initialMatch = match(and(eq("brewery_id", breweryID), gt("num_rating", 0)));
+            Bson groupBrewery = group(new Document("_id", "$brewery_id")
+                    .append("rating_sum", new Document("$sum",
+                            new Document("$multiply", Arrays.asList("$rating", "$num_rating"))))
+                    .append("tot_num_rating",
+                            new Document("$sum", "$num_rating")));
+            Bson projectRound = project(new Document("brewery_score", new Document("$round",
+                    Arrays.asList(new Document("$divide", Arrays.asList("$rating_sum", "$tot_num_rating")), 2))));
+
+            Document doc = beersCollection.aggregate(
+                    Arrays.asList(initialMatch, groupBrewery, projectRound)).first();
+            if (doc != null) {
+                return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
 

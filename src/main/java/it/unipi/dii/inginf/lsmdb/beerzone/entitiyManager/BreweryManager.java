@@ -21,7 +21,6 @@ import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Updates.*;
-import static com.mongodb.client.model.Updates.set;
 
 public class BreweryManager {
     private static BreweryManager breweryManager;
@@ -49,16 +48,9 @@ public class BreweryManager {
         return false;
     }
 
-    //TODO
     public boolean removeBeer(DetailedBeer beer){
-        boolean ret;
-        if(deleteBeerFromBrewery(beer)){
-            if(BeerManager.getInstance().removeBeerMongo(beer)){
-                //Remove beer Fede
-                BeerManager.getInstance().removeBeerFromNeo(beer);
-                return true;
-            }
-        }
+        if(deleteBeerFromBrewery(beer))
+            return BeerManager.getInstance().removeBeer(beer);
         return false;
     }
 
@@ -172,11 +164,9 @@ public class BreweryManager {
         return -1;
     }
 
-    //TODO
     private boolean deleteBeerFromBrewery(DetailedBeer beer) {
-        UpdateResult updateResult = breweriesCollection.updateMany(eq("brewery_id", new ObjectId(beer.getBreweryID())),
-                //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
-                combine(unset("brewery_id"), set("retired", "t")));
-        return false;
+        UpdateResult updateResult = breweriesCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
+                pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
+        return updateResult.getMatchedCount() == 1;
     }
 }

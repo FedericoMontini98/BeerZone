@@ -209,7 +209,6 @@ public class BeerZoneGUI {
 
         for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
 
-
         JScrollPane jsc = new JScrollPane(browseTable);
         tableContainer.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -327,7 +326,7 @@ public class BeerZoneGUI {
                         createBeerPage(rjp, frame, b, user);
                     }
                     else
-                        BreweryManagerGUI.createBreweryPage(rjp, frame, user, id);
+                        BreweryManagerGUI.createBreweryPage(rjp, frame, user, id, Objects.equals(user.getUserID(), id));
                 }
             }
         });
@@ -368,7 +367,7 @@ public class BeerZoneGUI {
             containerPanel.add(toBrewery, new GridBagConstraints(0,1,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID()));
+        toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID(), Objects.equals(user.getUserID(), selBeer.getBreweryID())));
         createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())));
 
         if(Objects.equals(user.getType(), STANDARD_USER))
@@ -413,7 +412,7 @@ public class BeerZoneGUI {
      * @param info: initial content of the input fiels
      * @param row: row taht will contain the elements
      */
-    public static void addGenericFields(JPanel containerPanel, String description, String info, int row, JTextPane[] inputs, boolean userRequest) {
+    public static void addGenericFields(JPanel containerPanel, String description, String info, int row, JTextPane[] inputs, boolean editable) {
         JTextField desc = new JTextField(description);
         desc.setFont(new Font("Arial", Font.BOLD, 14));
         desc.setEditable(false);
@@ -432,7 +431,7 @@ public class BeerZoneGUI {
         doc.setParagraphAttributes(0, doc.getLength(), center, false);
         infoPane.setFont(new Font("Arial", Font.PLAIN, 14));
         infoPane.setBorder(createEmptyBorder());
-        infoPane.setEditable(userRequest);
+        infoPane.setEditable(editable);
         containerPanel.add(infoPane, new GridBagConstraints(1,row,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets((row == 0)?15:0, 0, 15, 15),0, 0));
     }

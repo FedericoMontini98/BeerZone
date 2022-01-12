@@ -53,7 +53,7 @@ public class BreweryManagerGUI {
         rjp.setLayout(new GridBagLayout());
         ljp.setLayout(new GridBagLayout());
         btnArray[0] = new JButton("Brewery Page");
-        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, b, b.getUserID()));
+        btnArray[0].addActionListener(e -> createBreweryPage(rjp, frame, b, b.getUserID(), true));
         btnArray[1] = new JButton("Add beer");
         btnArray[1].addActionListener(e -> generateAddBeerMenu(rjp, frame, b));
         btnArray[2] = new JButton("Browse Beer");
@@ -373,7 +373,7 @@ public class BreweryManagerGUI {
      * @param user: logged user
      * @param breweryId: id of the requested brewery
      */
-    public static void createBreweryPage(JPanel containerPanel, JFrame frame,  GeneralUser user, String breweryId) {
+    public static void createBreweryPage(JPanel containerPanel, JFrame frame,  GeneralUser user, String breweryId, boolean editable) {
         containerPanel.removeAll();
         StandardUser su = null;
         Brewery b;
@@ -389,10 +389,10 @@ public class BreweryManagerGUI {
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         jp.setBackground(BACKGROUND_COLOR_RECIPE);
 
-        BeerZoneGUI.addGenericFields(jp,"Brewery Name", b.getUsername(), 0, inputs, su == null);
+        BeerZoneGUI.addGenericFields(jp,"Brewery Name", b.getUsername(), 0, inputs, (su == null && editable));
         BeerZoneGUI.addGenericFields(jp,"Email", b.getEmail(), 1, inputs, false);
-        BeerZoneGUI.addGenericFields(jp,"Location", b.getLocation(), 2, inputs, su == null);
-        BeerZoneGUI.addGenericFields(jp, "Brewery Type", b.getTypes(), 3, inputs, su == null);
+        BeerZoneGUI.addGenericFields(jp,"Location", b.getLocation(), 2, inputs, (su == null && editable));
+        BeerZoneGUI.addGenericFields(jp, "Brewery Type", b.getTypes(), 3, inputs, (su == null && editable));
 
         //get the beers associated with the brewery
         int dim = 0;
@@ -430,7 +430,7 @@ public class BreweryManagerGUI {
             b.setTypes(inputs[3].getText());
             BreweryManager.getInstance().updateBrewery(b);
         });
-        if(su == null) {
+        if(su == null && editable) {
             containerPanel.add(updateBrewery, new GridBagConstraints(0, 2, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));
         }
@@ -443,7 +443,7 @@ public class BreweryManagerGUI {
         deleteBrewery.addActionListener(e->{
             BreweryManager.getInstance().deleteBrewery(b);
         });
-        if(su == null) {
+        if(su == null && editable) {
             containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));
         }

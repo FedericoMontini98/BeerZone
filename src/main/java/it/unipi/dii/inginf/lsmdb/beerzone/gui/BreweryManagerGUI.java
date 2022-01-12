@@ -1,11 +1,7 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.ComboPopup;
@@ -19,7 +15,7 @@ public class BreweryManagerGUI {
     private static final Integer BREWERY_MANAGER = 1;
     private static final Integer USERNAME_ROW = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
-    private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
+    private static final Color BACKGROUND_COLOR_LIGHT = new Color(255, 186, 51);
     private static final Integer RECIPE_SECTION_ABV = 1;
     private static final Integer RECIPE_SECTION_AVAILABILITY = 2;
     private static final Integer RECIPE_SECTION_COLOR = 3;
@@ -380,12 +376,12 @@ public class BreweryManagerGUI {
             b = BreweryManager.getInstance().getBrewery(breweryId);
         }
         else
-            b = (Brewery) user;
+            b = (editable) ? (Brewery)user : BreweryManager.getInstance().getBrewery(breweryId);
 
         JTextPane[] inputs = new JTextPane[4];
         JPanel jp = new JPanel(new GridBagLayout());
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        jp.setBackground(BACKGROUND_COLOR_RECIPE);
+        jp.setBackground(BACKGROUND_COLOR_LIGHT);
 
         BeerZoneGUI.addGenericFields(jp,"Brewery Name", b.getUsername(), 0, inputs, (su == null && editable));
         BeerZoneGUI.addGenericFields(jp,"Email", b.getEmail(), 1, inputs, false);

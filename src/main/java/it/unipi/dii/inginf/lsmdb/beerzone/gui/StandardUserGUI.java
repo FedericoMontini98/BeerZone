@@ -16,7 +16,7 @@ import static javax.swing.BorderFactory.createEmptyBorder;
 public class StandardUserGUI {
     //private static final Integer STANDARD_USER = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
-    private static final Color BACKGROUND_COLOR_RECIPE = new Color(255, 186, 51);
+    private static final Color BACKGROUND_COLOR_LIGHT = new Color(255, 186, 51);
     private static final Integer SUGGESTIONS = 0;
     private static final Integer FAVORITES = 1;
 
@@ -79,7 +79,7 @@ public class StandardUserGUI {
         JTextPane[] inputs = new JTextPane[4];
         JPanel jp = new JPanel(new GridBagLayout());
         jp.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        jp.setBackground(BACKGROUND_COLOR_RECIPE);
+        jp.setBackground(BACKGROUND_COLOR_LIGHT);
 
         BeerZoneGUI.addGenericFields(jp, "Username", s.getUsername(), 0, inputs, false);
         BeerZoneGUI.addGenericFields(jp, "Email", s.getEmail(),1, inputs, false);
@@ -253,7 +253,7 @@ public class StandardUserGUI {
             if((j + page*4) > list.size() - 1)
                 break;
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+            beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
             beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             createBeerPreview(beerPreviewContainer, list.get(page * 4 + j), rjp, frame, s);
             beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2,(j < 2)?0:1,1,1,0,0,
@@ -310,7 +310,7 @@ public class StandardUserGUI {
         String requestedDate = favoriteBeer.getFavoriteDate();
         JTextField date = new JTextField((requestedDate == null)?"":requestedDate);
         date.setEditable(false);
-        date.setBackground(BACKGROUND_COLOR_RECIPE);
+        date.setBackground(BACKGROUND_COLOR_LIGHT);
         date.setBorder(createEmptyBorder());
         if(requestedDate != null) {
             beerPreviewContainer.add(date, new GridBagConstraints(0, 1, 1, 1, 0, 0,
@@ -333,22 +333,26 @@ public class StandardUserGUI {
      * @param jp: JPanel that contains the buttons in btnArray
      */
     private static void setLeftStandardUserButton(JButton[] btnArray, JPanel jp) {
-        GridBagConstraints gbc = new GridBagConstraints(0,0,1,1,0,0,
+        GridBagConstraints gbc = new GridBagConstraints(0,0,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),65,30);
         jp.add(btnArray[0], gbc);
         gbc = new GridBagConstraints(0,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30);
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 10),25,30);
         jp.add(btnArray[1], gbc);
         gbc.ipadx = 22;
-        gbc.gridy = 2;
+        gbc.insets = new Insets(0,10,40,0);
+        gbc.gridx = 1;
         jp.add(btnArray[2], gbc);
-        gbc.ipadx=5;
-        gbc.gridy=3;
+        gbc.ipadx = 5;
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.insets = new Insets(0,0,40,10);
         jp.add(btnArray[3], gbc);
         gbc.ipadx = 50;
-        gbc.gridy = 4;
+        gbc.insets = new Insets(0,10,40,0);
+        gbc.gridx = 1;
         jp.add(btnArray[4], gbc);
-        gbc = new GridBagConstraints(0,5,1,1,0,0,
+        gbc = new GridBagConstraints(0,3,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),85,30);
         jp.add(btnArray[5], gbc);
     }
@@ -538,7 +542,7 @@ public class StandardUserGUI {
 
         JPanel votesPanel = new JPanel();
         votesPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        votesPanel.setBackground(BACKGROUND_COLOR_RECIPE);
+        votesPanel.setBackground(BACKGROUND_COLOR_LIGHT);
         votesPanel.setLayout(new GridBagLayout());
         createBeerReviewFields("Look", votesPanel, 0, 0, reviewAvg, spinners);
         createBeerReviewFields("Smell", votesPanel, 0, 1, reviewAvg, spinners);
@@ -586,7 +590,7 @@ public class StandardUserGUI {
     private static void createBeerReviewFields(String reviewType, JPanel rjp, int row, int col, JTextField reviewAvg, JSpinner[] spinners) {
         JTextField description = new JTextField(reviewType);
         description.setEditable(false);
-        description.setBackground(BACKGROUND_COLOR_RECIPE);
+        description.setBackground(BACKGROUND_COLOR_LIGHT);
         description.setBorder(createEmptyBorder());
         description.setFont(new Font("Arial", Font.BOLD, 15));
         GridBagConstraints gbc = new GridBagConstraints((row != 2)?2*col:1,row,1,1,0,0,
@@ -716,9 +720,9 @@ public class StandardUserGUI {
     }
 
     private static void prepareBeerPreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
-        position.setBackground(BACKGROUND_COLOR_RECIPE);
+        position.setBackground(BACKGROUND_COLOR_LIGHT);
         position.setBorder(createEmptyBorder());
-        beerPreviewContainer.setBackground(BACKGROUND_COLOR_RECIPE);
+        beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
         beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,

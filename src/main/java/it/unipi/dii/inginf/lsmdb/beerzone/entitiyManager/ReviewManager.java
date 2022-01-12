@@ -40,7 +40,7 @@ public class ReviewManager {
 
     private ReviewManager() {
         //mongoManager = MongoManager.getInstance();
-        reviewsCollection = MongoManager.getInstance().getCollection("reviewsNumber");
+        reviewsCollection = MongoManager.getInstance().getCollection("reviews");
         NeoDBMS = Neo4jManager.getInstance();
     }
 
@@ -170,9 +170,9 @@ public class ReviewManager {
             Bson projectResult = project(fields(include("name", "style", "abv", "rating", "monthly_score")));
             list = reviewsCollection.aggregate(Arrays.asList(matchDate, groupBeer, sortScore, limitResult, projectRoundScore,
                     lookupBeers, newRoot, projectResult));
-            /*for (Document d: list) {
+            for (Document d: list) {
                 System.out.println(d);
-            }*/
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

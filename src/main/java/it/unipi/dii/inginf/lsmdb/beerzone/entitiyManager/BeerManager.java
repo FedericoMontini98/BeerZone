@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.Aggregates.*;
@@ -43,9 +45,19 @@ public class BeerManager {
         return beerManager;
     }
 
+
+
     /* ************************************************************************************************************/
     /* *************************************  MongoDB Section  ****************************************************/
     /* ************************************************************************************************************/
+    //TODO
+    public boolean removeBeerMongo(DetailedBeer beer){
+        DeleteResult deleteResult = beersCollection.deleteOne(and(eq("beer_id", new ObjectId(beer.getBeerID())),
+                    eq("beer_id", new ObjectId(beer.getBeerID()))));
+        return (deleteResult.getDeletedCount() == 1);
+
+    }
+
 
     public void addNewBeer(DetailedBeer beer) {
         try {
@@ -374,4 +386,18 @@ public class BeerManager {
             return new ArrayList<>();
         }
     }
+
+    boolean removeBeerFromNeo(Beer beer){
+        try(Session session = NeoDBMS.getDriver().session()){
+            session.run("MATCH (B:Beer {ID: $ID})\n" +
+                            "DELETE B;",
+                    parameters( "ID", beer.getBeerID()));
+            return true;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

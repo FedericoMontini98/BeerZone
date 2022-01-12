@@ -1,17 +1,17 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.GeneralUser;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.StandardUser;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -356,9 +356,7 @@ public class BreweryManagerGUI {
     public static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, GeneralUser user) {
         JButton returnToBrowse = new JButton("Go Back");
         Brewery b = (Brewery)user;
-        returnToBrowse.addActionListener(e ->{
-            BeerZoneGUI.generateBrowseBeerMenu(jp, frame, b);
-        });
+        returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, b));
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0, 0));
@@ -440,9 +438,7 @@ public class BreweryManagerGUI {
         deleteBrewery.setBackground(Color.RED);
         deleteBrewery.setPreferredSize(new Dimension(200, 40));
         deleteBrewery.setForeground(Color.WHITE);
-        deleteBrewery.addActionListener(e->{
-            BreweryManager.getInstance().deleteBrewery(b);
-        });
+        deleteBrewery.addActionListener(e-> BreweryManager.getInstance().deleteBrewery(b));
         if(su == null && editable) {
             containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));

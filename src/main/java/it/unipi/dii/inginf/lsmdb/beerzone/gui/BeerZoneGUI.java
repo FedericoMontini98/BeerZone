@@ -276,7 +276,7 @@ public class BeerZoneGUI {
     }
 
     /**
-     * funtion that sets the table graphic settings and the actions that can be performed on it
+     * function that sets the table graphic settings and the actions that can be performed on it
      *
      * @param tableModel: table model
      * @param browseTable: Jpanel with the table

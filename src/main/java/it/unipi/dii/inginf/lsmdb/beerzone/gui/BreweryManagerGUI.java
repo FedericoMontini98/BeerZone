@@ -6,6 +6,7 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -404,9 +405,12 @@ public class BreweryManagerGUI {
             beerId[i] = b.getBeers().get(i).getBeerID();
             beerName[i] = b.getBeers().get(i).getBeerName();
         }
-        JComboBox<String> beerListCB = new JComboBox<String>(beerName);
+        JComboBox<String> beerListCB = new JComboBox<>(beerName);
         beerListCB.setVisible(true);
-        beerListCB.setPreferredSize(new Dimension(100, 30));
+        beerListCB.setPreferredSize(new Dimension(200, 30));
+        ComboPopup popup = (ComboPopup) beerListCB.getUI().getAccessibleChild(beerListCB, 0);
+        ((JComponent) popup).setPreferredSize(new Dimension(200, 90));
+        ((JComponent) popup).setLayout(new GridLayout(1, 1));
         containerPanel.add(beerListCB, new GridBagConstraints(0, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 40, 15, 0),0,0));
 
@@ -414,7 +418,7 @@ public class BreweryManagerGUI {
         goToBeer.setEnabled(dim != 0);
         goToBeer.addActionListener(e ->{
             DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(beerId[beerListCB.getSelectedIndex()]);
-            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, b);
+            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, (user.isStandard())?user:b);
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));

@@ -47,7 +47,7 @@ public class StandardUserGUI {
         btnArray[3] = new JButton("View Trending Beers");
         btnArray[3].addActionListener(e -> browseTrending(rjp, frame, s));
 
-        btnArray[4] = new JButton("Browse Beer");
+        btnArray[4] = new JButton("Browse Data");
         btnArray[4].addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(rjp, frame, s));
 
         btnArray[5] = new JButton("Logout");
@@ -145,8 +145,9 @@ public class StandardUserGUI {
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createFavoriteSuggestionSection((Objects.equals(request, SUGGESTIONS))?suggBeer:favBeer, 0, beerContainer, rjp, frame, s, request);
-        createFavoriteSuggestionPageButtons((Objects.equals(request, SUGGESTIONS))?suggBeer:favBeer, beerContainer, rjp, frame, s, request);
+        ArrayList<FavoriteBeer> list = (Objects.equals(request, SUGGESTIONS)) ? suggBeer : favBeer;
+        createFavoriteSuggestionSection(list, 0, beerContainer, rjp, frame, s, request);
+        createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s, request);
 
         frame.repaint();
         frame.setVisible(true);
@@ -450,7 +451,6 @@ public class StandardUserGUI {
             spinners[2].setValue(Double.parseDouble(rev.getTaste()));
             spinners[3].setValue(Double.parseDouble(rev.getFeel()));
             spinners[4].setValue(Double.parseDouble(rev.getOverall()));
-            reviewBeer.setText("Update review");
         }
         else{
 
@@ -459,7 +459,7 @@ public class StandardUserGUI {
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
         prepareReturnToBeerButton(rjp, btnPanel, frame, selBeer, s);
-        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s);
+        prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s, rev == null);
         rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
@@ -494,25 +494,33 @@ public class StandardUserGUI {
      * @param selBeer : beer selected by the user
      * @param s : logged user
      */
-    private static void prepareSubmitReviewButton(JPanel btnPanel, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, StandardUser s) {
-        JButton subReviewBtn = new JButton("Submit");
+    private static void prepareSubmitReviewButton(JPanel btnPanel, JSpinner[] spinners, JTextField reviewAvg, DetailedBeer selBeer, StandardUser s, boolean reviewed) {
+        JButton subReviewBtn = new JButton((reviewed)?"Submit":"Delete");
         subReviewBtn.setFont(new Font("Arial", Font.PLAIN, 16));
         subReviewBtn.addActionListener(e -> {
-            double avg = Double.parseDouble(reviewAvg.getText());
-            double oldScore = Double.parseDouble(selBeer.getScore());
-            double numReviews = Double.parseDouble(selBeer.getNumRating());
-            double newScore = ((oldScore * numReviews) + avg)/(numReviews + 1);
-            newScore = (double) Math.round(newScore * 100) / 100;
-            selBeer.setScore(newScore);
-            selBeer.setNumRating(Integer.parseInt(selBeer.getNumRating()) + 1);
-            Double[] values = new Double[5];
-            for(int i = 0; i < spinners.length; i++)
-                values[i] = (Double)spinners[i].getValue();
+            if(reviewed) {
+                double avg = Double.parseDouble(reviewAvg.getText());
+                double oldScore = Double.parseDouble(selBeer.getScore());
+                double numReviews = Double.parseDouble(selBeer.getNumRating());
+                double newScore = ((oldScore * numReviews) + avg) / (numReviews + 1);
+                newScore = (double) Math.round(newScore * 100) / 100;
+                selBeer.setScore(newScore);
+                selBeer.setNumRating(Integer.parseInt(selBeer.getNumRating()) + 1);
+                Double[] values = new Double[5];
+                for (int i = 0; i < spinners.length; i++)
+                    values[i] = (Double) spinners[i].getValue();
 
-            Date reviewDate = new Date();
-            Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
-                                                                                                        values[3].toString(), values[4].toString(), Double.toString(avg));
-            ReviewManager.getInstance().addNewReview(rev, selBeer);
+                Date reviewDate = new Date();
+                Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
+                        values[3].toString(), values[4].toString(), Double.toString(avg));
+                ReviewManager.getInstance().addNewReview(rev, selBeer);
+            }
+            else{
+                for(JSpinner sp: spinners)
+                    sp.setValue(3.0);
+                reviewAvg.setText("3.0");
+                ReviewManager.getInstance().deleteReview(s.getUsername(), selBeer.getBeerID());
+            }
         });
 
         btnPanel.add(subReviewBtn, new GridBagConstraints(1,0,1,1,0,0,

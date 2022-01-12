@@ -111,10 +111,9 @@ public class UserManager {
 
     public GeneralUser login(String email, String password) {
         try {
-            Document doc = usersCollection.find(eq("email", email)).first();
+            Document doc = usersCollection.find(and(eq("email", email),
+                    eq("password", password))).first();
             if (doc != null) {
-                if (!password.equals(doc.getString("password")))
-                    return null;
                 if (doc.getInteger("type") == 0) {
                     //System.out.println("standard: " + doc.getString("username"));
                     return new StandardUser(doc);

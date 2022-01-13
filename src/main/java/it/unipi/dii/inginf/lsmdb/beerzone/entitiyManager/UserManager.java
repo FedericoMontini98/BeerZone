@@ -64,8 +64,9 @@ public class UserManager {
     private boolean userExist(GeneralUser user) {
         Document doc = null;
         try {
-            doc = usersCollection.find(or(eq("email", user.getEmail()),
-                    and(eq("type", user.getType()), eq("username", user.getUsername())))).first();
+            doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"), //eq("email", user.getEmail()),eq("username", user.getUsername())
+                    and(eq("type", user.getType()),
+                            regex("username", "^" + user.getUsername() + "$", "i")))).first();
         } catch (Exception e) {
             e.printStackTrace();
         }

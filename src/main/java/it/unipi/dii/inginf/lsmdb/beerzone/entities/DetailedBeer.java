@@ -96,9 +96,10 @@ public class DetailedBeer extends Beer {
         this.numRating = beer.get("num_rating") != null ? beer.getInteger("num_rating") : 0;
         if (this.reviews == null)
             this.reviews = new ArrayList<>();
-        List<Document> list = beer.getList("reviews", Document.class);
-        for (Document d: list) {
-            reviews.add(new Review(d));
+        if (beer.get("reviews") != null) {
+            for (Document d : beer.getList("reviews", Document.class)) {
+                reviews.add(new Review(d));
+            }
         }
     }
 
@@ -170,15 +171,23 @@ public class DetailedBeer extends Beer {
         return yeast;
     }
 
-    public ArrayList<Review> getReviews() {
+    public ArrayList<Review> getReviewList() {
         return reviews;
     }
 
+    public void addReviewToBeer(Review review) {
+        this.reviews.add(review);
+    }
+
+    public boolean removeReviewFromBeer(Review review) {
+        return reviews.remove(review);
+    }
+
     // TODO
-    public List<Document> getReviewList() {
+    public List<Document> getReviewListDoc() {
         ArrayList<Document> reviewsList = new ArrayList<>();
         for (Review r: reviews) {
-            reviewsList.add( r.getReview());
+            reviewsList.add( r.getReviewDoc());
         }
         return reviewsList;
     }
@@ -258,5 +267,12 @@ public class DetailedBeer extends Beer {
                 .append("ph mash", phMash);
 
         return doc;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof DetailedBeer)
+            return this.beerID.equals(((Beer) o).getBeerID());
+        return false;
     }
 }

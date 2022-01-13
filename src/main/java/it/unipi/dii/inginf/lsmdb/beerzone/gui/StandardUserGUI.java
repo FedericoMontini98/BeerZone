@@ -252,7 +252,7 @@ public class StandardUserGUI {
      */
     private static void createFavoriteSuggestionSection(ArrayList<FavoriteBeer> list, int page, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s, Integer request) {
         beerContainer.removeAll();
-        if(list.size() == 0){
+        if(list.isEmpty()){
             JTextField err = new JTextField((Objects.equals(request, FAVORITES))?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
             err.setBackground(BACKGROUND_COLOR);
             err.setBorder(createEmptyBorder());

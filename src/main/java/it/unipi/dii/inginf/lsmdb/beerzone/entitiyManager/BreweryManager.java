@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.*;
 
 public class BreweryManager {

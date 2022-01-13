@@ -59,7 +59,7 @@ public class BeerManager {
     }
 
 
-    public void addNewBeer(DetailedBeer beer) {
+    void addNewBeer(DetailedBeer beer) {
         try {
             Document beerDoc = beer.getBeerDoc();
             beersCollection.insertOne(beerDoc);

@@ -2,18 +2,25 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import com.mongodb.gridfs.GridFS;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.text.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 

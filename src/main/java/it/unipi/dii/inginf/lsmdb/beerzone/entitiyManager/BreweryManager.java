@@ -10,18 +10,14 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mongodb.client.model.Accumulators.avg;
-import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.*;
-import static com.mongodb.client.model.Updates.set;
 
 public class BreweryManager {
     private static BreweryManager breweryManager;
@@ -51,7 +47,6 @@ public class BreweryManager {
 
     //TODO
     public boolean removeBeer(DetailedBeer beer){
-        boolean ret;
         if(deleteBeerFromBrewery(beer)){
             if(BeerManager.getInstance().removeBeerMongo(beer)){
                 //Remove beer Fede

@@ -95,7 +95,7 @@ public class BreweryManagerGUI {
         createInputField(containerPanel, inputs);
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputRecipe = new JTextArea[1];
-        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputRecipe, frame, inputs);
+        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputRecipe, frame, inputs, b);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         JTextField errorMsg = new JTextField();

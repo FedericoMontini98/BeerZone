@@ -137,6 +137,16 @@ public class Review {
     protected void computeScore() {
         score = (double) (Math.round(((look + smell + taste + feel + overall) / 5) * 100)) / 100;
     }
+    public Document getReviewDoc() {
+        return new Document("username", username)
+                .append("date", reviewDate)
+                .append("look", look)
+                .append("smell", smell)
+                .append("taste", taste)
+                .append("feel", feel)
+                .append("overall", overall)
+                .append("score", score);
+    }
 
     public Document getReview() {
         return new Document("beer_id", new ObjectId(beerID))
@@ -148,5 +158,12 @@ public class Review {
                 .append("feel", feel)
                 .append("overall", overall)
                 .append("score", score);
+    }
+
+    @Override
+    public boolean equals(Object review) {
+        if (review instanceof Review)
+            return this.username.equalsIgnoreCase(((Review) review).getUsername());
+        return false;
     }
 }

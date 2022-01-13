@@ -5,7 +5,6 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 public class Beer {
-   // protected ObjectId beerID;
     protected String beerID;
     protected String beerName;
     protected String style;
@@ -93,5 +92,12 @@ public class Beer {
     public Document getBeerNameDoc() {
         return new Document("beer_id", new ObjectId(beerID))
                 .append("beer_name", beerName);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Beer)
+            return this.beerID.equals(((Beer) o).getBeerID());
+        return false;
     }
 }

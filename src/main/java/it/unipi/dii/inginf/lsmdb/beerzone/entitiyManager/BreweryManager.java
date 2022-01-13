@@ -10,14 +10,11 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mongodb.client.model.Accumulators.avg;
-import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Updates.*;
@@ -40,7 +37,7 @@ public class BreweryManager {
         try {
             BeerManager.getInstance().addNewBeer(beer);
             addBeerToBreweriesCollection(beer);
-            brewery.addToBrewery(beer);
+            brewery.addBeerToBrewery(beer);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,17 +126,17 @@ public class BreweryManager {
     }
 
     public boolean deleteBrewery(Brewery brewery) {
-        long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());
+        long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());   // matched beers
         DeleteResult deleteResult = breweriesCollection.deleteOne(eq("_id", new ObjectId(brewery.getUserID())));
-        return deleteResult.getDeletedCount() == 1 && ret == brewery.getBeerList().size();
+        return deleteResult.getDeletedCount() == 1 && ret >= brewery.getBeerList().size();
     }
 
     protected boolean addBeerToBreweriesCollection(DetailedBeer beer) {
         try {
-            breweriesCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
+            UpdateResult updateResult = breweriesCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
                     addToSet("beers", new Document("beer_id", new ObjectId(beer.getBeerID()))
                             .append("beer_name", beer.getBeerName())));
-            return true;
+            return updateResult.getMatchedCount() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }

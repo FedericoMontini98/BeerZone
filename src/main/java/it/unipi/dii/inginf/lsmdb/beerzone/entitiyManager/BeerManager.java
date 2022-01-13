@@ -30,6 +30,7 @@ import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Updates.*;
+import static com.mongodb.client.model.Updates.addToSet;
 import static org.neo4j.driver.Values.parameters;
 
 public class BeerManager {
@@ -174,13 +175,14 @@ public class BeerManager {
         return beer;
     }
 
+    /* return value: matched beers in the beersCollection */
     public long deleteBreweryFromBeers(String breweryID) {
         UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
         //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
                 combine(unset("brewery_id"), set("retired", "t")));
         return updateResult.getMatchedCount();
     }
-
+/*
     private ArrayList<Beer> getHighestAvgScoreBeersOld() {
         ArrayList<Beer> beers = new ArrayList<>();
         for (Document doc: ReviewManager.getInstance().getHighestAvgScoreBeers()) {
@@ -190,6 +192,8 @@ public class BeerManager {
         }
         return beers;
     }
+
+ */
 
     public ArrayList<Beer> getHighestAvgScoreBeers() {
         ArrayList<Beer> beers = new ArrayList<>();
@@ -203,7 +207,7 @@ public class BeerManager {
         }
         return beers;
     }
-
+/*
     public ArrayList<Beer> getBeersUnderAvgFeatureScoreOld(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
         for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature,
@@ -214,6 +218,8 @@ public class BeerManager {
         }
         return beers;
     }
+
+ */
 
     public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
@@ -235,6 +241,17 @@ public class BeerManager {
                     (beer.getBeerDoc()));
             if (updateResult.getMatchedCount() == 1)
                 return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    protected boolean addReviewToBeersCollection(Review review, Beer beer) {
+        try {
+            UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beer.getBeerID())),
+                    addToSet("reviews", review.getReviewDoc()));
+            return updateResult.getMatchedCount() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -90,17 +90,17 @@ public class BreweryManagerGUI {
      */
     private static void generateAddBeerMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
-        JTextField[] inputs = new JTextField[2];
+        JTextPane[] inputs = new JTextPane[2];
         String[] recipeTexts = new String[16];
         createInputField(containerPanel, inputs);
         JComboBox<String>[] recipeCB = new JComboBox[1];
-        JTextArea[] inputArea = new JTextArea[1];
-        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputArea);
+        JTextArea[] inputRecipe = new JTextArea[1];
+        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputRecipe, frame, inputs);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         JTextField errorMsg = new JTextField();
         btn.addActionListener(e->{
-            recipeTexts[recipeCB[0].getSelectedIndex()] = inputArea[0].getText();
+            recipeTexts[recipeCB[0].getSelectedIndex()] = inputRecipe[0].getText();
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
             if(!recipeCorrect){
@@ -142,7 +142,7 @@ public class BreweryManagerGUI {
      * @param inputs: all the beer info
      * @return correct: contains if the inputs are correct
      */
-    private static boolean checkInfo(JTextField[] inputs) {
+    public static boolean checkInfo(JTextPane[] inputs) {
         boolean correct = true;
         if(inputs[0].getText().equals("")) {
             inputs[0].setBackground(Color.RED);
@@ -194,7 +194,7 @@ public class BreweryManagerGUI {
      * @param panel: panel containing the add beer section
      * @param inputs: brewery manager's inputs
      */
-    private static void createInputField(JPanel panel, JTextField[] inputs) {
+    private static void createInputField(JPanel panel, JTextPane[] inputs) {
         JTextField description = new JTextField("Beer Name");
         description.setFont(new Font("Arial", Font.PLAIN ,15));
         description.setBackground(BACKGROUND_COLOR);
@@ -203,7 +203,7 @@ public class BreweryManagerGUI {
         panel.add(description, new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
-        JTextField inputField = new JTextField();
+        JTextPane inputField = new JTextPane();
         inputs[0] = inputField;
         panel.add(inputField, new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
@@ -216,7 +216,7 @@ public class BreweryManagerGUI {
         panel.add(description, new GridBagConstraints(0,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
-        inputField = new JTextField();
+        inputField = new JTextPane();
         inputs[1] = inputField;
         panel.add(inputField, new GridBagConstraints(1,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));

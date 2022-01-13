@@ -34,8 +34,11 @@ public class MongoManager {
     }
 
     public MongoCollection<Document> getCollection(String collectionName) {
-        if (mongoManager == null)
-            throw new RuntimeException("Mongo Connection does not exist!");
+        if (mongoManager == null) {
+            getInstance();
+            if (mongoManager == null)
+                throw new RuntimeException("Mongo Connection does not exist!");
+        }
 
         return database.getCollection(collectionName);
     }

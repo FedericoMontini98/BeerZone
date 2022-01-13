@@ -136,7 +136,7 @@ public class ReviewManager {
             Bson groupBeers = group("$beer_id", avg("avg_score", "$score"),
                     sum("num_rating", 1));
             Bson projectRoundScore = project(new Document("rating",
-                    new Document("$round", Arrays.asList("$avg_score", 2))).append("num_rating", 1));
+                    new Document("$round", Arrays.asList("$avg_score", 2L))).append("num_rating", 1L));
             Bson mergeResult = merge("beers");
             Document aggregation = reviewsCollection.aggregate(Arrays.asList(matchBeers, groupBeers,
                     projectRoundScore, mergeResult)).first();
@@ -153,7 +153,7 @@ public class ReviewManager {
         return false;
     }
 
-    AggregateIterable<Document> getHighestAvgScoreBeers() {
+    protected AggregateIterable<Document> getHighestAvgScoreBeers() {
         AggregateIterable<Document> list = null;
         try {
             LocalDateTime today = LocalDateTime.now();

@@ -45,21 +45,28 @@ public class BeerManager {
         return beerManager;
     }
 
+    boolean removeBeer(Beer beer) {
+        if(removeBeerMongo(beer)) {
+            //Remove beer Fede
+            removeBeerFromNeo(beer);
+            return true;
+        }
+        return false;
+    }
+
 
 
     /* ************************************************************************************************************/
     /* *************************************  MongoDB Section  ****************************************************/
     /* ************************************************************************************************************/
-    //TODO
-    public boolean removeBeerMongo(DetailedBeer beer){
-        DeleteResult deleteResult = beersCollection.deleteOne(and(eq("beer_id", new ObjectId(beer.getBeerID())),
-                    eq("beer_id", new ObjectId(beer.getBeerID()))));
+
+    public boolean removeBeerMongo(Beer beer){
+        DeleteResult deleteResult = beersCollection.deleteOne(eq("_id", new ObjectId(beer.getBeerID())));
         return (deleteResult.getDeletedCount() == 1);
 
     }
 
-
-    void addNewBeer(DetailedBeer beer) {
+    public void addNewBeer(DetailedBeer beer) {
         try {
             Document beerDoc = beer.getBeerDoc();
             beersCollection.insertOne(beerDoc);

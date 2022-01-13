@@ -959,11 +959,13 @@ public class BeerZoneGUI {
 
     private static void setBeerZoneImage(JFrame frame) {
         try{
-            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
-            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            //BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            //JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            JLabel picLabel = new JLabel(new ImageIcon(
+                    BeerZoneGUI.class.getResource("/logobeerzone.png")));
             frame.getContentPane().add(picLabel, new GridBagConstraints(0,0,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),0,0));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -1078,8 +1080,14 @@ public class BeerZoneGUI {
         JFrame frame = new JFrame("BeerZone");
         try{
             BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            //BufferedImage myPicture = ImageIO.read(new File("./logobeerzone.png"));
             frame.setIconImage(myPicture);
-        } catch (IOException e) {
+            /*ImageIcon image = new ImageIcon(
+                    (Objects.requireNonNull(this.getClass().getResource("/logobeerzone.png"))));
+
+            frame.setIconImage(frame.getIconImage());//Toolkit.getDefaultToolkit().getImage(BeerZoneGUI.class.getResource("/logobeerzone.png")));
+        */
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

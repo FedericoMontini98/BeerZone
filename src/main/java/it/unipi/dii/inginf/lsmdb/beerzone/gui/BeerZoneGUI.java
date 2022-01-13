@@ -564,7 +564,7 @@ public class BeerZoneGUI {
             btnPanel.add(deleteBeer, new GridBagConstraints(0,0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 5),0,0));
             deleteBeer.addActionListener(e-> {BreweryManager.getInstance().removeBeer(selBeer);
-                                            b.deleteFromBrewery(selBeer);});
+                                            b.deleteBeerFromBrewery(selBeer);});
 
             JButton updateBeer = new JButton("Update Beer");
 

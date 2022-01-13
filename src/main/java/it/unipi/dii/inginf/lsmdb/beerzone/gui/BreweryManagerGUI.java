@@ -93,17 +93,34 @@ public class BreweryManagerGUI {
         JTextField[] inputs = new JTextField[2];
         String[] recipeTexts = new String[16];
         createInputField(containerPanel, inputs);
-        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true);
+        JComboBox<String>[] recipeCB = new JComboBox[1];
+        JTextArea[] inputArea = new JTextArea[1];
+        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputArea);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
+        JTextField errorMsg = new JTextField();
         btn.addActionListener(e->{
+            recipeTexts[recipeCB[0].getSelectedIndex()] = inputArea[0].getText();
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
             if(!recipeCorrect){
-                System.out.println("OG - FG - IBU - COLOR - PHMASH must be numbers");
+                System.out.println("Not Correct");
+                errorMsg.setText("OG - FG - IBU - COLOR - PHMASH must be numbers");
+                errorMsg.setBackground(BACKGROUND_COLOR);
+                errorMsg.setBorder(createEmptyBorder());
+                errorMsg.setForeground(Color.RED);
+                containerPanel.add(errorMsg, new GridBagConstraints(0,6,2,1,0,0,
+                        GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
+                frame.repaint();
+                frame.setVisible(true);
             }
             else{
+                containerPanel.remove(errorMsg);
+                frame.repaint();
+                frame.setVisible(true);
                 if(infoCorrect){
+                    errorMsg.setText("Beer Correctly Added");
+                    errorMsg.setForeground(new Color(0, 59, 16));
                     DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
                                                         recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES],recipeTexts[RECIPE_SECTION_URL], "f",
                                                         recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
@@ -150,7 +167,7 @@ public class BreweryManagerGUI {
      * @param recipeTexts: array containing the recipe infos
      * @return corrrect: correctness of data
      */
-    private static boolean checkRecipe(String[] recipeTexts) {
+    public static boolean checkRecipe(String[] recipeTexts) {
         boolean correct = true;
         for(int i = 0; i < recipeTexts.length; i++){
             if(recipeTexts[i] == null)
@@ -158,9 +175,11 @@ public class BreweryManagerGUI {
 
             if(i == RECIPE_SECTION_OG || i == RECIPE_SECTION_FG || i == RECIPE_SECTION_IBU || i == RECIPE_SECTION_COLOR
                     || i == RECIPE_SECTION_PHMASH || i == RECIPE_SECTION_ABV) {
+
                 try {
                     Double.parseDouble(recipeTexts[i]);
                 } catch (NumberFormatException nfe) {
+                    System.out.println("Index error: " + i + " value: " + recipeTexts[i]);
                     correct = false;
                 }
             }

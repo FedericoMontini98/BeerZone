@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
@@ -26,6 +27,8 @@ import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
@@ -45,7 +48,7 @@ public class BeerManager {
         return beerManager;
     }
 
-    boolean removeBeer(Beer beer) {
+    protected boolean removeBeer(Beer beer) {
         if(removeBeerMongo(beer)) {
             //Remove beer Fede
             removeBeerFromNeo(beer);
@@ -60,7 +63,7 @@ public class BeerManager {
     /* *************************************  MongoDB Section  ****************************************************/
     /* ************************************************************************************************************/
 
-    public boolean removeBeerMongo(Beer beer){
+    protected boolean removeBeerMongo(Beer beer){
         DeleteResult deleteResult = beersCollection.deleteOne(eq("_id", new ObjectId(beer.getBeerID())));
         return (deleteResult.getDeletedCount() == 1);
 
@@ -178,12 +181,50 @@ public class BeerManager {
         return updateResult.getMatchedCount();
     }
 
-    public ArrayList<Beer> getHighestAvgScoreBeers() {
+    private ArrayList<Beer> getHighestAvgScoreBeersOld() {
         ArrayList<Beer> beers = new ArrayList<>();
         for (Document doc: ReviewManager.getInstance().getHighestAvgScoreBeers()) {
             Beer b = new Beer(doc);
             b.setScore(doc.get("monthly_score") != null ? Double.parseDouble(doc.get("monthly_score").toString()) : -1);
             beers.add(b);
+        }
+        return beers;
+    }
+
+    public ArrayList<Beer> getHighestAvgScoreBeers() {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: getHighestAvgScoreBeersMongo()) {
+            Document idDoc = (Document) doc.get("_id");
+            if (idDoc != null) {
+                Beer b = new Beer(idDoc);
+                b.setScore(doc.get("monthly_score") != null ? Double.parseDouble(doc.get("monthly_score").toString()) : -1);
+                beers.add(b);
+            }
+        }
+        return beers;
+    }
+
+    public ArrayList<Beer> getBeersUnderAvgFeatureScoreOld(Brewery brewery, String feature) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature,
+                getBreweryScore(new ObjectId(brewery.getUserID())))) {
+            Beer b = new Beer(doc);
+            b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
+            beers.add(b);
+        }
+        return beers;
+    }
+
+    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: getBeersUnderAvgFeatureScoreNested(brewery.getUserID(), feature,
+                getBreweryScore(new ObjectId(brewery.getUserID())))) {
+            Document idDoc = (Document) doc.get("_id");
+            if (idDoc != null) {
+                Beer b = new Beer(idDoc);
+                b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
+                beers.add(b);
+            }
         }
         return beers;
     }
@@ -200,20 +241,71 @@ public class BeerManager {
         return false;
     }
 
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
-        ArrayList<Beer> beers = new ArrayList<>();
-        for (Document doc: ReviewManager.getInstance().getBeersUnderAvgFeatureScore(brewery, feature,
-                getBreweryScore(new ObjectId(brewery.getUserID())))) {
-            Beer b = new Beer(doc);
-            b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
-            beers.add(b);
+    private AggregateIterable<Document> getHighestAvgScoreBeersMongo() {
+        //ArrayList<Beer> beers = new ArrayList<>();
+        AggregateIterable<Document> list = null;
+        try {
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime last_month = LocalDateTime.now().minusMonths(1);
+            Bson matchDate = match(and(lt("reviews.date", today), gt("reviews.date", last_month)));
+            Bson unwindReviews = unwind("$reviews");
+            Bson groupBeer = new Document("$group", new Document("_id",
+                    new Document("_id", "$_id")
+                            .append("name", "$name")
+                            .append("style", "$style")
+                            .append("abv", "$abv")
+                            .append("rating", "$rating"))
+                    .append("monthly_score", new Document("$avg", "$reviews.score")));
+            Bson projectRoundScore = project(new Document("monthly_score",
+                    new Document("$round", Arrays.asList("$monthly_score", 2))));
+            Bson sortScore = sort(descending("monthly_score"));
+            Bson limitResult = limit(8);
+
+            list = beersCollection.aggregate(Arrays.asList(matchDate, unwindReviews, matchDate, groupBeer, sortScore,
+                    limitResult, projectRoundScore));
+            for (Document d: list) {
+                System.out.println(d);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return beers;
+        return list;
     }
 
-    double getBreweryScore(ObjectId breweryID) {
+    private AggregateIterable<Document> getBeersUnderAvgFeatureScoreNested(String breweryID, String feature, double breweryScore){
+        AggregateIterable<Document> list = null;
+        try {
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime past = LocalDateTime.now().minusMonths(6);
+            Bson initialMatch = match(and(eq("brewery_id", new ObjectId(breweryID)),
+                    lt("reviews.date", today), gt("reviews.date", past)));
+            Bson unwindReviews = unwind("$reviews");
+            Bson groupBeer = new Document("$group", new Document("_id",
+                    new Document("_id", "$_id")
+                            .append("name", "$name")
+                            .append("style", "$style")
+                            .append("abv", "$abv")
+                            .append("rating", "$rating"))
+                    .append("feature_score", new Document("$avg", "$reviews."+ feature)));
+            Bson projectRoundScore = project(new Document("feature_score",
+                    new Document("$round", Arrays.asList("$feature_score", 2))));
+            Bson matchBreweryScore = match(lt("feature_score", breweryScore));
+            Bson sortResult = sort(ascending("feature_score"));
+            list = beersCollection.aggregate(Arrays.asList(initialMatch, unwindReviews, groupBeer, projectRoundScore,
+                    matchBreweryScore, sortResult));
+            for (Document d: list) {
+                System.out.println(d);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    protected double getBreweryScore(ObjectId breweryID) {
         try {
             Bson matchBrewery = match(eq("brewery_id", breweryID));
             Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
@@ -231,7 +323,7 @@ public class BeerManager {
         return -1;
     }
 
-    double getWeightedBreweryScore(ObjectId breweryID) {
+    protected double getWeightedBreweryScore(ObjectId breweryID) {
         try {
             Bson initialMatch = match(and(eq("brewery_id", breweryID), gt("num_rating", 0)));
             Bson groupBrewery = group(new Document("_id", "$brewery_id")
@@ -394,7 +486,7 @@ public class BeerManager {
         }
     }
 
-    boolean removeBeerFromNeo(Beer beer){
+    protected boolean removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
                             "DELETE B;",

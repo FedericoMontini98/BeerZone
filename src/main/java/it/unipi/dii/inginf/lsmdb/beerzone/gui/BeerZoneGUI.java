@@ -215,7 +215,7 @@ public class BeerZoneGUI {
                 return false;
             }
         };
-
+        System.out.println("Ciao");
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
         if(beerToShow.size() > 13)
             beerToShow.remove(beerToShow.size() - 1);
@@ -246,7 +246,6 @@ public class BeerZoneGUI {
                 return false;
             }
         };
-
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
         breweryToShow.remove(breweryToShow.size() - 1);
         for (Brewery brewery : breweryToShow) tableModel.addRow(breweryToStringArray(brewery));
@@ -338,8 +337,10 @@ public class BeerZoneGUI {
                         DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
                         createBeerPage(rjp, frame, b, user);
                     }
-                    else
+                    else {
                         BreweryManagerGUI.createBreweryPage(rjp, frame, user, id, Objects.equals(user.getUserID(), id));
+
+                    }
                 }
             }
         });

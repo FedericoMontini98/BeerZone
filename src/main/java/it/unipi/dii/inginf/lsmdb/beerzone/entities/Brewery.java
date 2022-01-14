@@ -28,9 +28,10 @@ public class Brewery extends GeneralUser {
         super(doc);
         this.types = doc.get("types") != null ? doc.getString("types") : "--";
         this.beers = new ArrayList<>();
-        List<Document> list = doc.getList("beers", Document.class);
-        for (Document d: list) {
-            beers.add(new Beer(d.getObjectId("beer_id").toString(), d.getString("beer_name")));
+        if (doc.get("beers") != null) {
+            for (Document d : doc.getList("beers", Document.class)) {
+                beers.add(new Beer(d.getObjectId("beer_id").toString(), d.getString("beer_name")));
+            }
         }
     }
 
@@ -50,12 +51,17 @@ public class Brewery extends GeneralUser {
         this.beers = beers;
     }
 
-    public void addToBrewery(Beer beer) {
+    public void addBeerToBrewery(Beer beer) {
         beers.add(beer);
     }
 
-    public boolean deleteFromBrewery(Beer beer) {
-        return beers.remove(beer);
+    public boolean deleteBeerFromBrewery(Beer beer) {
+        for( Beer b : beers){
+            if(b.beerID.equals(beer.beerID)){
+                return beers.remove(b);
+            }
+        }
+        return false;
     }
 
     public List<Document> getBeerList() {

@@ -107,6 +107,7 @@ public class StandardUserGUI {
             try{
                 int newAge = Integer.parseInt(inputs[2].getText());
                 s.setAge(newAge);
+                s.setLocation(inputs[3].getText());
             }catch(NumberFormatException nfe){
              inputs[2].setText("Insert an integer");
              inputs[2].setBackground(Color.YELLOW);
@@ -252,7 +253,7 @@ public class StandardUserGUI {
      */
     private static void createFavoriteSuggestionSection(ArrayList<FavoriteBeer> list, int page, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s, Integer request) {
         beerContainer.removeAll();
-        if(list.size() == 0){
+        if(list.isEmpty()){
             JTextField err = new JTextField((Objects.equals(request, FAVORITES))?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
             err.setBackground(BACKGROUND_COLOR);
             err.setBorder(createEmptyBorder());
@@ -456,7 +457,7 @@ public class StandardUserGUI {
         JTextField reviewAvg = new JTextField("3.0");
         JSpinner[] spinners = new JSpinner[5];
 
-        Review rev = ReviewManager.getInstance().getReview(s.getUsername(),selBeer.getBeerID());
+        Review rev = ReviewManager.getInstance().getReview(s.getUsername(),selBeer);
         prepareAverageSection(reviewAvg, rjp);
         prepareVotesPanel(reviewAvg, spinners, rjp);
 
@@ -535,7 +536,7 @@ public class StandardUserGUI {
                 for(JSpinner sp: spinners)
                     sp.setValue(3.0);
                 reviewAvg.setText("3.0");
-                ReviewManager.getInstance().deleteReview(s.getUsername(), selBeer.getBeerID());
+                ReviewManager.getInstance().deleteReview(s.getUsername(), selBeer);
             }
         });
 

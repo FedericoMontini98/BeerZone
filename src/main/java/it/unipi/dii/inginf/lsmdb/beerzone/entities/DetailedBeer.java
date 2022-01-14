@@ -5,6 +5,9 @@ import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DetailedBeer extends Beer {
     // id, name, style, score
     private String breweryID;
@@ -27,6 +30,7 @@ public class DetailedBeer extends Beer {
     private String hops;
     private String other;
     private String yeast;
+    private ArrayList<Review> reviews;
 
     public DetailedBeer() {}
 
@@ -56,6 +60,7 @@ public class DetailedBeer extends Beer {
         this.hops = hops != null ? hops : "-";
         this.other = other != null ? other : "-";
         this.yeast = yeast != null ? yeast : "-";
+        this.reviews = new ArrayList<>();
     }
 
     public DetailedBeer(String beerName, String style, String abv, @Nullable String score,
@@ -89,6 +94,13 @@ public class DetailedBeer extends Beer {
                 beer.get("other") != null ? beer.getString("other") : "--",
                 beer.get("yeast") != null ? beer.getString("yeast") : "--");
         this.numRating = beer.get("num_rating") != null ? beer.getInteger("num_rating") : 0;
+        if (this.reviews == null)
+            this.reviews = new ArrayList<>();
+        if (beer.get("reviews") != null) {
+            for (Document d : beer.getList("reviews", Document.class)) {
+                reviews.add(new Review(d));
+            }
+        }
     }
 
     public String getBreweryID() {
@@ -157,6 +169,27 @@ public class DetailedBeer extends Beer {
 
     public String getYeast() {
         return yeast;
+    }
+
+    public ArrayList<Review> getReviewList() {
+        return reviews;
+    }
+
+    public void addReviewToBeer(Review review) {
+        this.reviews.add(review);
+    }
+
+    public boolean removeReviewFromBeer(Review review) {
+        return reviews.remove(review);
+    }
+
+    // TODO
+    public List<Document> getReviewListDoc() {
+        ArrayList<Document> reviewsList = new ArrayList<>();
+        for (Review r: reviews) {
+            reviewsList.add( r.getReviewDoc());
+        }
+        return reviewsList;
     }
 
     public void setBreweryID(String breweryID) {
@@ -234,5 +267,12 @@ public class DetailedBeer extends Beer {
                 .append("ph mash", phMash);
 
         return doc;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof DetailedBeer)
+            return this.beerID.equals(((Beer) o).getBeerID());
+        return false;
     }
 }

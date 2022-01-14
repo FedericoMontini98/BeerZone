@@ -95,7 +95,7 @@ public class BreweryManagerGUI {
         createInputField(containerPanel, inputs);
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputRecipe = new JTextArea[1];
-        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputRecipe, frame, inputs);
+        BeerZoneGUI.createRecipeSection(containerPanel, 3, recipeTexts, BREWERY_MANAGER, true, null, recipeCB, inputRecipe, frame, inputs, b);
         JButton btn = new JButton("Add Beer to Brewery");
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         JTextField errorMsg = new JTextField();
@@ -126,7 +126,7 @@ public class BreweryManagerGUI {
                                                         recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
                                                         recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
                                                         recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                    BeerManager.getInstance().addNewBeer(db);
+                    BreweryManager.getInstance().addNewBeerToBrewery(b,db);
                 }
             }
         });

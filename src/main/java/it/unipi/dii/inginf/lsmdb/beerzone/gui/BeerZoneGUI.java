@@ -2,18 +2,25 @@ package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import com.mongodb.gridfs.GridFS;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.text.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -208,7 +215,7 @@ public class BeerZoneGUI {
                 return false;
             }
         };
-
+        System.out.println("Ciao");
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
 
         if(beerToShow.size() > 12)
@@ -240,7 +247,6 @@ public class BeerZoneGUI {
                 return false;
             }
         };
-
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
         if(breweryToShow.size() > 12){
             breweryToShow.remove(breweryToShow.size() - 1);
@@ -334,8 +340,10 @@ public class BeerZoneGUI {
                         DetailedBeer b = BeerManager.getInstance().getDetailedBeer(id);
                         createBeerPage(rjp, frame, b, user);
                     }
-                    else
+                    else {
                         BreweryManagerGUI.createBreweryPage(rjp, frame, user, id, Objects.equals(user.getUserID(), id));
+
+                    }
                 }
             }
         });
@@ -382,7 +390,7 @@ public class BeerZoneGUI {
         toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID(), Objects.equals(user.getUserID(), selBeer.getBreweryID())));
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputArea = new JTextArea[1];
-        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs);
+        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs,(GeneralUser)user);
 
         if(Objects.equals(user.getType(), STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, selBeer, user);
@@ -499,7 +507,7 @@ public class BeerZoneGUI {
      * @param recipeTexts: array containing the recipe text
      * @param userType: type of user requesting the section
      */
-    public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs) {
+    public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs, GeneralUser b) {
         JPanel recipePanel = new JPanel();
         recipePanel.setBackground(BACKGROUND_COLOR_LIGHT);
         recipePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -561,7 +569,7 @@ public class BeerZoneGUI {
             deleteBeer.setEnabled(true);
             btnPanel.add(deleteBeer, new GridBagConstraints(0,0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 5),0,0));
-            //deleteBeer.addActionListener(e-> );
+            deleteBeer.addActionListener(e-> {Brewery br= (Brewery) b; BreweryManager.getInstance().removeBeer(selBeer,br);});
 
             JButton updateBeer = new JButton("Update Beer");
 
@@ -955,11 +963,13 @@ public class BeerZoneGUI {
 
     private static void setBeerZoneImage(JFrame frame) {
         try{
-            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
-            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            //BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            //JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            JLabel picLabel = new JLabel(new ImageIcon(
+                    BeerZoneGUI.class.getResource("/logobeerzone.png")));
             frame.getContentPane().add(picLabel, new GridBagConstraints(0,0,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),0,0));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -1074,8 +1084,14 @@ public class BeerZoneGUI {
         JFrame frame = new JFrame("BeerZone");
         try{
             BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            //BufferedImage myPicture = ImageIO.read(new File("./logobeerzone.png"));
             frame.setIconImage(myPicture);
-        } catch (IOException e) {
+            /*ImageIcon image = new ImageIcon(
+                    (Objects.requireNonNull(this.getClass().getResource("/logobeerzone.png"))));
+
+            frame.setIconImage(frame.getIconImage());//Toolkit.getDefaultToolkit().getImage(BeerZoneGUI.class.getResource("/logobeerzone.png")));
+        */
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

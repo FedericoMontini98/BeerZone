@@ -11,10 +11,7 @@ import java.util.List;
 public class DetailedBeer extends Beer {
     // id, name, style, score
     private String breweryID;
-    //private int beerScore;
     private int numRating;
-    //private String state;
-    //private String country;
     private String availability;
     private String notes;
     private boolean retired;
@@ -23,7 +20,6 @@ public class DetailedBeer extends Beer {
     private double og;  // original gravity
     private double fg;  // final gravity
     private double ibu;
-    //private double batch;
     private double color;
     private double phMash;  // -1 if is not present on the source
     private String fermentables;
@@ -47,19 +43,19 @@ public class DetailedBeer extends Beer {
         this.breweryID = breweryID != null ? breweryID : "";
         this.numRating = 0;
         this.availability = availability != null ? availability : "";
-        this.notes = notes != null ? notes : "=";
-        this.url = url != null ? url : "-";
+        this.notes = notes != null ? notes : "";
+        this.url = url != null ? url : "";
         this.retired = retired.equalsIgnoreCase("t");
-        this.method = method != null ? method : "-";
+        this.method = method != null ? method : "";
         this.og = og != null ? Double.parseDouble(og) : -1;
         this.fg = fg != null ? Double.parseDouble(fg) : -1;
         this.ibu = ibu != null ? Double.parseDouble(ibu) : -1;
         this.color = color != null ? Double.parseDouble(color) : -1;
         this.phMash = phMash != null ? Double.parseDouble(phMash) : -1;
-        this.fermentables = fermentables != null ? fermentables : "-";
-        this.hops = hops != null ? hops : "-";
-        this.other = other != null ? other : "-";
-        this.yeast = yeast != null ? yeast : "-";
+        this.fermentables = fermentables != null ? fermentables : "";
+        this.hops = hops != null ? hops : "";
+        this.other = other != null ? other : "";
+        this.yeast = yeast != null ? yeast : "";
         this.reviews = new ArrayList<>();
     }
 
@@ -183,11 +179,10 @@ public class DetailedBeer extends Beer {
         return reviews.remove(review);
     }
 
-    // TODO
     public List<Document> getReviewListDoc() {
         ArrayList<Document> reviewsList = new ArrayList<>();
         for (Review r: reviews) {
-            reviewsList.add( r.getReviewDoc());
+            reviewsList.add(r.getReviewDoc());
         }
         return reviewsList;
     }
@@ -257,17 +252,61 @@ public class DetailedBeer extends Beer {
     }
 
     public Document getBeerDoc() {
-        Document doc = super.getBeerDoc();
-        doc.append("brewery_id", new ObjectId(breweryID))
-                .append("numRating", numRating)
-                .append("method", method)
-                .append("og", og).append("fg", fg)
-                .append("ibu", ibu)
-                .append("color", color)
-                .append("ph mash", phMash);
-
+        Document doc = super.getBeerDoc()
+                .append("num_rating", numRating)
+                .append("retired", retired);
+        if (!breweryID.isEmpty())
+            doc.append("brewery_id", new ObjectId(breweryID));
+        if (!availability.isEmpty())
+            doc.append("availability", availability);
+        if (!notes.isEmpty())
+            doc.append("notes", notes);
+        if (!url.isEmpty())
+            doc.append("url", url);
+        if (!method.isEmpty())
+            doc.append("method", method);
+        if (og != -1)
+            doc.append("og", og);
+        if (fg != -1)
+            doc.append("fg", fg);
+        if (ibu != -1)
+            doc.append("ibu", ibu);
+        if (color != -1)
+            doc.append("color", color);
+        if (phMash != -1)
+            doc.append("phMash", phMash);
+        if (!fermentables.isEmpty())
+            doc.append("fermentables", fermentables);
+        if (!hops.isEmpty())
+            doc.append("hops", hops);
+        if (!other.isEmpty())
+            doc.append("other", other);
+        if (!yeast.isEmpty())
+            doc.append("yeast", yeast);
+        if (!reviews.isEmpty())
+            doc.append("reviews", getReviewListDoc());
         return doc;
     }
+
+    /*    private String breweryID;
+    //private int beerScore;
+    private int numRating;
+    private String availability;
+    private String notes;
+    private boolean retired;
+    private String url;
+    private String method;
+    private double og;  // original gravity
+    private double fg;  // final gravity
+    private double ibu;
+    private double color;
+    private double phMash;  // -1 if is not present on the source
+    private String fermentables;
+
+    private String hops;
+    private String other;
+    private String yeast;
+    private ArrayList<Review> reviews;*/
 
     @Override
     public boolean equals(Object o) {

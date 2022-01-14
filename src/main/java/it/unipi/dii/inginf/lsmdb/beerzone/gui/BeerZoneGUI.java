@@ -361,7 +361,7 @@ public class BeerZoneGUI {
         containerPanel.removeAll();
 
         JPanel beerFields = new JPanel();
-        String[] recipeTexts = new String[15];
+        String[] recipeTexts = new String[16];
         JTextPane[] userInputs = new JTextPane[2];
         prepareRecipeText(recipeTexts, selBeer);
         beerFields.setBackground(BACKGROUND_COLOR);
@@ -420,6 +420,7 @@ public class BeerZoneGUI {
         recipeTexts[12] = selBeer.getPhMash();
         recipeTexts[13] = selBeer.getUrl();
         recipeTexts[14] = selBeer.getYeast();
+        recipeTexts[15] = selBeer.getRetired();
     }
 
     /**
@@ -517,7 +518,7 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 5, 0),0,0));
 
         String[] choices = {"Choose an option", "Abv", "Availability", "Color", "Fermentables", "Fg", "Hops", "Ibu", "Method", "Notes", "Og",
-                "Other", "Ph Mash", "Url", "Yeast"};
+                "Other", "Ph Mash", "Retired", "Url", "Yeast"};
         recipeCB[0] = new JComboBox<>(choices);
         recipeCB[0].setVisible(true);
         recipePanel.add(recipeCB[0], new GridBagConstraints(0, 1,1,1,0,0,

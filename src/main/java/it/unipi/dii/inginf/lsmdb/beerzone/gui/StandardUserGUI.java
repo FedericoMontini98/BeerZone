@@ -469,9 +469,6 @@ public class StandardUserGUI {
             spinners[3].setValue(Double.parseDouble(rev.getFeel()));
             spinners[4].setValue(Double.parseDouble(rev.getOverall()));
         }
-        else{
-
-        }
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);

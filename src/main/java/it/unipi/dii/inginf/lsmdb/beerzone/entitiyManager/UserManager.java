@@ -3,7 +3,6 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
@@ -12,14 +11,8 @@ import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.TransactionWork;
 
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static org.neo4j.driver.Values.parameters;
@@ -44,7 +37,7 @@ public class UserManager {
     }
 
     public boolean deleteUser(StandardUser user) {
-        boolean result_1=deleteStandardUser(user.getEmail());
+        boolean result_1=deleteStandardUser(user);
         boolean result_2=removeUser(user.getUsername());
         return (result_1&&result_2);
     }
@@ -62,6 +55,10 @@ public class UserManager {
 
     /* check if an email or a combination of an username/type=0 already exist in the users collection */
     private boolean userExist(GeneralUser user) {
+        if (user.getUsername().equalsIgnoreCase("deletedUser")
+                || user.getUsername().equalsIgnoreCase("deleted_user")
+                || user.getUsername().equalsIgnoreCase("deleted user"))
+            return true;
         Document doc = null;
         try {
             doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"), //eq("email", user.getEmail()),eq("username", user.getUsername())
@@ -129,10 +126,11 @@ public class UserManager {
         return null;
     }
 
-    private boolean deleteStandardUser(String email) {
+    private boolean deleteStandardUser(StandardUser user) {
         try {
-            DeleteResult deleteResult = usersCollection.deleteOne(eq("email", email));
-            return deleteResult.getDeletedCount() == 1;
+            boolean ok = BeerManager.getInstance().deleteUserFromReviews(user.getUsername());
+            DeleteResult deleteResult = usersCollection.deleteOne(eq("email", user.getEmail()));
+            return ok && deleteResult.getDeletedCount() == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -210,7 +208,7 @@ public class UserManager {
      *  favorites */
     private boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
+            session.run("MATCH (U:User {Username: $Username})-[F:Favorite]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;

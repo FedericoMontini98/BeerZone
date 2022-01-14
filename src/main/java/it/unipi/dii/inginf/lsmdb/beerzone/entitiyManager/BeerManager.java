@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
@@ -20,8 +21,7 @@ import org.neo4j.driver.Session;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.Aggregates.*;
@@ -115,25 +115,6 @@ public class BeerManager {
         ArrayList<Beer> beerList = new ArrayList<>();
         for (Document beer: iterable) {
             beerList.add(new Beer(beer));
-        }
-        return beerList;
-    }
-
-    public ArrayList<Beer> browseBeersByBreweryID(int page, String breweryID) {
-        if (breweryID == null)
-            return null;
-        int limit = 3;
-        int n = (page-1) * limit;
-
-        ArrayList<Beer> beerList = new ArrayList<>();
-        //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
-        try {
-            for (Document beerDoc : beersCollection.find(eq("brewery_id", new ObjectId(breweryID)))
-                    .skip(n).limit(limit+1)) {
-                beerList.add(new Beer(beerDoc));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return beerList;
     }
@@ -252,6 +233,23 @@ public class BeerManager {
             UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beer.getBeerID())),
                     addToSet("reviews", review.getReviewDoc()));
             return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    protected boolean deleteUserFromReviews(String username) {
+        try {
+            String pattern = "^" + username + "$";
+            String optionsRegEx = "i";
+            UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
+                    Collections.singletonList(regex("item.username", pattern, optionsRegEx)));
+            UpdateResult updateResult = beersCollection.updateMany(
+                    regex("reviews.username", pattern, optionsRegEx),
+                    set("reviews.$[item].username", "deleted_user"), updateOptions);
+            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
+            return updateResult.getMatchedCount() == updateResult.getModifiedCount();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -378,7 +376,7 @@ public class BeerManager {
                     "ON CREATE\n" +
                     "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
+            session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name"));
             //I create the relationship between the style node and the beer node
             session.run("MATCH\n" +
                             "(B:Beer{ID:$BeerID}),\n" +
@@ -438,23 +436,29 @@ public class BeerManager {
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
                 return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
-                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
+                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
+                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
+                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
+                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_1));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_1));
                     ArrayList<String> suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
                         suggested.add(r.get("ID").asString());
                     }
-                    Result result_2 = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
-                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                    Result result_2 = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
+                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
+                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
+                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
+                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_2));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_2));
                     while (result_2.hasNext()) {
                         Record r = result_2.next();
                         suggested.add(r.get("ID").asString());
@@ -503,16 +507,14 @@ public class BeerManager {
         }
     }
 
-    protected boolean removeBeerFromNeo(Beer beer){
+    protected void removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
                             "DELETE B;",
                     parameters( "ID", beer.getBeerID()));
-            return true;
         }
         catch(Exception e){
             e.printStackTrace();
-            return false;
         }
     }
 

@@ -1,11 +1,8 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
@@ -22,14 +19,13 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.*;
+import java.util.Arrays;
 
+import static com.mongodb.client.model.Accumulators.avg;
+import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Accumulators.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
-import static com.mongodb.client.model.Sorts.ascending;
-import static com.mongodb.client.model.Sorts.descending;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.pull;
 import static org.neo4j.driver.Values.parameters;
@@ -205,7 +201,7 @@ public class ReviewManager {
 
  */
 
-    private boolean updateBeerRating(DetailedBeer beer) {
+    private void updateBeerRating(DetailedBeer beer) {
         try {
             Bson matchBeer = match(eq("_id", new ObjectId(beer.getBeerID())));
             Bson unwindReviews = unwind("$reviews");
@@ -221,12 +217,10 @@ public class ReviewManager {
                     beer.setScore(Double.parseDouble(aggregation.get("rating").toString()));
                 if (aggregation.get("num_rating") != null)
                     beer.setNumRating(aggregation.getInteger("num_rating"));
-                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
     }
 /*
     protected AggregateIterable<Document> getHighestAvgScoreBeers() {
@@ -296,6 +290,7 @@ public class ReviewManager {
      * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
     private boolean addReview(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
+            System.out.println(review.getUsername() + "-" + review.getBeerID());
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
@@ -305,9 +300,8 @@ public class ReviewManager {
             String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
             session.run("MATCH\n" +
-                            "  (B:Beer),\n" +
-                            "  (U:User)\n" +
-                            "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
+                            "  (B:Beer{ID:$BeerID}),\n" +
+                            "  (U:User{Username:$Username})\n" +
                             "MERGE (U)-[R:Reviewed]->(B)\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",

@@ -64,10 +64,10 @@ public class Brewery extends GeneralUser {
         return false;
     }
 
-    public List<Document> getBeerList() {
+    public List<Document> getBeerListDoc() {
         ArrayList<Document> beersList = new ArrayList<>();
         for (Beer b: beers) {
-            beersList.add( b.getBeerNameDoc());
+            beersList.add(b.getBeerNameDoc());
         }
         return beersList;
     }
@@ -84,7 +84,7 @@ public class Brewery extends GeneralUser {
         //return brewery.getUserDoc(update)
         Document doc = super.getUserDoc().append("types", types);
         if (update)
-            doc.append("beers", getBeerList());
+            doc.append("beers", getBeerListDoc());
         else    // new Brewery
             doc.append("beers", new ArrayList<>());
         return doc;

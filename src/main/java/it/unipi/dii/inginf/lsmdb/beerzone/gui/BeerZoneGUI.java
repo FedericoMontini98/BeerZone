@@ -1,6 +1,5 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
-import com.mongodb.gridfs.GridFS;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
@@ -20,7 +19,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -387,7 +385,7 @@ public class BeerZoneGUI {
         toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID(), Objects.equals(user.getUserID(), selBeer.getBreweryID())));
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputArea = new JTextArea[1];
-        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs,(GeneralUser)user);
+        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs, user);
 
         if(Objects.equals(user.getType(), STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, selBeer, user);

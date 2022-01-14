@@ -31,8 +31,9 @@ public class BreweryManagerGUI {
     private static final Integer RECIPE_SECTION_OG = 10;
     private static final Integer RECIPE_SECTION_OTHER = 11;
     private static final Integer RECIPE_SECTION_PHMASH = 12;
-    private static final Integer RECIPE_SECTION_URL = 14;
-    private static final Integer RECIPE_SECTION_YEAST = 15;
+    private static final Integer RECIPE_SECTION_URL = 12;
+    private static final Integer RECIPE_SECTION_YEAST = 14;
+    private static final Integer RECIPE_RECTION_RETIRED  = 15;
 
 
     /**
@@ -89,7 +90,7 @@ public class BreweryManagerGUI {
     private static void generateAddBeerMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
         JTextPane[] inputs = new JTextPane[2];
-        String[] recipeTexts = new String[15];
+        String[] recipeTexts = new String[16];
         createInputField(containerPanel, inputs);
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputRecipe = new JTextArea[1];
@@ -119,7 +120,7 @@ public class BreweryManagerGUI {
                     errorMsg.setText("Beer Correctly Added");
                     errorMsg.setForeground(new Color(0, 59, 16));
                     DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
-                                                        recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES],recipeTexts[RECIPE_SECTION_URL], "f",
+                                                        recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES], recipeTexts[RECIPE_SECTION_URL], recipeTexts[RECIPE_RECTION_RETIRED],
                                                         recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
                                                         recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
                                                         recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
@@ -172,7 +173,6 @@ public class BreweryManagerGUI {
 
             if(i == RECIPE_SECTION_OG || i == RECIPE_SECTION_FG || i == RECIPE_SECTION_IBU || i == RECIPE_SECTION_COLOR
                     || i == RECIPE_SECTION_PHMASH || i == RECIPE_SECTION_ABV) {
-
                 try {
                     Double.parseDouble(recipeTexts[i]);
                 } catch (NumberFormatException nfe) {

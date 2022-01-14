@@ -107,6 +107,7 @@ public class StandardUserGUI {
             try{
                 int newAge = Integer.parseInt(inputs[2].getText());
                 s.setAge(newAge);
+                s.setLocation(inputs[3].getText());
             }catch(NumberFormatException nfe){
              inputs[2].setText("Insert an integer");
              inputs[2].setBackground(Color.YELLOW);

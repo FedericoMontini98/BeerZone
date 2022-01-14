@@ -384,7 +384,7 @@ public class BeerZoneGUI {
         toBrewery.addActionListener(e-> BreweryManagerGUI.createBreweryPage(containerPanel, frame, user, selBeer.getBreweryID(), Objects.equals(user.getUserID(), selBeer.getBreweryID())));
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputArea = new JTextArea[1];
-        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs, (Brewery)user);
+        createRecipeSection(containerPanel, 2, recipeTexts, user.getType(), (Objects.equals(selBeer.getBreweryID(), user.getUserID())), selBeer, recipeCB, inputArea, frame, userInputs,(GeneralUser)user);
 
         if(Objects.equals(user.getType(), STANDARD_USER))
             StandardUserGUI.createButtonFunctionalities(frame, containerPanel, selBeer, user);
@@ -501,7 +501,7 @@ public class BeerZoneGUI {
      * @param recipeTexts: array containing the recipe text
      * @param userType: type of user requesting the section
      */
-    public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs, Brewery b) {
+    public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs, GeneralUser b) {
         JPanel recipePanel = new JPanel();
         recipePanel.setBackground(BACKGROUND_COLOR_LIGHT);
         recipePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -563,8 +563,7 @@ public class BeerZoneGUI {
             deleteBeer.setEnabled(true);
             btnPanel.add(deleteBeer, new GridBagConstraints(0,0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 5),0,0));
-            deleteBeer.addActionListener(e-> {BreweryManager.getInstance().removeBeer(selBeer);
-                                            b.deleteBeerFromBrewery(selBeer);});
+            deleteBeer.addActionListener(e-> {Brewery br= (Brewery) b; BreweryManager.getInstance().removeBeer(selBeer,br);});
 
             JButton updateBeer = new JButton("Update Beer");
 

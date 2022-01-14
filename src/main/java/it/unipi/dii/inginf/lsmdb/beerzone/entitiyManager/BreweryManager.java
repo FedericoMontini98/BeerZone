@@ -45,9 +45,11 @@ public class BreweryManager {
         return false;
     }
 
-    public boolean removeBeer(DetailedBeer beer){
-        if(deleteBeerFromBrewery(beer))
+    public boolean removeBeer(DetailedBeer beer, Brewery b){
+        if(deleteBeerFromBrewery(beer)) {
+            b.deleteBeerFromBrewery(beer);
             return BeerManager.getInstance().removeBeer(beer);
+        }
         return false;
     }
 

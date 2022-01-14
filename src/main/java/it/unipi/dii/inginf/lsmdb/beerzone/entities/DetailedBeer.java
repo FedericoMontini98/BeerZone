@@ -1,6 +1,5 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import com.mongodb.lang.NonNull;
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;

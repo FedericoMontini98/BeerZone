@@ -217,7 +217,8 @@ public class BeerZoneGUI {
         };
         System.out.println("Ciao");
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
-        if(beerToShow.size() > 13)
+
+        if(beerToShow.size() > 12)
             beerToShow.remove(beerToShow.size() - 1);
 
         for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
@@ -247,7 +248,9 @@ public class BeerZoneGUI {
             }
         };
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
-        breweryToShow.remove(breweryToShow.size() - 1);
+        if(breweryToShow.size() > 12){
+            breweryToShow.remove(breweryToShow.size() - 1);
+        }
         for (Brewery brewery : breweryToShow) tableModel.addRow(breweryToStringArray(brewery));
 
 
@@ -358,6 +361,8 @@ public class BeerZoneGUI {
     public static void createBeerPage(JPanel containerPanel, JFrame frame, DetailedBeer selBeer, GeneralUser user) {
         containerPanel.removeAll();
 
+        System.out.println(selBeer.getBreweryID());
+        System.out.println(user.getUserID());
         JPanel beerFields = new JPanel();
         String[] recipeTexts = new String[16];
         JTextPane[] userInputs = new JTextPane[2];
@@ -615,7 +620,6 @@ public class BeerZoneGUI {
                 selBeer.setStyle(recipeTexts[13]);
                 selBeer.setUrl(recipeTexts[14]);
                 selBeer.setYeast(recipeTexts[15]);
-
                 BeerManager.getInstance().updateBeer(selBeer);
             }
         }

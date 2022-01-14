@@ -607,7 +607,6 @@ public class BeerZoneGUI {
                 selBeer.setStyle(recipeTexts[13]);
                 selBeer.setUrl(recipeTexts[14]);
                 selBeer.setYeast(recipeTexts[15]);
-
                 BeerManager.getInstance().updateBeer(selBeer);
             }
         }

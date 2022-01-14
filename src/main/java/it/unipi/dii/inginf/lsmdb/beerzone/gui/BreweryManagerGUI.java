@@ -179,7 +179,6 @@ public class BreweryManagerGUI {
                 try {
                     Double.parseDouble(recipeTexts[i]);
                 } catch (NumberFormatException nfe) {
-                    System.out.println("Index error: " + i + " value: " + recipeTexts[i]);
                     correct = false;
                 }
             }

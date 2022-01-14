@@ -405,7 +405,7 @@ public class BreweryManagerGUI {
             b = BreweryManager.getInstance().getBrewery(breweryId);
         }
         else
-            b = (editable) ? (Brewery)user : BreweryManager.getInstance().getBrewery(breweryId);
+            b = (editable) ? (Brewery) user : BreweryManager.getInstance().getBrewery(breweryId);
 
         JTextPane[] inputs = new JTextPane[4];
         JPanel jp = new JPanel(new GridBagLayout());
@@ -441,11 +441,10 @@ public class BreweryManagerGUI {
         goToBeer.setEnabled(dim != 0);
         goToBeer.addActionListener(e ->{
             DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(beerId[beerListCB.getSelectedIndex()]);
-            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, (user.isStandard())?user:b);
+            BeerZoneGUI.createBeerPage(containerPanel, frame, selBeer, user);
         });
         containerPanel.add(goToBeer,  new GridBagConstraints(1, 1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
-
         JButton updateBrewery = new JButton("Update brewery");
         updateBrewery.addActionListener(e->{
             b.setUsername(inputs[0].getText());

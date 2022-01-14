@@ -45,7 +45,7 @@ public class DetailedBeer extends Beer {
         this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "";
         this.url = url != null ? url : "";
-        this.retired = retired.equalsIgnoreCase("t");
+        this.retired = retired.equalsIgnoreCase("Yes") || retired.equalsIgnoreCase("t");
         this.method = method != null ? method : "";
         this.og = og != null ? Double.parseDouble(og) : -1;
         this.fg = fg != null ? Double.parseDouble(fg) : -1;
@@ -253,8 +253,12 @@ public class DetailedBeer extends Beer {
 
     public Document getBeerDoc() {
         Document doc = super.getBeerDoc()
-                .append("num_rating", numRating)
-                .append("retired", retired);
+                .append("num_rating", numRating);
+        if (retired)
+            doc.append("retired", "t");
+        else
+            doc.append("retired", "f");
+
         if (!breweryID.isEmpty())
             doc.append("brewery_id", new ObjectId(breweryID));
         if (!availability.isEmpty())
@@ -287,26 +291,6 @@ public class DetailedBeer extends Beer {
             doc.append("reviews", getReviewListDoc());
         return doc;
     }
-
-    /*    private String breweryID;
-    //private int beerScore;
-    private int numRating;
-    private String availability;
-    private String notes;
-    private boolean retired;
-    private String url;
-    private String method;
-    private double og;  // original gravity
-    private double fg;  // final gravity
-    private double ibu;
-    private double color;
-    private double phMash;  // -1 if is not present on the source
-    private String fermentables;
-
-    private String hops;
-    private String other;
-    private String yeast;
-    private ArrayList<Review> reviews;*/
 
     @Override
     public boolean equals(Object o) {

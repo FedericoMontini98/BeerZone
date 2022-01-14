@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
@@ -20,8 +21,7 @@ import org.neo4j.driver.Session;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.Aggregates.*;
@@ -252,6 +252,23 @@ public class BeerManager {
             UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beer.getBeerID())),
                     addToSet("reviews", review.getReviewDoc()));
             return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    protected boolean deleteUserFromReviews(String username) {
+        try {
+            String pattern = "^" + username + "$";
+            String optionsRegEx = "i";
+            UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
+                    Collections.singletonList(regex("item.username", pattern, optionsRegEx)));
+            UpdateResult updateResult = beersCollection.updateMany(
+                    regex("reviews.username", pattern, optionsRegEx),
+                    set("reviews.$[item].username", "deleted_user"), updateOptions);
+            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
+            return updateResult.getMatchedCount() == updateResult.getModifiedCount();
         } catch (Exception e) {
             e.printStackTrace();
         }

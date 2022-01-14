@@ -215,7 +215,6 @@ public class BeerZoneGUI {
                 return false;
             }
         };
-        System.out.println("Ciao");
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
 
         if(beerToShow.size() > 12)
@@ -361,10 +360,8 @@ public class BeerZoneGUI {
     public static void createBeerPage(JPanel containerPanel, JFrame frame, DetailedBeer selBeer, GeneralUser user) {
         containerPanel.removeAll();
 
-        System.out.println(selBeer.getBreweryID());
-        System.out.println(user.getUserID());
         JPanel beerFields = new JPanel();
-        String[] recipeTexts = new String[16];
+        String[] recipeTexts = new String[15];
         JTextPane[] userInputs = new JTextPane[2];
         prepareRecipeText(recipeTexts, selBeer);
         beerFields.setBackground(BACKGROUND_COLOR);
@@ -421,9 +418,8 @@ public class BeerZoneGUI {
         recipeTexts[10] = selBeer.getOg();
         recipeTexts[11] = selBeer.getOther();
         recipeTexts[12] = selBeer.getPhMash();
-        recipeTexts[13] = selBeer.getStyle();
-        recipeTexts[14] = selBeer.getUrl();
-        recipeTexts[15] = selBeer.getYeast();
+        recipeTexts[13] = selBeer.getUrl();
+        recipeTexts[14] = selBeer.getYeast();
     }
 
     /**
@@ -521,7 +517,7 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 5, 0),0,0));
 
         String[] choices = {"Choose an option", "Abv", "Availability", "Color", "Fermentables", "Fg", "Hops", "Ibu", "Method", "Notes", "Og",
-                "Other", "Ph Mash", "Style", "Url", "Yeast"};
+                "Other", "Ph Mash", "Url", "Yeast"};
         recipeCB[0] = new JComboBox<>(choices);
         recipeCB[0].setVisible(true);
         recipePanel.add(recipeCB[0], new GridBagConstraints(0, 1,1,1,0,0,
@@ -548,9 +544,12 @@ public class BeerZoneGUI {
                 finalInputRecipe.setForeground(Color.BLACK);
                 finalInputRecipe.setText(recipeTexts[index[0]]);
                 if(index[0] == 0){
+                    finalInputRecipe.setEditable(false);
                     finalInputRecipe.setText("'Choose an option' is not a valid recipe section");
                     finalInputRecipe.setForeground(Color.RED);
                 }
+                else
+                    finalInputRecipe.setEditable(true);
             }
             if(e.getStateChange() == ItemEvent.DESELECTED){
                 if(index[0] != 0){
@@ -590,7 +589,7 @@ public class BeerZoneGUI {
         boolean recipeCorrect = BreweryManagerGUI.checkRecipe(recipeTexts);
         boolean inputsCorrect = BreweryManagerGUI.checkInfo(userInputs);
         if(!recipeCorrect){
-            errorMsg.setText("OG - FG - IBU - COLOR - PHMASH must be numbers");
+            errorMsg.setText("OG - FG - IBU - COLOR - PHMASH - ABV must be numbers");
             errorMsg.setBackground(BACKGROUND_COLOR);
             errorMsg.setBorder(createEmptyBorder());
             errorMsg.setForeground(Color.RED);
@@ -605,6 +604,8 @@ public class BeerZoneGUI {
             frame.repaint();
             frame.setVisible(true);
             if(inputsCorrect) {
+                selBeer.setBeerName(userInputs[0].getText());
+                selBeer.setStyle(userInputs[1].getText());
                 selBeer.setAbv(recipeTexts[1]);
                 selBeer.setAvailability(recipeTexts[2]);
                 selBeer.setColor(recipeTexts[3]);
@@ -617,9 +618,8 @@ public class BeerZoneGUI {
                 selBeer.setOg(recipeTexts[10]);
                 selBeer.setOther(recipeTexts[11]);
                 selBeer.setPhMash(recipeTexts[12]);
-                selBeer.setStyle(recipeTexts[13]);
-                selBeer.setUrl(recipeTexts[14]);
-                selBeer.setYeast(recipeTexts[15]);
+                selBeer.setUrl(recipeTexts[13]);
+                selBeer.setYeast(recipeTexts[14]);
                 BeerManager.getInstance().updateBeer(selBeer);
             }
         }
@@ -963,10 +963,10 @@ public class BeerZoneGUI {
 
     private static void setBeerZoneImage(JFrame frame) {
         try{
-            //BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
-            //JLabel picLabel = new JLabel(new ImageIcon(myPicture));
-            JLabel picLabel = new JLabel(new ImageIcon(
-                    BeerZoneGUI.class.getResource("/logobeerzone.png")));
+            BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
+            JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+            /*JLabel picLabel = new JLabel(new ImageIcon(
+                    BeerZoneGUI.class.getResource("/logobeerzone.png")));*/
             frame.getContentPane().add(picLabel, new GridBagConstraints(0,0,2,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 40, 0),0,0));
         } catch (Exception e) {
@@ -1067,8 +1067,6 @@ public class BeerZoneGUI {
                     StandardUserGUI.standardUserSection(frame, s);
                 }
             }
-            else
-                System.out.println("Missing or incorrect data");
         });
         gbc.gridy = 0;
         gbc.gridx = 1;

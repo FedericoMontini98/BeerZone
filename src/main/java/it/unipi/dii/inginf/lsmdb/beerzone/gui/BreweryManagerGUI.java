@@ -17,7 +17,6 @@ import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class BreweryManagerGUI {
     private static final Integer BREWERY_MANAGER = 1;
-    private static final Integer USERNAME_ROW = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private static final Color BACKGROUND_COLOR_LIGHT = new Color(255, 186, 51);
     private static final Integer RECIPE_SECTION_ABV = 1;
@@ -32,7 +31,6 @@ public class BreweryManagerGUI {
     private static final Integer RECIPE_SECTION_OG = 10;
     private static final Integer RECIPE_SECTION_OTHER = 11;
     private static final Integer RECIPE_SECTION_PHMASH = 12;
-    private static final Integer RECIPE_SECTION_STYLE = 13;
     private static final Integer RECIPE_SECTION_URL = 14;
     private static final Integer RECIPE_SECTION_YEAST = 15;
 
@@ -91,7 +89,7 @@ public class BreweryManagerGUI {
     private static void generateAddBeerMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
         JTextPane[] inputs = new JTextPane[2];
-        String[] recipeTexts = new String[16];
+        String[] recipeTexts = new String[15];
         createInputField(containerPanel, inputs);
         JComboBox<String>[] recipeCB = new JComboBox[1];
         JTextArea[] inputRecipe = new JTextArea[1];
@@ -104,8 +102,7 @@ public class BreweryManagerGUI {
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
             if(!recipeCorrect){
-                System.out.println("Not Correct");
-                errorMsg.setText("OG - FG - IBU - COLOR - PHMASH must be numbers");
+                errorMsg.setText("OG - FG - IBU - COLOR - PHMASH -ABV must be numbers");
                 errorMsg.setBackground(BACKGROUND_COLOR);
                 errorMsg.setBorder(createEmptyBorder());
                 errorMsg.setForeground(Color.RED);
@@ -203,6 +200,7 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         JTextPane inputField = new JTextPane();
+        inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[0] = inputField;
         panel.add(inputField, new GridBagConstraints(1,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
@@ -216,6 +214,7 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         inputField = new JTextPane();
+        inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[1] = inputField;
         panel.add(inputField, new GridBagConstraints(1,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));

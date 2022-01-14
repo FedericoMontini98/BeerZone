@@ -17,7 +17,6 @@ import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class BreweryManagerGUI {
     private static final Integer BREWERY_MANAGER = 1;
-    private static final Integer USERNAME_ROW = 0;
     private static final Color BACKGROUND_COLOR = new Color(255, 170, 3);
     private static final Color BACKGROUND_COLOR_LIGHT = new Color(255, 186, 51);
     private static final Integer RECIPE_SECTION_ABV = 1;
@@ -32,7 +31,6 @@ public class BreweryManagerGUI {
     private static final Integer RECIPE_SECTION_OG = 10;
     private static final Integer RECIPE_SECTION_OTHER = 11;
     private static final Integer RECIPE_SECTION_PHMASH = 12;
-    private static final Integer RECIPE_SECTION_STYLE = 13;
     private static final Integer RECIPE_SECTION_URL = 14;
     private static final Integer RECIPE_SECTION_YEAST = 15;
 

@@ -296,6 +296,7 @@ public class ReviewManager {
      * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
     private boolean addReview(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
+            System.out.println(review.getUsername() + "-" + review.getBeerID());
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
@@ -305,9 +306,8 @@ public class ReviewManager {
             String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
             session.run("MATCH\n" +
-                            "  (B:Beer),\n" +
-                            "  (U:User)\n" +
-                            "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
+                            "  (B:Beer{ID:$BeerID}),\n" +
+                            "  (U:User{Username:$Username})\n" +
                             "MERGE (U)-[R:Reviewed]->(B)\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",

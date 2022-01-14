@@ -210,7 +210,7 @@ public class UserManager {
      *  favorites */
     private boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
+            session.run("MATCH (U:User {Username: $Username})-[F:Favorite]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;

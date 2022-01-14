@@ -378,7 +378,7 @@ public class BeerManager {
                     "ON CREATE\n" +
                     "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
+            session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name"));
             //I create the relationship between the style node and the beer node
             session.run("MATCH\n" +
                             "(B:Beer{ID:$BeerID}),\n" +
@@ -438,23 +438,29 @@ public class BeerManager {
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
                 return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
-                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
+                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
+                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
+                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
+                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_1));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_1));
                     ArrayList<String> suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
                         suggested.add(r.get("ID").asString());
                     }
-                    Result result_2 = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
-                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                    Result result_2 = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
+                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
+                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
+                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
+                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_2));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_2));
                     while (result_2.hasNext()) {
                         Record r = result_2.next();
                         suggested.add(r.get("ID").asString());

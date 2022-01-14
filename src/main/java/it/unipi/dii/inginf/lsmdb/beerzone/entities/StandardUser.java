@@ -1,12 +1,8 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class StandardUser extends GeneralUser {
     //private final GeneralUser user;

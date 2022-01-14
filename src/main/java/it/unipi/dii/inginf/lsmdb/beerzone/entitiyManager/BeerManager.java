@@ -119,25 +119,6 @@ public class BeerManager {
         return beerList;
     }
 
-    public ArrayList<Beer> browseBeersByBreweryID(int page, String breweryID) {
-        if (breweryID == null)
-            return null;
-        int limit = 3;
-        int n = (page-1) * limit;
-
-        ArrayList<Beer> beerList = new ArrayList<>();
-        //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
-        try {
-            for (Document beerDoc : beersCollection.find(eq("brewery_id", new ObjectId(breweryID)))
-                    .skip(n).limit(limit+1)) {
-                beerList.add(new Beer(beerDoc));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return beerList;
-    }
-
     public ArrayList<Beer> getBeersFromBrewery(Brewery brewery) {
         ArrayList<Beer> beers = new ArrayList<>();
         try {
@@ -526,16 +507,14 @@ public class BeerManager {
         }
     }
 
-    protected boolean removeBeerFromNeo(Beer beer){
+    protected void removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
                             "DELETE B;",
                     parameters( "ID", beer.getBeerID()));
-            return true;
         }
         catch(Exception e){
             e.printStackTrace();
-            return false;
         }
     }
 

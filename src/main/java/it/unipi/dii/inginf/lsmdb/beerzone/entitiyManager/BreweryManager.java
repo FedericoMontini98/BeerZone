@@ -128,7 +128,7 @@ public class BreweryManager {
     public boolean deleteBrewery(Brewery brewery) {
         long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());   // matched beers
         DeleteResult deleteResult = breweriesCollection.deleteOne(eq("_id", new ObjectId(brewery.getUserID())));
-        return deleteResult.getDeletedCount() == 1 && ret >= brewery.getBeerList().size();
+        return deleteResult.getDeletedCount() == 1 && ret >= brewery.getBeers().size();
     }
 
     protected boolean addBeerToBreweriesCollection(DetailedBeer beer) {

@@ -819,5 +819,4 @@ public class StandardUserGUI {
         rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
     }
-
 }

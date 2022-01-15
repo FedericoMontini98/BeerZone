@@ -343,7 +343,7 @@ public class BeerManagerDB {
                     "ON CREATE\n" +
                     "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name"));
+            session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name",beer.getBeerName()));
             //I create the relationship between the style node and the beer node
             session.run("MERGE (B:Beer{ID: $BeerID})-[Ss:SameStyle]-(S:Style{nameStyle:$style})",
                     parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
@@ -487,19 +487,18 @@ public class BeerManagerDB {
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
-            BeerManager.getInstance().addBeer(beer);
+            System.out.println(beer.getBeerName());
+            addBeer(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
-            session.run("MATCH\n" +
-                            "  (B:Beer),\n" +
-                            "  (U:User)\n" +
-                            "WHERE U.Username = $Username AND B.ID = $BeerID\n" +
-                            "MERGE (U)-[R:Reviewed]->(B)\n" +
+            session.run("MATCH (U:User{Username:$Username})" +
+                            "MATCH (B:Beer{ID:$BeerID,Name:$BeerName})\n" +
+                            "MERGE (U)-[R:Reviewed]-(B)\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",
-                    parameters( "Username", review.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
+                    parameters( "Username", review.getUsername(), "BeerID", beer.getBeerID(),"BeerName",beer.getBeerName(),"Date", str));
             return true;
         }
         catch(Exception e){

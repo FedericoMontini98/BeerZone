@@ -112,7 +112,7 @@ public class UserManager {
         try {
             Document doc = generalUserManagerDB.getUser(email, password);   //usersCollection.find(and(eq("email", email),
                    // eq("password", password))).first();
-            System.out.println(doc);
+            //System.out.println(doc);
             if (doc != null) {
                 if (doc.getInteger("type") == 0) {
                     //System.out.println("standard: " + doc.getString("username"));

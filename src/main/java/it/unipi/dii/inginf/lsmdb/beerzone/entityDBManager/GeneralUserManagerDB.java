@@ -1,4 +1,4 @@
-package it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB;
+package it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -33,7 +33,7 @@ public class GeneralUserManagerDB {
     private GeneralUserManagerDB() {
         NeoDBMS = Neo4jManager.getInstance();
         mongoManager = MongoManager.getInstance();
-        usersCollection = MongoManager.getInstance().getCollection("users");
+        //usersCollection = MongoManager.getInstance().getCollection("users");
     }
 
     public static GeneralUserManagerDB getInstance() {
@@ -52,6 +52,7 @@ public class GeneralUserManagerDB {
     public Document getUser(String email, String password) {
         Document doc = null;
         try {
+            usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(and(regex("email", "^" + email + "$", "i"),
                     eq("password", password))).first();
 
@@ -64,6 +65,7 @@ public class GeneralUserManagerDB {
     public Document getUser(String userID) {
         Document doc = null;
         try {
+            usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(eq("_id", new ObjectId(userID))).first();
 
         } catch (Exception e) {
@@ -80,6 +82,7 @@ public class GeneralUserManagerDB {
             return true;
         Document doc = null;
         try {
+            usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"), //eq("email", user.getEmail()),eq("username", user.getUsername())
                     and(eq("type", user.getType()),
                             regex("username", "^" + user.getUsername() + "$", "i")))).first();
@@ -92,7 +95,8 @@ public class GeneralUserManagerDB {
     public boolean registerUser(GeneralUser user) {
         if (!userExists(user)) {
             try {
-                Document doc = user.isStandard() ? ((StandardUser) user).getUserDoc()
+                usersCollection = mongoManager.getCollection("users");
+                Document doc = user.isStandard() ? user.getUserDoc()
                         : ((Brewery) user).getBreweryDoc(false);
                 usersCollection.insertOne(doc);
                 return true;
@@ -105,6 +109,7 @@ public class GeneralUserManagerDB {
 
     public boolean updateUser(Document userDoc, String userID) {
         try {
+            usersCollection = mongoManager.getCollection("users");
             UpdateResult updateResult = usersCollection.replaceOne(eq("_id", new ObjectId(userID)), userDoc);
             return updateResult.getMatchedCount() == 1;
 
@@ -115,8 +120,14 @@ public class GeneralUserManagerDB {
     }
 
     public boolean deleteUser (GeneralUser user) {
-        DeleteResult deleteResult = usersCollection.deleteOne(eq("_id", new ObjectId(user.getUserID())));
-        return deleteResult.getDeletedCount() == 1;
+        try {
+            usersCollection = mongoManager.getCollection("users");
+            DeleteResult deleteResult = usersCollection.deleteOne(eq("_id", new ObjectId(user.getUserID())));
+            return deleteResult.getDeletedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 
@@ -130,6 +141,7 @@ public class GeneralUserManagerDB {
 
         FindIterable<Document> iterable = null;
         try {
+            usersCollection = mongoManager.getCollection("users");
             iterable = usersCollection.find(and(eq("type", 1),
                             regex("username", "^" + name + ".*", "i")))
                     .skip(n).limit(limit+1);
@@ -142,6 +154,7 @@ public class GeneralUserManagerDB {
 
     public boolean addBeerToBrewery(DetailedBeer beer) {
         try {
+            usersCollection = mongoManager.getCollection("users");
             UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
                     addToSet("beers", new Document("beer_id", new ObjectId(beer.getBeerID()))
                             .append("beer_name", beer.getBeerName())));
@@ -153,9 +166,15 @@ public class GeneralUserManagerDB {
     }
 
     public boolean deleteBeerFromBrewery(DetailedBeer beer) {
-        UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
-                pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
-        return updateResult.getMatchedCount() == 1;
+        try {
+            usersCollection = mongoManager.getCollection("users");
+            UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
+                    pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
+            return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 

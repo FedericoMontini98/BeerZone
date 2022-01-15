@@ -1,30 +1,20 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB.GeneralUserManagerDB;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserManagerDB;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
-
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
-import static com.mongodb.client.model.Updates.*;
 
 public class BreweryManager {
     private static BreweryManager breweryManager;
     private final GeneralUserManagerDB generalUserManagerDB;
-    private final MongoCollection<Document> breweriesCollection;
 
     private BreweryManager() {
-        breweriesCollection = MongoManager.getInstance().getCollection("users");
         generalUserManagerDB = GeneralUserManagerDB.getInstance();
     }
 
@@ -76,15 +66,6 @@ public class BreweryManager {
 
     public boolean addBrewery(Brewery brewery) {
         return generalUserManagerDB.registerUser(brewery);
-   /*     try {
-            breweriesCollection.insertOne(brewery.getBreweryDoc(false));
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-
-    */
     }
 
     public Brewery getBrewery(String breweryID) {
@@ -100,14 +81,7 @@ public class BreweryManager {
     }
 
     public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
-        /*name = name != null ? name : "";
-        int limit = 13;
-        int n = (page-1) * limit;
 
-        FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
-                regex("username", "^" + name + ".*", "i")))
-                .skip(n).limit(limit+1);
-*/
         ArrayList<Brewery> breweryList = new ArrayList<>();
         for (Document brewery: generalUserManagerDB.browseBreweries(page, name)) {
             breweryList.add(new Brewery(brewery));
@@ -117,67 +91,11 @@ public class BreweryManager {
 
     public boolean updateBrewery(Brewery brewery) {
         return generalUserManagerDB.updateUser(brewery.getBreweryDoc(true), brewery.getUserID());
-        /*
-        try {
-            UpdateResult updateResult = breweriesCollection.replaceOne(eq("_id", new ObjectId(brewery.getUserID())),
-                    (brewery.getBreweryDoc(true)));
-            if (updateResult.getMatchedCount() == 1)
-                return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-
-         */
     }
-
- /*   public ArrayList<Beer> getBreweryBeers(int page, String name){
-        int limit = 13;
-        int n = (page-1) * limit;
-
-        FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1), exists("beers"),
-                        regex("username", "^" + name + ".*", "i")))
-                .skip(n).limit(limit+1)
-                .projection(include("username", "beers"));
-
-        ArrayList<Beer> beerList = new ArrayList<>();
-        for (Document doc: iterable) {
-            List<Document> list = doc.getList("beers", Document.class);
-            for (Document d: list) {
-                beerList.add(new Beer(d.getObjectId("beer_id").toString(), d.getString("beer_name")));
-            }
-        }
-        //breweriesCollection.find(in("_id", beerList));
-        return beerList;
-    }
-
-  */
 
     public boolean deleteBrewery(Brewery brewery) {
         long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());   // matched beers
         return generalUserManagerDB.deleteUser(brewery) && ret >= brewery.getBeers().size();
     }
-/*
-    protected boolean addBeerToBrewery(DetailedBeer beer) {
-        try {
-            UpdateResult updateResult = breweriesCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
-                    addToSet("beers", new Document("beer_id", new ObjectId(beer.getBeerID()))
-                            .append("beer_name", beer.getBeerName())));
-            return updateResult.getMatchedCount() == 1;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
 
- */
-
-/*
-    private boolean deleteBeerFromBrewery(DetailedBeer beer) {
-        UpdateResult updateResult = breweriesCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
-                pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
-        return updateResult.getMatchedCount() == 1;
-    }
-
- */
 }

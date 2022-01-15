@@ -14,17 +14,16 @@ public class MongoManager {
 
     private MongoManager() {
         /* connection string */
-        String localConnection = "mongodb://localhost:27018";
+        //String localConnection = "mongodb://localhost:27018";
         String replica1 = "172.16.4.57:27020";
         String replica2 = "172.16.4.58:27020";
         String replica3 = "172.16.4.59:27020";
         String options = "replicaSet=lsmdb";
         ConnectionString remoteCluster = new ConnectionString("mongodb://" +
                 replica1 + "," + replica2 + "," + replica3 + "/?" + options);
-        String localCluster = "mongodb://localhost:27018,localhost:27019,localhost:27020/?replicaSet=lsmdb";
+        //String localCluster = "mongodb://localhost:27018,localhost:27019,localhost:27020/?replicaSet=lsmdb";
         mongoClient = MongoClients.create(remoteCluster);
         database = mongoClient.getDatabase("beerzone");
-        //database = mongoClient.getDatabase("BeerZoneTest");
     }
 
     public static MongoManager getInstance() {
@@ -39,11 +38,10 @@ public class MongoManager {
             if (mongoManager == null)
                 throw new RuntimeException("Mongo Connection does not exist!");
         }
-
         return database.getCollection(collectionName);
     }
 
-    /* called when one closes application -> end of starts() */
+    /* called when one closes application */
     public static void closeConnection() {
         if (mongoClient != null)
             mongoClient.close();

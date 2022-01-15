@@ -28,8 +28,8 @@ public class DetailedBeer extends Beer {
     private ArrayList<Review> reviews;
 
     public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String breweryID, @Nullable  String availability, @Nullable String notes,
-                        @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
+                        @Nullable String breweryID, @Nullable String availability, @Nullable String notes,
+                        @Nullable  String url, @Nullable String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
         super(beerID, beerName, style, abv, score);
@@ -38,7 +38,7 @@ public class DetailedBeer extends Beer {
         this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "";
         this.url = url != null ? url : "";
-        this.retired = retired.equalsIgnoreCase("Yes") || retired.equalsIgnoreCase("t");
+        this.retired = retired == null || retired.equalsIgnoreCase("Yes") || retired.equalsIgnoreCase("t");
         this.method = method != null ? method : "";
         this.og = og != null ? Double.parseDouble(og) : -1;
         this.fg = fg != null ? Double.parseDouble(fg) : -1;

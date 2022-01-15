@@ -16,7 +16,7 @@ public class Beer {
         this.beerName = beerName;
         this.style = style;
         this.abv = abv != null ? Double.parseDouble(abv) : -1;
-        this.score = score != null ? Double.parseDouble(score) : -1;
+        this.score = score != null ? Double.parseDouble(score) : 0;
     }
 
     public Beer(String beerName, String style, String abv, @Nullable String score) {

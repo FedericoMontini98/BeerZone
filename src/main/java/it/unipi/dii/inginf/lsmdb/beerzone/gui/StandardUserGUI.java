@@ -1,16 +1,19 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.ReviewManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -107,6 +110,7 @@ public class StandardUserGUI {
             try{
                 int newAge = Integer.parseInt(inputs[2].getText());
                 s.setAge(newAge);
+                s.setLocation(inputs[3].getText());
             }catch(NumberFormatException nfe){
              inputs[2].setText("Insert an integer");
              inputs[2].setBackground(Color.YELLOW);
@@ -252,7 +256,7 @@ public class StandardUserGUI {
      */
     private static void createFavoriteSuggestionSection(ArrayList<FavoriteBeer> list, int page, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s, Integer request) {
         beerContainer.removeAll();
-        if(list.size() == 0){
+        if(list.isEmpty()){
             JTextField err = new JTextField((Objects.equals(request, FAVORITES))?"Actually there are no favorites. Please insert some":"Add some beer to the Favorites to obtain suggestions");
             err.setBackground(BACKGROUND_COLOR);
             err.setBorder(createEmptyBorder());
@@ -393,7 +397,7 @@ public class StandardUserGUI {
         btnPanel.add(addFav, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, selBeer, s, reviewBeer));
+        reviewBeer.addActionListener(e -> reviewBeerPage(frame, containerPanel, selBeer, s));
         reviewBeer.setPreferredSize(new Dimension(130,26));
         btnPanel.add(reviewBeer, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -451,7 +455,7 @@ public class StandardUserGUI {
      * @param selBeer: beer selected by the user
      * @param s: logged user
      */
-    private static void reviewBeerPage(JFrame frame, JPanel rjp,  DetailedBeer selBeer, StandardUser s, JButton reviewBeer) {
+    private static void reviewBeerPage(JFrame frame, JPanel rjp, DetailedBeer selBeer, StandardUser s) {
         rjp.removeAll();
         JTextField reviewAvg = new JTextField("3.0");
         JSpinner[] spinners = new JSpinner[5];
@@ -467,9 +471,6 @@ public class StandardUserGUI {
             spinners[2].setValue(Double.parseDouble(rev.getTaste()));
             spinners[3].setValue(Double.parseDouble(rev.getFeel()));
             spinners[4].setValue(Double.parseDouble(rev.getOverall()));
-        }
-        else{
-
         }
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
@@ -818,5 +819,4 @@ public class StandardUserGUI {
         rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
     }
-
 }

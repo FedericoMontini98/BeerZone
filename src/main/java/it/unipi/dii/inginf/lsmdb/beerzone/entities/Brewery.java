@@ -54,7 +54,12 @@ public class Brewery extends GeneralUser {
     }
 
     public boolean deleteBeerFromBrewery(Beer beer) {
-        return beers.remove(beer);
+        for( Beer b : beers){
+            if(b.beerID.equals(beer.beerID)){
+                return beers.remove(b);
+            }
+        }
+        return false;
     }
 
     public List<Document> getBeerListDoc() {

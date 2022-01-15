@@ -414,12 +414,15 @@ public class BeerManager {
             if(n_style==1){
                 String finalStyle_ = Style_1;
                 return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
-                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
+                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
+                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
+                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
+                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
+                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Style", finalStyle_));
+                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Username",user.getUsername(),"Style", finalStyle_));
                     ArrayList<String> Suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();

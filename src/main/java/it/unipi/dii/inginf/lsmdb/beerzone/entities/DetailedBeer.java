@@ -1,6 +1,5 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import com.mongodb.lang.NonNull;
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -9,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DetailedBeer extends Beer {
-    // id, name, style, score
+    // super: id, name, style, score
     private String breweryID;
     private int numRating;
     private String availability;
@@ -28,19 +27,13 @@ public class DetailedBeer extends Beer {
     private String yeast;
     private ArrayList<Review> reviews;
 
-    public DetailedBeer() {}
-
-    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, String score) {
-        super(beerID, beerName, style, abv, score);
-    }
-
     public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
                         @Nullable String breweryID, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
         super(beerID, beerName, style, abv, score);
-        this.breweryID = breweryID != null ? breweryID : "";
+        this.breweryID = breweryID != null ? breweryID : "-";
         this.numRating = 0;
         this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "";
@@ -74,7 +67,7 @@ public class DetailedBeer extends Beer {
                 beer.get("style") != null ? beer.getString("style") : "--",
                 beer.get("abv") != null ? beer.get("abv").toString() : "-1",
                 beer.get("rating") != null ? beer.get("rating").toString() : "0",
-                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "--",
+                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "-",
                 beer.get("availability") != null ? beer.getString("availability") : "--",
                 beer.get("notes") != null ? beer.getString("notes") : "--",
                 beer.get("url") != null ? beer.getString("url") : "--",
@@ -259,7 +252,7 @@ public class DetailedBeer extends Beer {
         else
             doc.append("retired", "f");
 
-        if (!breweryID.isEmpty())
+        if (!breweryID.isEmpty() || breweryID.equals("-"))
             doc.append("brewery_id", new ObjectId(breweryID));
         if (!availability.isEmpty())
             doc.append("availability", availability);
@@ -294,8 +287,6 @@ public class DetailedBeer extends Beer {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof DetailedBeer)
-            return this.beerID.equals(((Beer) o).getBeerID());
-        return false;
+        return super.equals(o);
     }
 }

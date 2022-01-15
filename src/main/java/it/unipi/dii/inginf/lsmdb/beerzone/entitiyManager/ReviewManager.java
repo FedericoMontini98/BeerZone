@@ -1,51 +1,26 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.UpdateResult;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB.BeerManagerDB;
 import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.*;
-
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Accumulators.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
-import static com.mongodb.client.model.Sorts.ascending;
-import static com.mongodb.client.model.Sorts.descending;
-import static com.mongodb.client.model.Updates.addToSet;
-import static com.mongodb.client.model.Updates.pull;
-import static org.neo4j.driver.Values.parameters;
 
 public class ReviewManager {
     private static ReviewManager reviewManager;
     //private final MongoManager mongoManager;
     //private final MongoCollection<Document> reviewsCollection;
-    private final MongoCollection<Document> beersCollection;
-    private final Neo4jManager NeoDBMS;
+    //private final MongoCollection<Document> beersCollection;
+    //private final Neo4jManager NeoDBMS;
+    private final BeerManagerDB beerManagerDB;
 
     private ReviewManager() {
         //mongoManager = MongoManager.getInstance();
         //reviewsCollection = MongoManager.getInstance().getCollection("reviews");
-        beersCollection = MongoManager.getInstance().getCollection("beers");
-        NeoDBMS = Neo4jManager.getInstance();
+        //beersCollection = MongoManager.getInstance().getCollection("beers");
+        //NeoDBMS = Neo4jManager.getInstance();
+        beerManagerDB = BeerManagerDB.getInstance();
     }
 
     public static ReviewManager getInstance() {
@@ -54,28 +29,107 @@ public class ReviewManager {
         return reviewManager;
     }
 
+    /* ****************************************  MongoDB Section  *************************************************/
+
+    public Review getReview(String username, DetailedBeer beer) {
+        for (Review r: beer.getReviewList()) {
+            if (username.equalsIgnoreCase(r.getUsername()))
+                return r;
+        }
+        return null;
+    }
+
     /* Add a new Review both on MongoDB and Neo4J */
     public boolean addNewReview(Review review, DetailedBeer beer) {
-        if (addReviewMongo(review, beer)) {
-            beer.addReviewToBeer(review);
-            updateBeerRating(beer);
-            return addReview(review, beer);
+        //if (addReviewMongo(review, beer)) {
+        double new_rating = computeNewBeerRating(review, beer, true);
+        if (beerManagerDB.addReviewToBeersCollection(review, beer, new_rating)) {
+            beer.addReviewToBeer(review);   // add review to local list in DetailedBeer
+            //updateBeerRating(beer);
+            return beerManagerDB.addReviewNeo(review, beer);
         }
         return false;
     }
 
     /* Delete a review both from MongoDB and Neo4J */
     public boolean deleteReview(String username, DetailedBeer beer) {
-        if (deleteReviewMongo(username, beer.getBeerID())) {
-            beer.removeReviewFromBeer(getReview(username, beer));
-            updateBeerRating(beer);
-            return removeReview(username, beer.getBeerID());
+        double rating = computeNewBeerRating(getReview(username, beer), beer, false);
+        //if (deleteReviewMongo(username, beer.getBeerID())) {
+        if (beerManagerDB.deleteReviewMongo(username, beer, rating)) {
+            beer.removeReviewFromBeer(getReview(username, beer));   // remove review to local list in DetailedBeer
+            //updateBeerRating(beer);
+            return beerManagerDB.removeReviewNeo(username, beer.getBeerID());
         }
         return false;
     }
 
+    protected boolean deleteUserFromReviews(String username) {
+        return beerManagerDB.deleteUserFromReviews(username);
+    }
+
+    private double computeNewBeerRating(Review review, DetailedBeer beer, boolean add) {
+        try {
+            Document doc = beerManagerDB.getDetailedBeer(beer.getBeerID());//beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            if (doc != null) {
+                double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
+                int num_rating = doc.get("num_rating") != null ? doc.getInteger("num_rating") : 0;
+                double oldTotalRating = rating * num_rating;
+                double newRating;
+                if (add) {
+                    newRating = (oldTotalRating + review.getNumericScore()) / (++num_rating);
+                }
+                else {
+                    if (num_rating <= 1) {
+                        newRating = 0;
+                        num_rating = 0;
+                    }
+                    else
+                        newRating = (oldTotalRating - review.getNumericScore()) / (--num_rating);
+                }
+                beer.setNumRating(num_rating);
+                beer.setScore(newRating);
+
+                return newRating;
+                /*
+                UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
+                        combine(set("rating", newRating), set("num_rating", num_rating),
+                                addToSet("reviews", review.getReviewDoc())));
+                return updateResult.getMatchedCount() == 1;
+
+                 */
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /* *******************************************  Neo4J Section  ************************************************/
+
+    /* Function used to calculate the IDs of the most reviewed beers this month */
+    public ArrayList<String> mostReviewedBeers() {
+        return beerManagerDB.mostReviewedBeers();
+    }
+
+/*
+    public boolean recomputeBeerScore(DetailedBeer beer) {
+        Document docRating = beerManagerDB.updateBeerRating(beer);
+
+        if (docRating != null) {
+            if (docRating.get("rating") != null)
+                beer.setScore(Double.parseDouble(docRating.get("rating").toString()));
+            if (docRating.get("num_rating") != null)
+                beer.setNumRating(docRating.getInteger("num_rating"));
+            return true;
+        }
+
+        return false;
+    }
+
+ */
+
     /* ************************************************************************************************************/
-    /* *************************************  MongoDB Section  ****************************************************/
+    /* ****************************************  MongoDB Section  *************************************************/
     /* ************************************************************************************************************/
 /*
     public Review getReviewOld(String username, String beerID) {
@@ -92,14 +146,6 @@ public class ReviewManager {
     }
 
  */
-
-    public Review getReview(String username, DetailedBeer beer) {
-        for (Review r: beer.getReviewList()) {
-            if (username.equalsIgnoreCase(r.getUsername()))
-                return r;
-        }
-        return null;
-    }
 /*
     private boolean existsReview(Review review) {
         try {
@@ -115,8 +161,8 @@ public class ReviewManager {
     }
 
  */
-
-    private boolean existsReview(String username, DetailedBeer beer) {
+/*
+    private boolean existsReviewV(String username, DetailedBeer beer) {
         try {
             Document doc = beersCollection.find(and(eq("_id", new ObjectId(beer.getBeerID())),
                     eq("reviews.username", username))).first();
@@ -127,6 +173,8 @@ public class ReviewManager {
         }
         return false;
     }
+
+ */
 
     /* add new review in mongoDB*/
 /*    private boolean addReviewMongoOld(Review review, DetailedBeer beer) {
@@ -144,7 +192,7 @@ public class ReviewManager {
  */
 
     /* add new review in mongoDB*/
-    private boolean addReviewMongo(Review review, DetailedBeer beer) {
+  /*  private boolean addReviewMongoV(Review review, DetailedBeer beer) {
         if (!existsReview(review.getUsername(), beer)){
             try {
                 UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beer.getBeerID())),
@@ -157,11 +205,14 @@ public class ReviewManager {
         return false;
     }
 
-    public boolean deleteReviewMongo(String username, String beerID) {
+    public boolean deleteReviewMongoV(String username, String beerID) {
         UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beerID)),
-                pull("reviews", eq("username", username)));
+                combine(set("rating", newRating), inc("num_rating", -1),
+                        pull("reviews", eq("username", username))));
         return updateResult.getMatchedCount() == 1;
     }
+
+   */
 /*
     public ArrayList<Review> getBeerReviews(String beerID) {    // o Beer?
         ArrayList<Review> reviews = new ArrayList<>();
@@ -204,8 +255,8 @@ public class ReviewManager {
     }
 
  */
-
-    private boolean updateBeerRating(DetailedBeer beer) {
+/*
+    private boolean updateBeerRatingV(DetailedBeer beer) {
         try {
             Bson matchBeer = match(eq("_id", new ObjectId(beer.getBeerID())));
             Bson unwindReviews = unwind("$reviews");
@@ -228,6 +279,8 @@ public class ReviewManager {
         }
         return false;
     }
+
+ */
 /*
     protected AggregateIterable<Document> getHighestAvgScoreBeers() {
         AggregateIterable<Document> list = null;
@@ -287,19 +340,19 @@ public class ReviewManager {
 
 
     /* ************************************************************************************************************/
-    /* *************************************  Neo4J Section  ******************************************************/
+    /* *******************************************  Neo4J Section  ************************************************/
     /* ************************************************************************************************************/
 
 
     /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
      * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
-    private boolean addReview(Review review, Beer beer){
+  /*  private boolean addReviewNeo(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
-            BeerManager.getInstance().AddBeer(beer);
+            BeerManager.getInstance().addBeer(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String str = formatter.format(review.getReviewDateNeo());
@@ -311,7 +364,7 @@ public class ReviewManager {
                             "MERGE (U)-[R:Reviewed]->(B)\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",
-                    parameters( "Username", review.getUsername(), "BeerID", review.getBeerID(),"Date", str));
+                    parameters( "Username", review.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
             return true;
         }
         catch(Exception e){
@@ -320,9 +373,11 @@ public class ReviewManager {
         }
     }
 
+   */
+
     /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer has been reviewed from this user */
-    private boolean removeReview(String Username, String BeerID){
+ /*   private boolean removeReviewNeo(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE R",
@@ -335,8 +390,12 @@ public class ReviewManager {
         }
     }
 
+  */
+
     /* Function used to calculate the IDs of the most reviewed beers this month */
-    public ArrayList<String> mostReviewedBeers(){
+  /*    public ArrayList<String> mostReviewedBeers(){
+        return beerManagerDB.mostReviewedBeers();
+
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
@@ -366,5 +425,7 @@ public class ReviewManager {
             e.printStackTrace();
             return new ArrayList<>();
         }
+
     }
+         */
 }

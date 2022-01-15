@@ -1,10 +1,13 @@
-package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
+package it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB.GeneralUserManagerDB;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
@@ -16,53 +19,61 @@ import org.neo4j.driver.Session;
 import java.util.ArrayList;
 
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Updates.addToSet;
+import static com.mongodb.client.model.Updates.pull;
 import static org.neo4j.driver.Values.parameters;
 
-public class UserManager {
-    private static UserManager userManager;
-    private final GeneralUserManagerDB generalUserManagerDB;
-    //private final MongoManager mongoManager;
-    //private final MongoCollection<Document> usersCollection;
+public class GeneralUserManagerDB {
+    private static GeneralUserManagerDB userManager;
+    private final MongoManager mongoManager;
+    private MongoCollection<Document> usersCollection;
         // users collection include both standard users (type 0) and breweries (type 1)
-    //private final Neo4jManager NeoDBMS;
+    private final Neo4jManager NeoDBMS;
 
-    private UserManager() {
-        //NeoDBMS = Neo4jManager.getInstance();
-        //mongoManager = MongoManager.getInstance();
-        //usersCollection = MongoManager.getInstance().getCollection("users");
-        generalUserManagerDB = GeneralUserManagerDB.getInstance();
+    private GeneralUserManagerDB() {
+        NeoDBMS = Neo4jManager.getInstance();
+        mongoManager = MongoManager.getInstance();
+        usersCollection = MongoManager.getInstance().getCollection("users");
     }
 
-    public static UserManager getInstance() {
+    public static GeneralUserManagerDB getInstance() {
         if (userManager == null)
-            userManager = new UserManager();
+            userManager = new GeneralUserManagerDB();
         return userManager;
     }
 
-    public boolean deleteUser(StandardUser user) {
-        boolean result_1=deleteStandardUser(user);
-        boolean result_2=removeUser(user.getUsername());
-        return (result_1&&result_2);
+
+    /* *********************************************************************************************************** */
+    /* ******************************************  MongoDB Section  ********************************************** */
+    /* *********************************************************************************************************** */
+
+
+    // use example: Brewery b = new Brewery(UserManager.getUser(email, type);
+    public Document getUser(String email, String password) {
+        Document doc = null;
+        try {
+            doc = usersCollection.find(and(regex("email", "^" + email + "$", "i"),
+                    eq("password", password))).first();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return doc;
     }
 
-    /* Add a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
-    public boolean addAFavorite(FavoriteBeer fb, StandardUser s){
-        return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
+    public Document getUser(String userID) {
+        Document doc = null;
+        try {
+            doc = usersCollection.find(eq("_id", new ObjectId(userID))).first();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return doc;
     }
-
-    /* Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
-    public boolean removeAFavorite(StandardUser s, FavoriteBeer fb){
-        return (s.removeFromFavorites(fb) && removeFavorite(s.getUsername(),fb.getBeerID()));
-    }
-
-
-    /* ************************************************************************************************************/
-    /* *************************************  MongoDB Section  ****************************************************/
-    /* ************************************************************************************************************/
-
 
     /* check if an email or a combination of an username/type=0 already exist in the users collection */
- /*   private boolean userExists(GeneralUser user) {
+    public boolean userExists(GeneralUser user) {
         if (user.getUsername().equalsIgnoreCase("deletedUser")
                 || user.getUsername().equalsIgnoreCase("deleted_user")
                 || user.getUsername().equalsIgnoreCase("deleted user"))
@@ -78,91 +89,84 @@ public class UserManager {
         return !(doc == null || doc.isEmpty());
     }
 
-    public boolean addUser(Brewery brewery) {
-        try {
-            if (userExists(brewery))
-                return false;
-            usersCollection.insertOne(brewery.getBreweryDoc(false));
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
- */
-
-    public boolean addUser(StandardUser user) {
-        return generalUserManagerDB.registerUser(user);
-        /*
-        try {
-            if (userExists(user))
-                return false;
-            usersCollection.insertOne(user.getUserDoc());
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-
-         */
-    }
-
-    public GeneralUser login(String email, String password) {
-        try {
-            Document doc = generalUserManagerDB.getUser(email, password);   //usersCollection.find(and(eq("email", email),
-                   // eq("password", password))).first();
-            System.out.println(doc);
-            if (doc != null) {
-                if (doc.getInteger("type") == 0) {
-                    //System.out.println("standard: " + doc.getString("username"));
-                    return new StandardUser(doc);
-                } else {
-                    //System.out.println("brewery: " + doc.getString("username"));
-                    return new Brewery(doc);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private boolean deleteStandardUser(StandardUser user) {
-        try {
-            boolean ok = ReviewManager.getInstance().deleteUserFromReviews(user.getUsername());
-            return ok && generalUserManagerDB.deleteUser(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updateUser(StandardUser user) {
-        return generalUserManagerDB.updateUser(user.getUserDoc(), user.getUserID());
-    /*    try {
-            UpdateResult updateResult = usersCollection.replaceOne(eq("_id", new ObjectId(user.getUserID())),
-                    user.getUserDoc());
-            if (updateResult.getMatchedCount() == 1)
+    public boolean registerUser(GeneralUser user) {
+        if (!userExists(user)) {
+            try {
+                Document doc = user.isStandard() ? ((StandardUser) user).getUserDoc()
+                        : ((Brewery) user).getBreweryDoc(false);
+                usersCollection.insertOne(doc);
                 return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    public boolean updateUser(Document userDoc, String userID) {
+        try {
+            UpdateResult updateResult = usersCollection.replaceOne(eq("_id", new ObjectId(userID)), userDoc);
+            return updateResult.getMatchedCount() == 1;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
 
-     */
+    public boolean deleteUser (GeneralUser user) {
+        DeleteResult deleteResult = usersCollection.deleteOne(eq("_id", new ObjectId(user.getUserID())));
+        return deleteResult.getDeletedCount() == 1;
     }
 
 
-    /* ************************************************************************************************************/
-    /* *************************************  Neo4J Section  ******************************************************/
-    /* ************************************************************************************************************/
+    /* ******************************************** Brewery Manager ********************************************** */
+
+
+    public FindIterable<Document> browseBreweries(int page, @Nullable String name) {
+        name = name != null ? name : "";
+        int limit = 13;
+        int n = (page-1) * limit;
+
+        FindIterable<Document> iterable = null;
+        try {
+            iterable = usersCollection.find(and(eq("type", 1),
+                            regex("username", "^" + name + ".*", "i")))
+                    .skip(n).limit(limit+1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return iterable;
+    }
+
+    public boolean addBeerToBrewery(DetailedBeer beer) {
+        try {
+            UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
+                    addToSet("beers", new Document("beer_id", new ObjectId(beer.getBeerID()))
+                            .append("beer_name", beer.getBeerName())));
+            return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteBeerFromBrewery(DetailedBeer beer) {
+        UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
+                pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
+        return updateResult.getMatchedCount() == 1;
+    }
+
+
+    /* *********************************************************************************************************** */
+    /* *******************************************  Neo4J Section  *********************************************** */
+    /* *********************************************************************************************************** */
+
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
     public boolean addStandardUser(String Username){
-        return generalUserManagerDB.addStandardUser(Username);
-        /*
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MERGE (U:User{Username: $Username}) \n" +
                     "ON CREATE \n" +
@@ -173,16 +177,12 @@ public class UserManager {
             e.printStackTrace();
             return false;
         }
-
-         */
     }
 
     /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
      *  it already in its favorites */
-    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
-        return generalUserManagerDB.addFavorite(Username, fv);
-        /*
+    public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
             UserManager.getInstance().addStandardUser(Username);
@@ -200,16 +200,12 @@ public class UserManager {
             e.printStackTrace();
             return false;
         }
-
-         */
     }
 
     /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
      *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
      *  favorites */
-    private boolean removeFavorite(String Username, String BeerID){
-        return generalUserManagerDB.removeFavorite(Username, BeerID);
-        /*
+    public boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
@@ -220,14 +216,10 @@ public class UserManager {
             e.printStackTrace();
             return false;
         }
-
-         */
     }
 
     /* Function used to remove a user and all its relationships from Neo4J graph DB */
-    private boolean removeUser(String username){
-        return generalUserManagerDB.removeUser(username);
-        /*
+    public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U {Username: $username})\n" +
                             "DETACH DELETE U",
@@ -238,14 +230,10 @@ public class UserManager {
             e.printStackTrace();
             return false;
         }
-
-         */
     }
 
     /* Function used to return to GUI a list of beers that the user has in its favorites */
     public void getFavorites(StandardUser user){
-        generalUserManagerDB.getFavorites(user);
-        /*
         try(Session session = NeoDBMS.getDriver().session()) {
             //I execute the query within the call for setFavorites to properly save them into the entity StandardUser
             user.setFavorites(session.readTransaction(tx -> {
@@ -263,7 +251,6 @@ public class UserManager {
         catch(Exception e){
             e.printStackTrace();
         }
-
-         */
     }
+
 }

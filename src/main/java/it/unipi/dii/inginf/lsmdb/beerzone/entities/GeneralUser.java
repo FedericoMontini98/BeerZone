@@ -12,12 +12,6 @@ public abstract class GeneralUser {
     protected String location;
     protected int type; // 0: standard user, 1: brewery
 
-    public GeneralUser() {}
-
-    public GeneralUser(String email, String username, String password, String location, int type) {
-        this(null, email, username, password, location, type);
-    }
-
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
         this.userID = id != null ? id : new ObjectId().toString();
         this.email = email;
@@ -89,8 +83,4 @@ public abstract class GeneralUser {
                 .append("location", location)
                 .append("type", type);
     }
-
-    /*public boolean checkPassword(String pwd) {
-        return password.equals(pwd);
-    }*/
 }

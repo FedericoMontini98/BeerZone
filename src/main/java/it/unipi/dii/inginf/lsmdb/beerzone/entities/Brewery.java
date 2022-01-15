@@ -7,7 +7,6 @@ import org.bson.types.ObjectId;
 import java.util.*;
 
 public class Brewery extends GeneralUser {
-    //private GeneralUser brewery;
     private String types;   //brewery type: bar, pub, etc.
     private List<Beer> beers;
 
@@ -24,7 +23,6 @@ public class Brewery extends GeneralUser {
     }
 
     public Brewery(Document doc) {
-        //this.brewery = new GeneralUser(doc);
         super(doc);
         this.types = doc.get("types") != null ? doc.getString("types") : "--";
         this.beers = new ArrayList<>();
@@ -76,7 +74,6 @@ public class Brewery extends GeneralUser {
     }
 
     public Document getBreweryDoc(boolean update) {
-        //return brewery.getUserDoc(update)
         Document doc = super.getUserDoc().append("types", types);
         if (update)
             doc.append("beers", getBeerListDoc());

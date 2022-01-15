@@ -378,11 +378,8 @@ public class BeerManager {
             //I then create the node for the new beer
             session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name"));
             //I create the relationship between the style node and the beer node
-            session.run("MATCH\n" +
-                            "(B:Beer{ID:$BeerID}),\n" +
-                            "(S:Style{nameStyle:$style})\n " +
-                            "MERGE (B)-[Ss:SameStyle]->(S)\n",
-                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
+            session.run("MERGE (B:Beer{ID: $BeerID})-[Ss:SameStyle]-(S:Style{nameStyle:$style})",
+            parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
             return true;
         }
         catch(Exception e){

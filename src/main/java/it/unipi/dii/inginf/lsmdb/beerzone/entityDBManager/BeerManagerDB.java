@@ -523,15 +523,18 @@ public class BeerManagerDB {
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
+            System.out.println(beer.getBeerName());
             this.addBeer(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
-            session.run("MERGE (U:User{Username:$Username})-[R:Reviewed]->(B:Beer{ID:$BeerID})\n" +
+            session.run("MATCH (U:User{Username:$Username})" +
+                            "MATCH (B:Beer{ID:$BeerID,Name:$BeerName})\n" +
+                            "MERGE (U)-[R:Reviewed]-(B)\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",
-                    parameters( "Username", review.getUsername(), "BeerID", beer.getBeerID(),"Date", str));
+                    parameters( "Username", review.getUsername(), "BeerID", beer.getBeerID(),"BeerName",beer.getBeerName(),"Date", str));
             return true;
         }
         catch(Exception e){

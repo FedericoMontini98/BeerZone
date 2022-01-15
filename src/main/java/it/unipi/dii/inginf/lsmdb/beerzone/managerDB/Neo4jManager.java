@@ -15,7 +15,7 @@ public class Neo4jManager implements AutoCloseable{
 
     /* Class Creator, it creates an instance of GraphDatabase that connects to the Cluster */
     private Neo4jManager() {
-        driver = GraphDatabase.driver("bolt+s://localhost:7687", AuthTokens.basic("username", "password"));
+        driver = GraphDatabase.driver("bolt://172.16.4.58:7687", AuthTokens.basic("neo4j", "beer"));
     }
 
     public Driver getDriver() {
@@ -35,7 +35,9 @@ public class Neo4jManager implements AutoCloseable{
     public void close() {
         if(neoInstance == null)
             throw new RuntimeException("Connection not created yet.");
-        else
+        else {
             neoInstance.driver.close();
+            System.out.println("Neo4j connection closed");
+        }
     }
 }

@@ -2,14 +2,15 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
 import com.mongodb.lang.Nullable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DetailedBeer extends Beer {
-    // id, name, style, score
-    private String brewery_id;
-    //private int beerScore;
+    // super: id, name, style, score
+    private String breweryID;
     private int numRating;
-    //private String state;
-    //private String country;
     private String availability;
     private String notes;
     private boolean retired;
@@ -18,67 +19,81 @@ public class DetailedBeer extends Beer {
     private double og;  // original gravity
     private double fg;  // final gravity
     private double ibu;
-    //private double batch;
     private double color;
     private double phMash;  // -1 if is not present on the source
     private String fermentables;
     private String hops;
     private String other;
     private String yeast;
-
-    public DetailedBeer() {}
-
-    public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, double score) {
-        super(beerID, beerName, style, abv, score);
-    }
+    private ArrayList<Review> reviews;
 
     public DetailedBeer(@Nullable String beerID, String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
-                        @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
+                        @Nullable String breweryID, @Nullable String availability, @Nullable String notes,
+                        @Nullable  String url, @Nullable String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
-        super(beerID, beerName, style, abv, score != null ? Double.parseDouble(score) : -1);
-        this.brewery_id = brewery != null ? brewery : "-";
+        super(beerID, beerName, style, abv, score);
+        this.breweryID = breweryID != null ? breweryID : "-";
         this.numRating = 0;
-        this.availability = availability != null ? availability : "-";
-        this.notes = notes != null ? notes : "=";
-        this.url = url != null ? url : "-";
-        this.retired = retired.equalsIgnoreCase("t");
-        this.method = method != null ? method : "-";
+        this.availability = availability != null ? availability : "";
+        this.notes = notes != null ? notes : "";
+        this.url = url != null ? url : "";
+        this.retired = retired == null || retired.equalsIgnoreCase("Yes") || retired.equalsIgnoreCase("t");
+        this.method = method != null ? method : "";
         this.og = og != null ? Double.parseDouble(og) : -1;
         this.fg = fg != null ? Double.parseDouble(fg) : -1;
         this.ibu = ibu != null ? Double.parseDouble(ibu) : -1;
         this.color = color != null ? Double.parseDouble(color) : -1;
         this.phMash = phMash != null ? Double.parseDouble(phMash) : -1;
-        this.fermentables = fermentables != null ? fermentables : "-";
-        this.hops = hops != null ? hops : "-";
-        this.other = other != null ? other : "-";
-        this.yeast = yeast != null ? yeast : "-";
+        this.fermentables = fermentables != null ? fermentables : "";
+        this.hops = hops != null ? hops : "";
+        this.other = other != null ? other : "";
+        this.yeast = yeast != null ? yeast : "";
+        this.reviews = new ArrayList<>();
     }
 
     public DetailedBeer(String beerName, String style, String abv, @Nullable String score,
-                        @Nullable String brewery, @Nullable  String availability, @Nullable String notes,
+                        @Nullable String breweryID, @Nullable  String availability, @Nullable String notes,
                         @Nullable  String url, String retired, @Nullable String method, @Nullable String og,
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
-        this(null, beerName, style, abv, score, brewery, availability, notes, url, retired, method, og, fg, ibu,
+        this(null, beerName, style, abv, score, breweryID, availability, notes, url, retired, method, og, fg, ibu,
                 color, phMash, fermentables, hops, other, yeast);
 
     }
 
     public DetailedBeer (Document beer) {
-        this(beer.getString("_id"), beer.getString("name"), beer.getString("style"),
-                beer.getString("abv"), beer.getString("rating"), beer.getString("brewery_id"),
-                beer.getString("availability"), beer.getString("notes"), beer.getString("url"),
-                beer.getString("retired"), beer.getString("method"), beer.getString("og"),
-                beer.getString("fg"), beer.getString("ibu"), beer.getString("color"),
-                beer.getString("phMash"), beer.getString("fermentables"), beer.getString("hops"),
-                beer.getString("other"), beer.getString("yeast"));
-        this.numRating = beer.getInteger("num_rating");
+        this(beer.getObjectId("_id").toString(), beer.getString("name"),
+                beer.get("style") != null ? beer.getString("style") : "--",
+                beer.get("abv") != null ? beer.get("abv").toString() : "-1",
+                beer.get("rating") != null ? beer.get("rating").toString() : "0",
+                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "-",
+                beer.get("availability") != null ? beer.getString("availability") : "--",
+                beer.get("notes") != null ? beer.getString("notes") : "--",
+                beer.get("url") != null ? beer.getString("url") : "--",
+                beer.get("retired") != null ? beer.getString("retired") : "t",
+                beer.get("method") != null ? beer.getString("method") : "--",
+                beer.get("og") != null ? beer.get("og").toString() : "-1",
+                beer.get("fg") != null ? beer.get("fg").toString() : "-1",
+                beer.get("ibu") != null ? beer.get("ibu").toString() : "-1",
+                beer.get("color") != null ? beer.get("color").toString() : "-1",
+                beer.get("phMash") != null ? beer.get("phMash").toString() : "-1",
+                beer.get("fermentables") != null ? beer.getString("fermentables") : "--",
+                beer.get("hops") != null ? beer.getString("hops") : "--",
+                beer.get("other") != null ? beer.getString("other") : "--",
+                beer.get("yeast") != null ? beer.getString("yeast") : "--");
+        this.numRating = beer.get("num_rating") != null ? beer.getInteger("num_rating") : 0;
+        if (this.reviews == null)
+            this.reviews = new ArrayList<>();
+        if (beer.get("reviews") != null) {
+            for (Document d : beer.getList("reviews", Document.class)) {
+                reviews.add(new Review(d));
+            }
+        }
     }
 
-    public String getBrewery_id() {
-        return brewery_id;
+    public String getBreweryID() {
+        return breweryID;
     }
 
     public String getNumRating() {
@@ -145,8 +160,28 @@ public class DetailedBeer extends Beer {
         return yeast;
     }
 
-    public void setBrewery_id(String brewery_id) {
-        this.brewery_id = brewery_id;
+    public ArrayList<Review> getReviewList() {
+        return reviews;
+    }
+
+    public void addReviewToBeer(Review review) {
+        this.reviews.add(review);
+    }
+
+    public boolean removeReviewFromBeer(Review review) {
+        return reviews.remove(review);
+    }
+
+    public List<Document> getReviewListDoc() {
+        ArrayList<Document> reviewsList = new ArrayList<>();
+        for (Review r: reviews) {
+            reviewsList.add(r.getReviewDoc());
+        }
+        return reviewsList;
+    }
+
+    public void setBreweryID(String breweryID) {
+        this.breweryID = breweryID;
     }
 
     public void setNumRating(int numRating) {
@@ -209,15 +244,49 @@ public class DetailedBeer extends Beer {
         this.yeast = yeast;
     }
 
-    public Document getBeerDoc(@Nullable boolean update) {
-        Document doc = super.getBeerDoc(update);
-        doc.append("brewery", brewery_id).append("numRating", numRating)
-                .append("method", method)
-                .append("og", og).append("fg", fg)
-                .append("ibu", ibu)
-                .append("color", color)
-                .append("ph mash", phMash);
+    public Document getBeerDoc() {
+        Document doc = super.getBeerDoc()
+                .append("num_rating", numRating);
+        if (retired)
+            doc.append("retired", "t");
+        else
+            doc.append("retired", "f");
 
+        if (!breweryID.isEmpty() || breweryID.equals("-"))
+            doc.append("brewery_id", new ObjectId(breweryID));
+        if (!availability.isEmpty())
+            doc.append("availability", availability);
+        if (!notes.isEmpty())
+            doc.append("notes", notes);
+        if (!url.isEmpty())
+            doc.append("url", url);
+        if (!method.isEmpty())
+            doc.append("method", method);
+        if (og != -1)
+            doc.append("og", og);
+        if (fg != -1)
+            doc.append("fg", fg);
+        if (ibu != -1)
+            doc.append("ibu", ibu);
+        if (color != -1)
+            doc.append("color", color);
+        if (phMash != -1)
+            doc.append("phMash", phMash);
+        if (!fermentables.isEmpty())
+            doc.append("fermentables", fermentables);
+        if (!hops.isEmpty())
+            doc.append("hops", hops);
+        if (!other.isEmpty())
+            doc.append("other", other);
+        if (!yeast.isEmpty())
+            doc.append("yeast", yeast);
+        if (!reviews.isEmpty())
+            doc.append("reviews", getReviewListDoc());
         return doc;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 }

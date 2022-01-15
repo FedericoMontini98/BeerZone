@@ -12,14 +12,8 @@ public abstract class GeneralUser {
     protected String location;
     protected int type; // 0: standard user, 1: brewery
 
-    public GeneralUser() {}
-
-    public GeneralUser(String email, String username, String password, String location, int type) {
-        this(null, email, username, password, location, type);
-    }
-
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
-        this.userID = id != null ? id : "-1";
+        this.userID = id != null ? id : new ObjectId().toString();
         this.email = email;
         this.username = username;
         this.password = password;
@@ -28,8 +22,9 @@ public abstract class GeneralUser {
     }
 
     public GeneralUser(Document user) {
-        this.userID = user.get("_id").toString();
+        this.userID = user.getObjectId("_id").toString();
         this.username = user.getString("username");
+        this.email = user.getString("email");
         this.password = user.getString("password");
         this.location = user.getString("location");
         this.type = user.getInteger("type");
@@ -80,27 +75,12 @@ public abstract class GeneralUser {
         return type == 0;
     }
 
-    protected Document getUserDoc(boolean update) {
-        Document doc = new Document();
-        if (update)
-            doc.append("_id", new ObjectId(userID));
-        doc.append("username", username)
-                .append("password", password)
-                .append("email", email)
-                .append("location", location)
-                .append("type", type);
-        return doc;
-    }
-
-    protected Document getUserIdDoc() {
-        return new Document("username", username)
+    public Document getUserDoc() {
+        return new Document("_id", new ObjectId(userID))
+                .append("username", username)
                 .append("password", password)
                 .append("email", email)
                 .append("location", location)
                 .append("type", type);
     }
-
-    /*public boolean checkPassword(String pwd) {
-        return password.equals(pwd);
-    }*/
 }

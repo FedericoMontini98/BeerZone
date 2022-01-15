@@ -1,26 +1,21 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserManagerDB;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
-
 public class BreweryManager {
     private static BreweryManager breweryManager;
-    //private final MongoManager mongoManager;
-    private MongoCollection<Document> breweriesCollection;
+    private final GeneralUserManagerDB generalUserManagerDB;
 
     private BreweryManager() {
-        //mongoManager = MongoManager.getInstance();
-        breweriesCollection = MongoManager.getInstance().getCollection("finalUsers");
+        generalUserManagerDB = GeneralUserManagerDB.getInstance();
     }
 
     public static BreweryManager getInstance() {
@@ -29,37 +24,78 @@ public class BreweryManager {
         return breweryManager;
     }
 
-    public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
-        name = name != null ? name : "";
-        int limit = 20;
-        int n = (page-1) * limit;
+    public boolean addNewBeerToBrewery(Brewery brewery, DetailedBeer beer) {
+        try {
+            BeerManager.getInstance().addNewBeer(beer);
+            generalUserManagerDB.addBeerToBrewery(beer);
+            brewery.addBeerToBrewery(beer);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
-        FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1),
-                regex("username", ".*" + name + ".*", "i")))
-                .skip(n).limit(limit+1)
-                .projection(include("name", "style", "abv", "rating"));
+    public boolean removeBeer(DetailedBeer beer, Brewery brewery){
+        if(generalUserManagerDB.deleteBeerFromBrewery(beer)) {
+            brewery.deleteBeerFromBrewery(beer);
+            return BeerManager.getInstance().removeBeer(beer);
+        }
+        return false;
+    }
+
+    public double getBreweryScore(String breweryID) {
+        try {
+            return BeerManager.getInstance().getBreweryScore(breweryID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public double getWeightedBreweryScore(String breweryID) {
+        try {
+            return BeerManager.getInstance().getWeightedBreweryScore(breweryID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /* *************************************  MongoDB Section  ****************************************************/
+
+    public boolean addBrewery(Brewery brewery) {
+        return generalUserManagerDB.registerUser(brewery);
+    }
+
+    public Brewery getBrewery(String breweryID) {
+        Brewery brewery = null;
+        try {
+            Document doc = generalUserManagerDB.getUser(breweryID); //breweriesCollection.find(eq("_id", new ObjectId(breweryID))).first();
+            if (doc != null)
+                brewery = new Brewery(doc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return brewery;
+    }
+
+    public ArrayList<Brewery> browseBreweries(int page, @Nullable String name) {
 
         ArrayList<Brewery> breweryList = new ArrayList<>();
-        for (Document brewery: iterable) {
+        for (Document brewery: generalUserManagerDB.browseBreweries(page, name)) {
             breweryList.add(new Brewery(brewery));
         }
         return breweryList;
     }
 
-    public ArrayList<ObjectId> getBeerList(int page, String name){
-        int limit = 20;
-        int n = (page-1) * limit;
-
-        FindIterable<Document> iterable = breweriesCollection.find(and(eq("type", 1), exists("beers"),
-                        regex("username", ".*" + name + ".*", "i")))
-                .skip(n).limit(limit+1)
-                .projection(include("username", "beers"));
-
-        ArrayList<ObjectId> beerList = new ArrayList<>();
-        for (Document beer: iterable) {
-            beerList.addAll(beer.getList("beers", ObjectId.class));
-        }
-        breweriesCollection.find(in("_id", beerList));
-        return beerList;
+    public boolean updateBrewery(Brewery brewery) {
+        return generalUserManagerDB.updateUser(brewery.getBreweryDoc(true), brewery.getUserID());
     }
+
+    public boolean deleteBrewery(Brewery brewery) {
+        long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());   // matched beers
+        return generalUserManagerDB.deleteUser(brewery) && ret >= brewery.getBeers().size();
+    }
+
 }

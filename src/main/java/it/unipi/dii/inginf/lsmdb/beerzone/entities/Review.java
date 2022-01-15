@@ -1,15 +1,14 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import com.mongodb.lang.Nullable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.Date;
 
 public class Review {
-    private String beerID;
+    //private String beerID;
     private String username;
     private Date reviewDate;
-    private String text;
     private double look;
     private double smell;
     private double taste;
@@ -17,36 +16,32 @@ public class Review {
     private double overall;
     private double score;
 
-    public Review(){}
 
-    public Review(String beerID, String username) {
-        this.beerID = beerID;
-        this.username = username;
-    }
-
-    public Review(String beerID, String username, Date reviewDate, @Nullable String text, String look, String smell,
-                  String taste, String feel, String overall) {
-        this.beerID = beerID;
+    public Review(String username, Date reviewDate, String look, String smell,
+                  String taste, String feel, String overall, String score) {
+        //this.beerID = beerID;
         this.username = username;
         this.reviewDate = reviewDate;
-        this.text = text;
         this.look = Double.parseDouble(look);
         this.smell = Double.parseDouble(smell);
         this.taste = Double.parseDouble(taste);
         this.feel = Double.parseDouble(feel);
         this.overall = Double.parseDouble(overall);
+        this.score = Double.parseDouble(score);
+        //computeScore();
     }
 
     public Review(Document review) {
-        this(review.getString("beer_id"), review.getString("username"), review.getDate("date"),
-                review.getString("test"), review.getString("look"), review.getString("smell"),
-                review.getString("tste"), review.getString("feel"), review.getString("overall"));
-        this.score = review.getDouble("score");
+        this(review.get("username") != null ? review.getString("username") : "--",
+                review.get("date") != null ? review.getDate("date") : new Date(),
+                review.get("look") != null ? review.get("look").toString() : "0",
+                review.get("smell") != null ? review.get("smell").toString() : "0",
+                review.get("taste") != null ? review.get("taste").toString() : "0",
+                review.get("feel") != null ? review.get("feel").toString() : "0",
+                review.get("overall") != null ? review.get("overall").toString() : "0",
+                review.get("score") != null ? review.get("score").toString() : "0");
     }
 
-    public String getBeerID() {
-        return beerID;
-    }
 
     public String getUsername() {
         return username;
@@ -56,8 +51,8 @@ public class Review {
         return reviewDate.toString();
     }
 
-    public String getText() {
-        return text;
+    public Date getReviewDateNeo() {
+        return reviewDate;
     }
 
     public String getLook() {
@@ -84,8 +79,8 @@ public class Review {
         return String.valueOf(score);
     }
 
-    public void setBeerID(String beerID) {
-        this.beerID = beerID;
+    public double getNumericScore() {
+        return score;
     }
 
     public void setUsername(String username) {
@@ -94,10 +89,6 @@ public class Review {
 
     public void setReviewDate(Date reviewDate) {
         this.reviewDate = reviewDate;
-    }
-
-    public void setText(String text) {
-        this.text = text;
     }
 
     public void setLook(String look) {
@@ -124,21 +115,25 @@ public class Review {
         this.score = Double.parseDouble(score);
     }
 
-    public void computeScore() {
-        score = look + smell + taste + feel + overall;
-        score /= 5;
+    protected void computeScore() {
+        score = (double) (Math.round(((look + smell + taste + feel + overall) / 5) * 100)) / 100;
     }
 
-    public Document getReview() {
-        return new Document("beer_id", beerID)
-                .append("username", username)
-                .append("reviewDate", reviewDate)
-                .append("text", text)
+    public Document getReviewDoc() {
+        return new Document("username", username)
+                .append("date", reviewDate)
                 .append("look", look)
                 .append("smell", smell)
                 .append("taste", taste)
                 .append("feel", feel)
                 .append("overall", overall)
-                .append("rating", score);
+                .append("score", score);
+    }
+
+    @Override
+    public boolean equals(Object review) {
+        if (review instanceof Review)
+            return this.username.equalsIgnoreCase(((Review) review).getUsername());
+        return false;
     }
 }

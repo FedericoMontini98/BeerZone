@@ -1,28 +1,33 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 
-import java.util.Date;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
 
 public class FavoriteBeer extends Beer {
-    private Date favoriteDate;
+    private String favoriteDate;
 
-    public FavoriteBeer(String beerID, String beerName, Date favoriteDate) {
+    public FavoriteBeer(String beerID, String beerName, String favoriteDate) {
         super(beerID, beerName);
         this.favoriteDate = favoriteDate;
     }
 
-    public FavoriteBeer(Beer beer, Date date) {
+    public FavoriteBeer(String BeerID, String favoriteDate){
+        super(BeerID, BeerManager.getInstance().getBeer(BeerID).getBeerName());
+        this.favoriteDate =favoriteDate;
+    }
+
+    public FavoriteBeer(Beer beer, String date) {
         this(beer.getBeerID(), beer.getBeerName(), date);
     }
 
-    public FavoriteBeer(String beerID, String beerName) {
-        this(beerID, beerName, new Date());
-    }
+    //public FavoriteBeer(String beerID, String beerName) {
+    //     this(beerID, beerName, new Date());
+    //  }
 
-    public Date getFavoriteDate() {
+    public String getFavoriteDate() {
         return favoriteDate;
     }
 
-    public void setFavoriteDate(Date favoriteDate) {
+    public void setFavoriteDate(String favoriteDate) {
         this.favoriteDate = favoriteDate;
     }
 }

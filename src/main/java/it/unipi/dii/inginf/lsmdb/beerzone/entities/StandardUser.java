@@ -11,6 +11,7 @@ public class StandardUser extends GeneralUser {
     public StandardUser(String id, String email, String username, String password, int age, String location) {
         super(id, email, username, password, location, 0);
         this.age = age;
+        favorites = new ArrayList<>();
     }
 
     public StandardUser(String email, String username, String password, int age, String location) {

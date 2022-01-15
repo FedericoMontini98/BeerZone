@@ -14,7 +14,7 @@ public class Brewery extends GeneralUser {
     public Brewery(@Nullable String _id, String email, String username, String password, String location, String types) {
         super(_id, email, username, password, location, 1);
         this.types = types;
-        beers = null;
+        beers = new ArrayList<>();
     }
 
     public Brewery(String email, String username, String password, String location, String types) {

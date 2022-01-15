@@ -178,7 +178,7 @@ public class BeerManagerDB {
             UpdateResult updateResult = beersCollection.updateMany(
                     regex("reviews.username", pattern, optionsRegEx),
                     set("reviews.$[item].username", "deleted_user"), updateOptions);
-            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
+            //System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
             return updateResult.getMatchedCount() == updateResult.getModifiedCount();
         } catch (Exception e) {
             e.printStackTrace();

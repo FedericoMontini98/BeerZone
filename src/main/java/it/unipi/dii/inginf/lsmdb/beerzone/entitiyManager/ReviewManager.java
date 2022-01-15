@@ -299,10 +299,7 @@ public class ReviewManager {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String str = formatter.format(review.getReviewDateNeo());
             //Create the relationship
-            session.run("MATCH\n" +
-                            "  (B:Beer{ID:$BeerID}),\n" +
-                            "  (U:User{Username:$Username})\n" +
-                            "MERGE (U)-[R:Reviewed]->(B)\n" +
+            session.run("MERGE (U:User{Username:$Username})-[R:Reviewed]->(B:Beer{ID:$BeerID})\n" +
                             "ON CREATE\n" +
                             "SET R.date=date($Date)",
                     parameters( "Username", review.getUsername(), "BeerID", review.getBeerID(),"Date", str));

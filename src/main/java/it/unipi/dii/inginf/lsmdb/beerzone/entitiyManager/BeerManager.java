@@ -1,46 +1,25 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityManagerDB.BeerManagerDB;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
 import org.bson.Document;
 
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.mongodb.client.model.Accumulators.*;
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
-import static com.mongodb.client.model.Sorts.ascending;
-import static com.mongodb.client.model.Sorts.descending;
-import static com.mongodb.client.model.Updates.*;
-import static com.mongodb.client.model.Updates.addToSet;
-import static org.neo4j.driver.Values.parameters;
-
 public class BeerManager {
-    private final MongoCollection<Document> beersCollection;
-    private final Neo4jManager NeoDBMS;
+    //private final MongoCollection<Document> beersCollection;
+    //private final Neo4jManager NeoDBMS;
     private static BeerManager beerManager;
+    private final BeerManagerDB beerManagerDB;
 
     private BeerManager(){
-        beersCollection = MongoManager.getInstance().getCollection("beers");
-        NeoDBMS = Neo4jManager.getInstance();
+        //beersCollection = MongoManager.getInstance().getCollection("beers");
+        //NeoDBMS = Neo4jManager.getInstance();
+        beerManagerDB = BeerManagerDB.getInstance();
     }
 
     public static BeerManager getInstance() {
@@ -49,28 +28,150 @@ public class BeerManager {
         return beerManager;
     }
 
+    public void addNewBeer(DetailedBeer beer) {
+        beerManagerDB.addNewBeerMongo(beer);
+    }
+
     protected boolean removeBeer(Beer beer) {
-        if(removeBeerMongo(beer)) {
-            //Remove beer Fede
+        if(beerManagerDB.removeBeerMongo(beer)) {
             removeBeerFromNeo(beer);
             return true;
         }
         return false;
     }
 
+    public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
+        ArrayList<Beer> beerList = new ArrayList<>();
+        FindIterable<Document> iterable = beerManagerDB.browseBeers(page, name);
 
+        for (Document beer: iterable) {
+            beerList.add(new Beer(beer));
+        }
+        return beerList;
+    }
+    public Beer getBeer(String beerID) {
+        Beer beer = null;
+        Document doc = beerManagerDB.getBeer(beerID);
+        if (doc != null)
+            beer = new Beer(doc);
+
+        return beer;
+    }
+
+    public DetailedBeer getDetailedBeer(String beerID) {
+        DetailedBeer beer = null;
+        Document doc = beerManagerDB.getDetailedBeer(beerID);
+
+        if (doc != null)
+            beer = new DetailedBeer(doc);
+
+        return beer;
+    }
+
+    public long deleteBreweryFromBeers(String breweryID) {
+        return beerManagerDB.deleteBreweryFromBeers(breweryID);
+    }
+
+    public ArrayList<Beer> getHighestAvgScoreBeers() {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: beerManagerDB.getHighestAvgScoreBeers()) {
+            Document idDoc = (Document) doc.get("_id");
+            if (idDoc != null) {
+                Beer b = new Beer(idDoc);
+                b.setScore(doc.get("monthly_score") != null ? Double.parseDouble(doc.get("monthly_score").toString()) : -1);
+                beers.add(b);
+            }
+        }
+        return beers;
+    }
+
+    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
+        ArrayList<Beer> beers = new ArrayList<>();
+        for (Document doc: beerManagerDB.getBeersUnderAvgFeatureScore(brewery.getUserID(), feature,
+                getBreweryScore(brewery.getUserID()))) {
+            Document idDoc = (Document) doc.get("_id");
+            if (idDoc != null) {
+                Beer b = new Beer(idDoc);
+                b.setScore(doc.get("feature_score") != null ? Double.parseDouble(doc.get("feature_score").toString()) : -1);
+                beers.add(b);
+            }
+        }
+        return beers;
+    }
+
+    public boolean updateBeer(DetailedBeer beer) {
+        return beerManagerDB.updateBeer(beer);
+    }
+
+    public void recomputeBeerRating(DetailedBeer beer) {
+        Document docRating = beerManagerDB.updateBeerRating(beer);
+
+        if (docRating != null) {
+            if (docRating.get("rating") != null)
+                beer.setScore(Double.parseDouble(docRating.get("rating").toString()));
+            if (docRating.get("num_rating") != null)
+                beer.setNumRating(docRating.getInteger("num_rating"));
+        }
+    }
+
+    protected double getBreweryScore(String breweryID) {
+        Document doc = beerManagerDB.getBreweryScore(breweryID);
+
+        if (doc != null)
+            return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+
+        return -1;
+    }
+
+    protected double getWeightedBreweryScore(String breweryID) {
+        Document doc = beerManagerDB.getWeightedBreweryScore(breweryID);
+
+        if (doc != null) {
+            return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+        }
+        return -1;
+    }
+
+    /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
+     *  Both to reviews and beer's files */
+    public boolean addBeer(Beer beer) {
+        return beerManagerDB.addBeer(beer);
+    }
+
+    /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
+     *  others users */
+    public ArrayList<String> getSuggested(StandardUser user) {
+        return beerManagerDB.getSuggested(user);
+    }
+
+    /* Function that calculate the most favorite beers in the past month */
+    public ArrayList<FavoriteBeer> getMostFavoriteThisMonth () {
+        return beerManagerDB.getMostFavoriteThisMonth();
+    }
+
+    protected void removeBeerFromNeo(Beer beer) {
+        beerManagerDB.removeBeerFromNeo(beer);
+    }
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Reviews manager ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+    protected boolean deleteUserFromReviews(String username) {
+        return beerManagerDB.deleteUserFromReviews(username);
+    }
+
+ */
 
     /* ************************************************************************************************************/
     /* *************************************  MongoDB Section  ****************************************************/
     /* ************************************************************************************************************/
 
-    protected boolean removeBeerMongo(Beer beer){
+ /*    protected boolean removeBeerMongoV(Beer beer){
         DeleteResult deleteResult = beersCollection.deleteOne(eq("_id", new ObjectId(beer.getBeerID())));
         return (deleteResult.getDeletedCount() == 1);
 
     }
 
-    public void addNewBeer(DetailedBeer beer) {
+   private void addNewBeerM(DetailedBeer beer) {
         try {
             Document beerDoc = beer.getBeerDoc();
             beersCollection.insertOne(beerDoc);
@@ -78,27 +179,48 @@ public class BeerManager {
             e.printStackTrace();
         }
     }
-/*
-    public boolean updateBeerRating(Review review, DetailedBeer beer) {
+
+    */
+
+    /*
+    protected double computeNewBeerRatingV(Review review, DetailedBeer beer, boolean add) {
         try {
-            Document doc = beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            Document doc = beerManagerDB.getDetailedBeer(beer.getBeerID());//beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
             if (doc != null) {
                 double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
-                int num_rating = doc.getInteger("num_rating");
-                double new_rating = (rating * num_rating) + Double.parseDouble(review.getScore()) / (++num_rating);
+                int num_rating = doc.get("num_rating") != null ? doc.getInteger("num_rating") : 0;
+                double oldTotalRating = rating * num_rating;
+                double newRating;
+                if (add) {
+                    newRating = (oldTotalRating + review.getNumericScore()) / (++num_rating);
+                }
+                else {
+                    if (num_rating <= 0)
+                        return -1;
+                    newRating = (oldTotalRating - review.getNumericScore()) / (--num_rating);
+                }
+                //double new_rating = oldTotalRating + Double.parseDouble(review.getScore()) / (num_rating);
                 beer.setNumRating(num_rating);
-                beer.setScore(new_rating);
+                beer.setScore(newRating);
 
-                UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
-                        combine(set("rating", new_rating), set("num_rating", num_rating)));
-                return updateResult.getMatchedCount() == 1;
+                return newRating;
+
+               // UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(review.getBeerID())),
+                    //    combine(set("rating", newRating), set("num_rating", num_rating),
+                  //              addToSet("reviews", review.getReviewDoc())));
+                //return updateResult.getMatchedCount() == 1;
+
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return -1;
     }
- */
+
+     */
+
+/*
 
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         //check string
@@ -119,6 +241,26 @@ public class BeerManager {
         return beerList;
     }
 
+    // never used
+    public ArrayList<Beer> browseBeersByBreweryID(int page, String breweryID) {
+        if (breweryID == null)
+            return null;
+        int limit = 3;
+        int n = (page-1) * limit;
+
+        ArrayList<Beer> beerList = new ArrayList<>();
+        //ArrayList<String> beers = BreweryManager.getInstance().getBeerList(page, breweryID);
+        try {
+            for (Document beerDoc : beersCollection.find(eq("brewery_id", new ObjectId(breweryID)))
+                    .skip(n).limit(limit+1)) {
+                beerList.add(new Beer(beerDoc));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return beerList;
+    }
+
     public ArrayList<Beer> getBeersFromBrewery(Brewery brewery) {
         ArrayList<Beer> beers = new ArrayList<>();
         try {
@@ -131,7 +273,7 @@ public class BeerManager {
         return beers;
     }
 
-    public Beer getBeer(String beerID) {
+    public Beer getBeerv(String beerID) {
         Beer beer = null;
         try {
             Document doc = beersCollection.find(eq("_id", new ObjectId(beerID)))
@@ -144,7 +286,7 @@ public class BeerManager {
         return beer;
     }
 
-    public DetailedBeer getDetailedBeer(String beerID) {
+    public DetailedBeer getDetailedBeerV(String beerID) {
         DetailedBeer beer = null;
         try {
             Document doc = beersCollection.find(eq("_id", new ObjectId(beerID))).first();
@@ -155,14 +297,17 @@ public class BeerManager {
         }
         return beer;
     }
+    */
 
-    /* return value: matched beers in the beersCollection */
-    public long deleteBreweryFromBeers(String breweryID) {
+    /* return value: matched beers in the beersCollection
+    public long deleteBreweryFromBeersv(String breweryID) {
         UpdateResult updateResult = beersCollection.updateMany(eq("brewery_id", new ObjectId(breweryID)),
         //UpdateResult updateResult = beersCollection.updateMany(eq("brewery", breweryID),
                 combine(unset("brewery_id"), set("retired", "t")));
         return updateResult.getMatchedCount();
     }
+
+     */
 /*
     private ArrayList<Beer> getHighestAvgScoreBeersOld() {
         ArrayList<Beer> beers = new ArrayList<>();
@@ -175,19 +320,6 @@ public class BeerManager {
     }
 
  */
-
-    public ArrayList<Beer> getHighestAvgScoreBeers() {
-        ArrayList<Beer> beers = new ArrayList<>();
-        for (Document doc: getHighestAvgScoreBeersMongo()) {
-            Document idDoc = (Document) doc.get("_id");
-            if (idDoc != null) {
-                Beer b = new Beer(idDoc);
-                b.setScore(doc.get("monthly_score") != null ? Double.parseDouble(doc.get("monthly_score").toString()) : -1);
-                beers.add(b);
-            }
-        }
-        return beers;
-    }
 /*
     public ArrayList<Beer> getBeersUnderAvgFeatureScoreOld(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
@@ -202,10 +334,10 @@ public class BeerManager {
 
  */
 
-    public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
+ /*   public ArrayList<Beer> getBeersUnderAvgFeatureScoreV(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
-        for (Document doc: getBeersUnderAvgFeatureScoreNested(brewery.getUserID(), feature,
-                getBreweryScore(new ObjectId(brewery.getUserID())))) {
+        for (Document doc: beerManagerDB.getBeersUnderAvgFeatureScore(brewery.getUserID(), feature,
+                getBreweryScore(brewery.getUserID()))) {
             Document idDoc = (Document) doc.get("_id");
             if (idDoc != null) {
                 Beer b = new Beer(idDoc);
@@ -216,7 +348,7 @@ public class BeerManager {
         return beers;
     }
 
-    public boolean updateBeer(DetailedBeer beer) {
+    public boolean updateBeerv(DetailedBeer beer) {
         try {
             UpdateResult updateResult = beersCollection.replaceOne(eq("_id", new ObjectId(beer.getBeerID())),
                     (beer.getBeerDoc()));
@@ -228,7 +360,7 @@ public class BeerManager {
         return false;
     }
 
-    protected boolean addReviewToBeersCollection(Review review, Beer beer) {
+    protected boolean addReviewToBeersCollectionV(Review review, Beer beer) {
         try {
             UpdateResult updateResult = beersCollection.updateOne(eq("_id", new ObjectId(beer.getBeerID())),
                     addToSet("reviews", review.getReviewDoc()));
@@ -238,27 +370,11 @@ public class BeerManager {
         }
         return false;
     }
-
-    protected boolean deleteUserFromReviews(String username) {
-        try {
-            String pattern = "^" + username + "$";
-            String optionsRegEx = "i";
-            UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
-                    Collections.singletonList(regex("item.username", pattern, optionsRegEx)));
-            UpdateResult updateResult = beersCollection.updateMany(
-                    regex("reviews.username", pattern, optionsRegEx),
-                    set("reviews.$[item].username", "deleted_user"), updateOptions);
-            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
-            return updateResult.getMatchedCount() == updateResult.getModifiedCount();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+*/
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-    private AggregateIterable<Document> getHighestAvgScoreBeersMongo() {
+/*
+    private AggregateIterable<Document> getHighestAvgScoreBeersMongoV() {
         //ArrayList<Beer> beers = new ArrayList<>();
         AggregateIterable<Document> list = null;
         try {
@@ -289,7 +405,7 @@ public class BeerManager {
         return list;
     }
 
-    private AggregateIterable<Document> getBeersUnderAvgFeatureScoreNested(String breweryID, String feature, double breweryScore){
+    private AggregateIterable<Document> getBeersUnderAvgFeatureScoreNestedV(String breweryID, String feature, double breweryScore){
         AggregateIterable<Document> list = null;
         try {
             LocalDateTime today = LocalDateTime.now();
@@ -320,27 +436,11 @@ public class BeerManager {
         return list;
     }
 
-    protected double getBreweryScore(ObjectId breweryID) {
-        try {
-            Bson matchBrewery = match(eq("brewery_id", breweryID));
-            Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
-            Bson projectResult = project(new Document("brewery_score",
-                    new Document("$round", Arrays.asList("$avg_score", 2))));
 
-            Document doc = beersCollection.aggregate(
-                    Arrays.asList(matchBrewery, groupBrewery, projectResult)).first();
-            if (doc != null) {
-                return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
 
-    protected double getWeightedBreweryScore(ObjectId breweryID) {
+    protected double getWeightedBreweryScoreV(String breweryID) {
         try {
-            Bson initialMatch = match(and(eq("brewery_id", breweryID), gt("num_rating", 0)));
+            Bson initialMatch = match(and(eq("brewery_id", new ObjectId(breweryID)), gt("num_rating", 0)));
             Bson groupBrewery = group(new Document("_id", "$brewery_id")
                     .append("rating_sum", new Document("$sum",
                             new Document("$multiply", Arrays.asList("$rating", "$num_rating"))))
@@ -360,7 +460,7 @@ public class BeerManager {
         return -1;
     }
 
-
+*/
     /* ************************************************************************************************************/
     /* *************************************  Neo4J Section  ******************************************************/
     /* ************************************************************************************************************/
@@ -369,30 +469,37 @@ public class BeerManager {
 
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */
-    public boolean AddBeer (Beer beer){
-        try(Session session = NeoDBMS.getDriver().session()){
+  /*     public boolean addBeer(Beer beer){
+        return beerManagerDB.addBeer(beer);
+     try(Session session = NeoDBMS.getDriver().session()){
             //I First have to see if the style node for this beer is already in the graph
             session.run("MERGE (S:Style{nameStyle: $Style})\n" +
                     "ON CREATE\n" +
                     "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
             //I then create the node for the new beer
-            session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",parameters("BeerID",beer.getBeerID(),"name",beer.getBeerName()));
+            session.run("MERGE (B:Beer{ID: $BeerID})",parameters("BeerID",beer.getBeerID()));
             //I create the relationship between the style node and the beer node
-            session.run("MERGE (B:Beer{ID: $BeerID})-[Ss:SameStyle]-(S:Style{nameStyle:$style})",
-            parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
+            session.run("MATCH\n" +
+                            "(B:Beer{ID:$BeerID}),\n" +
+                            "(S:Style{nameStyle:$style})\n " +
+                            "MERGE (B)-[Ss:SameStyle]->(S)\n",
+                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
             return true;
         }
         catch(Exception e){
             e.printStackTrace();
             return false;
         }
-    }
+
+
+    }   */
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
     *  others users */
-    public ArrayList<String> getSuggested(StandardUser user){
+   /* public ArrayList<String> getSuggested(StandardUser user){
+        return beerManagerDB.getSuggested(user);
         //Looking for how many style this user have in his favorites
-        try(Session session = NeoDBMS.getDriver().session()) {
+ /*       try(Session session = NeoDBMS.getDriver().session()) {
             int n_style=0;
             Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
                     "return  distinct S.nameStyle as Style",parameters("Username",user.getUsername()));
@@ -414,15 +521,12 @@ public class BeerManager {
             if(n_style==1){
                 String finalStyle_ = Style_1;
                 return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
+                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Username",user.getUsername(),"Style", finalStyle_));
+                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Style", finalStyle_));
                     ArrayList<String> Suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
@@ -436,29 +540,23 @@ public class BeerManager {
                 String finalStyle_1 = Style_1;
                 String finalStyle_2 = Style_2;
                 return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
+                    Result result = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_1));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_1));
                     ArrayList<String> suggested = new ArrayList<>();
                     while (result.hasNext()) {
                         Record r = result.next();
                         suggested.add(r.get("ID").asString());
                     }
-                    Result result_2 = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
+                    Result result_2 = tx.run("MATCH (B:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n" +
+                            "WITH COLLECT(B) as BeersWithSameStyle\n" +
                             "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
                             "WHERE (B1) in BeersWithSameStyle\n" +
                             "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_2));
+                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Style", finalStyle_2));
                     while (result_2.hasNext()) {
                         Record r = result_2.next();
                         suggested.add(r.get("ID").asString());
@@ -471,11 +569,14 @@ public class BeerManager {
             e.printStackTrace();
             return new ArrayList<>();
         }
+
     }
+  */
 
     /* Function that calculate the most favorite beers in the past month */
-    public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
-        try(Session session = NeoDBMS.getDriver().session()){
+ /*     public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
+        return beerManagerDB.getMostFavoriteThisMonth();
+      try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
             //Subtract a month
@@ -505,17 +606,25 @@ public class BeerManager {
             e.printStackTrace();
             return new ArrayList<>();
         }
-    }
 
-    protected void removeBeerFromNeo(Beer beer){
+    }
+  */
+
+     /*    protected boolean removeBeerFromNeo(Beer beer){
+        return beerManagerDB.removeBeerFromNeo(beer);
+
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
                             "DELETE B;",
                     parameters( "ID", beer.getBeerID()));
+            return true;
         }
         catch(Exception e){
             e.printStackTrace();
+            return false;
         }
+
     }
+         */
 
 }

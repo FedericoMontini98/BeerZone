@@ -11,8 +11,6 @@ public class Beer {
     protected Double abv;
     protected Double score;
 
-    public Beer() {}
-
     public Beer(@Nullable String beerID, String beerName, String style, @Nullable String abv, @Nullable String score) {
         this.beerID = beerID != null ? beerID : new ObjectId().toString();
         this.beerName = beerName;
@@ -25,10 +23,6 @@ public class Beer {
         this(null, beerName, style, abv, score);
     }
 
-    /*public Beer(String beerID, String beerName, String style, String abv) {
-        this(beerID, beerName, style, abv, "-1");
-    }
-     */
 
     public Beer(String beerID, String beerName) {
         this(beerID, beerName, "-", "-1", "-1");

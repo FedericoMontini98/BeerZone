@@ -504,7 +504,7 @@ public class BeerManagerDB {
     public void removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
-                            "DELETE B;",
+                            "DETACH DELETE B;",
                     parameters( "ID", beer.getBeerID()));
         }
         catch(Exception e){

@@ -81,8 +81,8 @@ public class GeneralUserDBManager {
         Document doc = null;
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
-            doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"), //eq("email", user.getEmail()),eq("username", user.getUsername())
-                    and(eq("type", user.getType()),
+            doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"),
+                    and(eq("type", 0),
                             regex("username", "^" + user.getUsername() + "$", "i")))).first();
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,8 +94,7 @@ public class GeneralUserDBManager {
         if (!userExists(user)) {
             try {
                 MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
-                Document doc = user.isStandard() ? user.getUserDoc()
-                        : ((Brewery) user).getBreweryDoc(false);
+                Document doc = user.isStandard() ? user.getUserDoc() : ((Brewery) user).getBreweryDoc(false);
                 usersCollection.insertOne(doc);
                 return true;
             } catch (Exception e) {

@@ -2,16 +2,16 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.BeerManagerDB;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.BeerDBManager;
 import org.bson.Document;
 import java.util.ArrayList;
 
 public class ReviewManager {
     private static ReviewManager reviewManager;
-    private final BeerManagerDB beerManagerDB;
+    private final BeerDBManager beerManagerDB;
 
     private ReviewManager() {
-        beerManagerDB = BeerManagerDB.getInstance();
+        beerManagerDB = BeerDBManager.getInstance();
     }
 
     public static ReviewManager getInstance() {
@@ -60,7 +60,7 @@ public class ReviewManager {
 
     private double computeNewBeerRating(Review review, DetailedBeer beer, boolean add) {
         try {
-            Document doc = beerManagerDB.getDetailedBeer(beer.getBeerID());//beersCollection.find(eq("beer_id", new ObjectId(review.getBeerID()))).first();
+            Document doc = beerManagerDB.getDetailedBeer(beer.getBeerID());
             if (doc != null) {
                 double rating = doc.get("rating") != null ? Double.parseDouble(doc.get("rating").toString()) : 0;
                 int num_rating = doc.get("num_rating") != null ? doc.getInteger("num_rating") : 0;

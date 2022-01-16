@@ -8,8 +8,7 @@ import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
 import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.Neo4jManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
@@ -23,22 +22,21 @@ import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.pull;
 import static org.neo4j.driver.Values.parameters;
 
-public class GeneralUserManagerDB {
-    private static GeneralUserManagerDB userManager;
+public class GeneralUserDBManager {
+    // users collection include both standard users (type 0) and breweries (type 1)
+    private static GeneralUserDBManager userManager;
     private final MongoManager mongoManager;
-    private MongoCollection<Document> usersCollection;
-        // users collection include both standard users (type 0) and breweries (type 1)
     private final Neo4jManager NeoDBMS;
 
-    private GeneralUserManagerDB() {
+    private GeneralUserDBManager() {
         NeoDBMS = Neo4jManager.getInstance();
         mongoManager = MongoManager.getInstance();
         //usersCollection = MongoManager.getInstance().getCollection("users");
     }
 
-    public static GeneralUserManagerDB getInstance() {
+    public static GeneralUserDBManager getInstance() {
         if (userManager == null)
-            userManager = new GeneralUserManagerDB();
+            userManager = new GeneralUserDBManager();
         return userManager;
     }
 
@@ -52,7 +50,7 @@ public class GeneralUserManagerDB {
     public Document getUser(String email, String password) {
         Document doc = null;
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(and(regex("email", "^" + email + "$", "i"),
                     eq("password", password))).first();
 
@@ -65,7 +63,7 @@ public class GeneralUserManagerDB {
     public Document getUser(String userID) {
         Document doc = null;
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(eq("_id", new ObjectId(userID))).first();
 
         } catch (Exception e) {
@@ -82,7 +80,7 @@ public class GeneralUserManagerDB {
             return true;
         Document doc = null;
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"), //eq("email", user.getEmail()),eq("username", user.getUsername())
                     and(eq("type", user.getType()),
                             regex("username", "^" + user.getUsername() + "$", "i")))).first();
@@ -95,7 +93,7 @@ public class GeneralUserManagerDB {
     public boolean registerUser(GeneralUser user) {
         if (!userExists(user)) {
             try {
-                usersCollection = mongoManager.getCollection("users");
+                MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
                 Document doc = user.isStandard() ? user.getUserDoc()
                         : ((Brewery) user).getBreweryDoc(false);
                 usersCollection.insertOne(doc);
@@ -109,7 +107,7 @@ public class GeneralUserManagerDB {
 
     public boolean updateUser(Document userDoc, String userID) {
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             UpdateResult updateResult = usersCollection.replaceOne(eq("_id", new ObjectId(userID)), userDoc);
             return updateResult.getMatchedCount() == 1;
 
@@ -121,7 +119,7 @@ public class GeneralUserManagerDB {
 
     public boolean deleteUser (GeneralUser user) {
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             DeleteResult deleteResult = usersCollection.deleteOne(eq("_id", new ObjectId(user.getUserID())));
             return deleteResult.getDeletedCount() == 1;
         } catch (Exception e) {
@@ -141,7 +139,7 @@ public class GeneralUserManagerDB {
 
         FindIterable<Document> iterable = null;
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             iterable = usersCollection.find(and(eq("type", 1),
                             regex("username", "^" + name + ".*", "i")))
                     .skip(n).limit(limit+1);
@@ -154,7 +152,7 @@ public class GeneralUserManagerDB {
 
     public boolean addBeerToBrewery(DetailedBeer beer) {
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
                     addToSet("beers", new Document("beer_id", new ObjectId(beer.getBeerID()))
                             .append("beer_name", beer.getBeerName())));
@@ -167,7 +165,7 @@ public class GeneralUserManagerDB {
 
     public boolean deleteBeerFromBrewery(DetailedBeer beer) {
         try {
-            usersCollection = mongoManager.getCollection("users");
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
             UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
                     pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
             return updateResult.getMatchedCount() == 1;

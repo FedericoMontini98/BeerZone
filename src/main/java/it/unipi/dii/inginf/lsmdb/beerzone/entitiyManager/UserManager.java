@@ -1,15 +1,15 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserManagerDB;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserDBManager;
 import org.bson.Document;
 
 public class UserManager {
     private static UserManager userManager;
-    private final GeneralUserManagerDB generalUserManagerDB;
+    private final GeneralUserDBManager generalUserManagerDB;
 
     private UserManager() {
-        generalUserManagerDB = GeneralUserManagerDB.getInstance();
+        generalUserManagerDB = GeneralUserDBManager.getInstance();
     }
 
     public static UserManager getInstance() {

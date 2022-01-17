@@ -7,6 +7,10 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -440,7 +444,7 @@ public class StandardUserGUI {
      * @param s: logged user
      */
     private static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, StandardUser s) {
-        JButton returnToBrowse = new JButton("Go Back");
+        JButton returnToBrowse = new JButton("Go To Browse");
         returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, s));
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
@@ -475,13 +479,121 @@ public class StandardUserGUI {
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
+        prepareReviewTable(frame, rjp, selBeer);
         prepareReturnToBeerButton(rjp, btnPanel, frame, selBeer, s);
         prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s, rev == null);
-        rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
+        rjp.add(btnPanel, new GridBagConstraints(0,4,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static void prepareReviewTable(JFrame frame, JPanel rjp, DetailedBeer selBeer) {
+        JPanel reviewTable = new JPanel();
+        JPanel reviewTableButtons = new JPanel();
+        JTable browseReviewTable = new JTable();
+
+        DefaultTableModel tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column){
+                return false;
+            }
+        };
+        ArrayList<Review> reviews = selBeer.getReviewList();
+        setReviewTableSettings(browseReviewTable, tableModel, reviewTableButtons);
+        //12
+        int i = 0;
+        for(Review rev: reviews) {
+            if(i > 12)
+                break;
+            i++;
+            tableModel.addRow(reviewToStringArray(rev));
+        }
+
+        browseReviewTable.setPreferredSize(new Dimension(300, 400));
+        JScrollPane jsc = new JScrollPane(browseReviewTable);
+        rjp.add(jsc, new GridBagConstraints(0,5,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(30, 0, 0, 0),0,0));
+
+        setReviewButton(reviewTableButtons, tableModel, reviews);
+        rjp.add(reviewTableButtons, new GridBagConstraints(0,6,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0,0));
+    }
+
+    private static void setReviewButton(JPanel reviewTableButtons, DefaultTableModel tableModel, ArrayList<Review> reviews) {
+        JButton leftBtn = new JButton("<");
+        JButton rightBtn = new JButton(">");
+        JTextField page = new JTextField("1");
+
+        reviewTableButtons.add(leftBtn, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        reviewTableButtons.add(page, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        reviewTableButtons.add(rightBtn, new GridBagConstraints(2,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
+        leftBtn.setEnabled(false);
+        rightBtn.setEnabled(reviews.size() > 12);
+
+        leftBtn.addActionListener(e->{
+
+        });
+
+        rightBtn.addActionListener(e->{
+
+        });
+    }
+
+    private static void setReviewTableSettings(JTable browseReviewTable, DefaultTableModel tableModel, JPanel reviewTableButtons) {
+        tableModel.addColumn("Username");
+        tableModel.addColumn("Review Date");
+        tableModel.addColumn("Look");
+        tableModel.addColumn("Smell");
+        tableModel.addColumn("Taste");
+        tableModel.addColumn("Feel");
+        tableModel.addColumn("Overall");
+        tableModel.addColumn("Score");
+
+        browseReviewTable.setModel(tableModel);
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+        browseReviewTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
+
+        browseReviewTable.setModel(tableModel);
+
+        browseReviewTable.getColumnModel().getColumn(0).setPreferredWidth(87);
+        browseReviewTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+        browseReviewTable.getColumnModel().getColumn(2).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(3).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(4).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(5).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(6).setPreferredWidth(13);
+        browseReviewTable.getColumnModel().getColumn(7).setPreferredWidth(10);
+
+
+        browseReviewTable.setRowHeight(30);
+    }
+
+    private static String[] reviewToStringArray(Review rev) {
+        String[] reviewInfo = new String[8];
+        reviewInfo[0] = rev.getUsername();
+        reviewInfo[1] = rev.getReviewDate();
+        reviewInfo[2] = rev.getLook();
+        reviewInfo[3] = rev.getSmell();
+        reviewInfo[4] = rev.getTaste();
+        reviewInfo[5] = rev.getFeel();
+        reviewInfo[6] = rev.getOverall();
+        reviewInfo[7] = rev.getScore();
+        return reviewInfo;
     }
 
     /**
@@ -494,7 +606,7 @@ public class StandardUserGUI {
      * @param s: logged user
      */
     private static void prepareReturnToBeerButton(JPanel rjp, JPanel btnPanel, JFrame frame, DetailedBeer selBeer, StandardUser s) {
-        JButton returnToBeer = new JButton("Go Back");
+        JButton returnToBeer = new JButton("Go To Beer");
         returnToBeer.setFont(new Font("Arial", Font.PLAIN, 16));
         returnToBeer.addActionListener(e -> BeerZoneGUI.createBeerPage(rjp, frame, selBeer, s));
 
@@ -563,7 +675,7 @@ public class StandardUserGUI {
         createBeerReviewFields("Feel", votesPanel, 1, 1, reviewAvg, spinners);
         createBeerReviewFields("Overall", votesPanel, 2, 0, reviewAvg, spinners);
 
-        rjp.add(votesPanel, new GridBagConstraints(0,1,2,1,0,0,
+        rjp.add(votesPanel, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),20, 20));
     }
 
@@ -574,20 +686,27 @@ public class StandardUserGUI {
      * @param rjp: JPanel that contains the review page
      */
     private static void prepareAverageSection(JTextField reviewAvg, JPanel rjp) {
-        reviewAvg.setEditable(false);
-        reviewAvg.setHorizontalAlignment(JTextField.CENTER);
-        reviewAvg.setFont(new Font("Arial", Font.BOLD, 15));
-        rjp.add(reviewAvg, new GridBagConstraints(1,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 10, 80),40, 5));
+        JPanel avgContainer = new JPanel();
+        avgContainer.setBorder(createEmptyBorder());
+        avgContainer.setBackground(BACKGROUND_COLOR);
 
         JTextField description = new JTextField("Average review score");
         description.setFont(new Font("Arial", Font.BOLD, 18));
         description.setEditable(false);
         description.setBorder(createEmptyBorder());
         description.setBackground(BACKGROUND_COLOR);
-        rjp.add(description, new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 80, 10, 0),40, 5));
+        avgContainer.add(description, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 80, 0, 0),40, 5));
 
+        reviewAvg.setEditable(false);
+        reviewAvg.setHorizontalAlignment(JTextField.CENTER);
+        reviewAvg.setFont(new Font("Arial", Font.BOLD, 15));
+        avgContainer.add(reviewAvg, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 80),40, 5));
+
+
+        rjp.add(avgContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 10, 0),0, 0));
     }
 
     /**

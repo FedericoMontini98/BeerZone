@@ -37,9 +37,9 @@ public class BreweryManagerGUI {
     private static final Integer RECIPE_SECTION_OG = 10;
     private static final Integer RECIPE_SECTION_OTHER = 11;
     private static final Integer RECIPE_SECTION_PHMASH = 12;
-    private static final Integer RECIPE_SECTION_URL = 12;
-    private static final Integer RECIPE_SECTION_YEAST = 14;
-    private static final Integer RECIPE_RECTION_RETIRED  = 15;
+    private static final Integer RECIPE_RECTION_RETIRED  = 13;
+    private static final Integer RECIPE_SECTION_URL = 14;
+    private static final Integer RECIPE_SECTION_YEAST = 15;
 
 
     /**
@@ -108,6 +108,7 @@ public class BreweryManagerGUI {
             recipeTexts[recipeCB[0].getSelectedIndex()] = inputRecipe[0].getText();
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
+            boolean retiredCorrect = (recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("Yes") || recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("No"));
             if(!recipeCorrect){
                 errorMsg.setText("OG - FG - IBU - COLOR - PHMASH -ABV must be numbers");
                 errorMsg.setBackground(BACKGROUND_COLOR);
@@ -119,18 +120,31 @@ public class BreweryManagerGUI {
                 frame.setVisible(true);
             }
             else{
-                containerPanel.remove(errorMsg);
-                frame.repaint();
-                frame.setVisible(true);
-                if(infoCorrect){
-                    errorMsg.setText("Beer Correctly Added");
-                    errorMsg.setForeground(new Color(0, 59, 16));
-                    DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
-                                                        recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES], recipeTexts[RECIPE_SECTION_URL], recipeTexts[RECIPE_RECTION_RETIRED],
-                                                        recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
-                                                        recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
-                                                        recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                    BreweryManager.getInstance().addNewBeerToBrewery(b,db);
+                if(!retiredCorrect){
+                    errorMsg.setText("Retired field must be 'Yes' or 'No'");
+                    containerPanel.remove(errorMsg);
+                    errorMsg.setForeground(Color.RED);
+                    errorMsg.setBackground(BACKGROUND_COLOR);
+                    errorMsg.setBorder(createEmptyBorder());
+                    containerPanel.add(errorMsg, new GridBagConstraints(0,6,2,1,0,0,
+                            GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
+                    frame.repaint();
+                    frame.setVisible(true);
+                }
+                else{
+                    containerPanel.remove(errorMsg);
+                    frame.repaint();
+                    frame.setVisible(true);
+                    if(infoCorrect) {
+                        errorMsg.setText("Beer Correctly Added");
+                        errorMsg.setForeground(new Color(0, 59, 16));
+                        DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
+                                recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES], recipeTexts[RECIPE_SECTION_URL], recipeTexts[RECIPE_RECTION_RETIRED],
+                                recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
+                                recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
+                                recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
+                        BreweryManager.getInstance().addNewBeerToBrewery(b, db);
+                    }
                 }
             }
         });
@@ -447,7 +461,7 @@ public class BreweryManagerGUI {
      * @param user: logged user
      */
     public static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, GeneralUser user) {
-        JButton returnToBrowse = new JButton("Go Back");
+        JButton returnToBrowse = new JButton("Go To Browse");
         Brewery b = (Brewery)user;
         returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, b));
 
@@ -530,7 +544,10 @@ public class BreweryManagerGUI {
         deleteBrewery.setBackground(Color.RED);
         deleteBrewery.setPreferredSize(new Dimension(200, 40));
         deleteBrewery.setForeground(Color.WHITE);
-        deleteBrewery.addActionListener(e-> BreweryManager.getInstance().deleteBrewery(b));
+        deleteBrewery.addActionListener(e-> {
+            BreweryManager.getInstance().deleteBrewery(b);
+            BeerZoneGUI.prepareLogRegister(frame);
+        });
         if(su == null && editable) {
             containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));

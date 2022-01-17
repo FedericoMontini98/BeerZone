@@ -12,15 +12,9 @@ public abstract class GeneralUser {
     protected String location;
     protected int type; // 0: standard user, 1: brewery
 
-    public GeneralUser() {}
-
-    public GeneralUser(String email, String username, String password, String location, int type) {
-        this(null, email, username, password, location, type);
-    }
-
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
         this.userID = id != null ? id : new ObjectId().toString();
-        this.email = email;
+        this.email = email.toLowerCase();
         this.username = username;
         this.password = password;
         this.location = location;
@@ -30,7 +24,7 @@ public abstract class GeneralUser {
     public GeneralUser(Document user) {
         this.userID = user.getObjectId("_id").toString();
         this.username = user.getString("username");
-        this.email = user.getString("email");
+        this.email = user.getString("email").toLowerCase();
         this.password = user.getString("password");
         this.location = user.getString("location");
         this.type = user.getInteger("type");
@@ -69,6 +63,10 @@ public abstract class GeneralUser {
         this.username = username;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public void setLocation(String location) {
         this.location = location;
     }
@@ -89,8 +87,4 @@ public abstract class GeneralUser {
                 .append("location", location)
                 .append("type", type);
     }
-
-    /*public boolean checkPassword(String pwd) {
-        return password.equals(pwd);
-    }*/
 }

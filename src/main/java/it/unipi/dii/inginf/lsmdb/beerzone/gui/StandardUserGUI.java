@@ -528,7 +528,7 @@ public class StandardUserGUI {
                     values[i] = (Double) spinners[i].getValue();
 
                 Date reviewDate = new Date();
-                Review rev = new Review(selBeer.getBeerID(), s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
+                Review rev = new Review(s.getUsername(), reviewDate, values[0].toString(), values[1].toString(), values[2].toString(),
                         values[3].toString(), values[4].toString(), Double.toString(avg));
                 ReviewManager.getInstance().addNewReview(rev, selBeer);
             }

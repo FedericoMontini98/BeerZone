@@ -1,13 +1,8 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.managerDB;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
-
-import static org.neo4j.driver.Values.parameters;
 
 public class Neo4jManager implements AutoCloseable{
     private static Neo4jManager neoInstance = null;

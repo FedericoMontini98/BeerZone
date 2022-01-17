@@ -6,8 +6,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 
 public class Review {
-    //private String reviewID;
-    private String beerID;
+    //private String beerID;
     private String username;
     private Date reviewDate;
     private double look;
@@ -17,16 +16,10 @@ public class Review {
     private double overall;
     private double score;
 
-    public Review(){}
 
-    public Review(String beerID, String username) {
-        this.beerID = beerID;
-        this.username = username;
-    }
-
-    public Review(String beerID, String username, Date reviewDate, String look, String smell,
+    public Review(String username, Date reviewDate, String look, String smell,
                   String taste, String feel, String overall, String score) {
-        this.beerID = beerID;
+        //this.beerID = beerID;
         this.username = username;
         this.reviewDate = reviewDate;
         this.look = Double.parseDouble(look);
@@ -34,14 +27,12 @@ public class Review {
         this.taste = Double.parseDouble(taste);
         this.feel = Double.parseDouble(feel);
         this.overall = Double.parseDouble(overall);
-        //this.reviewID = new ObjectId().toString();
         this.score = Double.parseDouble(score);
         //computeScore();
     }
 
     public Review(Document review) {
-        this(review.get("beer_id") != null ? review.getObjectId("beer_id").toString() : "--",
-                review.get("username") != null ? review.getString("username") : "--",
+        this(review.get("username") != null ? review.getString("username") : "--",
                 review.get("date") != null ? review.getDate("date") : new Date(),
                 review.get("look") != null ? review.get("look").toString() : "0",
                 review.get("smell") != null ? review.get("smell").toString() : "0",
@@ -49,18 +40,8 @@ public class Review {
                 review.get("feel") != null ? review.get("feel").toString() : "0",
                 review.get("overall") != null ? review.get("overall").toString() : "0",
                 review.get("score") != null ? review.get("score").toString() : "0");
-        //this.reviewID = review.getObjectId("_id").toString();
-        //this.score = review.get("score") != null ? Double.parseDouble(review.get("score").toString()) : 0;
     }
 
-    /*public String getReviewID() {
-        return reviewID;
-    }
-     */
-
-    public String getBeerID() {
-        return beerID;
-    }
 
     public String getUsername() {
         return username;
@@ -98,8 +79,8 @@ public class Review {
         return String.valueOf(score);
     }
 
-    public void setBeerID(String beerID) {
-        this.beerID = beerID;
+    public double getNumericScore() {
+        return score;
     }
 
     public void setUsername(String username) {
@@ -137,20 +118,9 @@ public class Review {
     protected void computeScore() {
         score = (double) (Math.round(((look + smell + taste + feel + overall) / 5) * 100)) / 100;
     }
+
     public Document getReviewDoc() {
         return new Document("username", username)
-                .append("date", reviewDate)
-                .append("look", look)
-                .append("smell", smell)
-                .append("taste", taste)
-                .append("feel", feel)
-                .append("overall", overall)
-                .append("score", score);
-    }
-
-    public Document getReview() {
-        return new Document("beer_id", new ObjectId(beerID))
-                .append("username", username)
                 .append("date", reviewDate)
                 .append("look", look)
                 .append("smell", smell)

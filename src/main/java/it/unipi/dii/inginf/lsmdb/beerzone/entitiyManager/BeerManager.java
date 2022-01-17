@@ -3,17 +3,17 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 import com.mongodb.client.FindIterable;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.BeerManagerDB;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.BeerDBManager;
 import org.bson.Document;
 
 import java.util.*;
 
 public class BeerManager {
     private static BeerManager beerManager;
-    private final BeerManagerDB beerManagerDB;
+    private final BeerDBManager beerManagerDB;
 
     private BeerManager(){
-        beerManagerDB = BeerManagerDB.getInstance();
+        beerManagerDB = BeerDBManager.getInstance();
     }
 
     public static BeerManager getInstance() {
@@ -110,21 +110,27 @@ public class BeerManager {
 
     protected double getBreweryScore(String breweryID) {
         Document doc = beerManagerDB.getBreweryScore(breweryID);
-
         if (doc != null)
             return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
 
         return -1;
     }
 
-    protected double getWeightedBreweryScore(String breweryID) {
-        Document doc = beerManagerDB.getWeightedBreweryScore(breweryID);
-
-        if (doc != null) {
-            return doc.get("brewery_score") != null ? Double.parseDouble(doc.get("brewery_score").toString()) : -1;
+    public ArrayList<Style> getTopStyleScore() {
+        ArrayList<Style> topStyles = new ArrayList<>();
+        for (Document doc: beerManagerDB.getTopStyleScore()) {
+            if (doc != null) {
+                if (doc.get("_id") != null ) {
+                    String style = doc.getString("_id");
+                    double score = doc.get("style_score") != null ? Double.parseDouble(doc.get("style_score").toString()) : -1;
+                    topStyles.add(new Style(style, score));
+                    //System.out.println(style + ": " + score);
+                }
+            }
         }
-        return -1;
+        return topStyles;
     }
+
 
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */

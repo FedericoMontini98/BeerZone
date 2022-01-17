@@ -1,21 +1,19 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
-import com.mongodb.client.MongoCollection;
 import com.mongodb.lang.Nullable;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
-import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserManagerDB;
-import it.unipi.dii.inginf.lsmdb.beerzone.managerDB.MongoManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserDBManager;
 import org.bson.Document;
 
 import java.util.ArrayList;
 
 public class BreweryManager {
     private static BreweryManager breweryManager;
-    private final GeneralUserManagerDB generalUserManagerDB;
+    private final GeneralUserDBManager generalUserManagerDB;
 
     private BreweryManager() {
-        generalUserManagerDB = GeneralUserManagerDB.getInstance();
+        generalUserManagerDB = GeneralUserDBManager.getInstance();
     }
 
     public static BreweryManager getInstance() {
@@ -47,15 +45,6 @@ public class BreweryManager {
     public double getBreweryScore(String breweryID) {
         try {
             return BeerManager.getInstance().getBreweryScore(breweryID);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    public double getWeightedBreweryScore(String breweryID) {
-        try {
-            return BeerManager.getInstance().getWeightedBreweryScore(breweryID);
         } catch (Exception e) {
             e.printStackTrace();
         }

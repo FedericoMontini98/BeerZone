@@ -171,10 +171,10 @@ public class BeerDBManager {
             String pattern = "^" + username + "$";
             String optionsRegEx = "i";
             UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
-                    Collections.singletonList(eq("reviews.username", username.toLowerCase())));//regex("item.username", pattern, optionsRegEx)));
+                    Collections.singletonList(eq("item.username", username)));//regex("item.username", pattern, optionsRegEx)));
+            //regex("reviews.username", pattern, optionsRegEx),
             UpdateResult updateResult = beersCollection.updateMany(
-                    //regex("reviews.username", pattern, optionsRegEx),
-                    eq("reviews.username", username.toLowerCase()),
+                    eq("reviews.username", username),
                     set("reviews.$[item].username", "deleted_user"), updateOptions);
             //System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
             return updateResult.getMatchedCount() == updateResult.getModifiedCount();

@@ -252,16 +252,16 @@ public class DetailedBeer extends Beer {
         else
             doc.append("retired", "f");
 
-        if (!breweryID.isEmpty())
+        if (!(breweryID.isEmpty() || breweryID.equalsIgnoreCase("--")))
             doc.append("brewery_id", new ObjectId(breweryID));
-        if (!availability.isEmpty())
-            doc.append("availability", availability);
-        if (!notes.isEmpty())
-            doc.append("notes", notes);
-        if (!url.isEmpty())
-            doc.append("url", url);
-        if (!method.isEmpty())
-            doc.append("method", method);
+        if (!(availability.isEmpty() || availability.equalsIgnoreCase("--")))
+                doc.append("availability", availability);
+        if (!(notes.isEmpty() || notes.equalsIgnoreCase("--")))
+                doc.append("notes", notes);
+        if (!(url.isEmpty() || url.equalsIgnoreCase("--")))
+                doc.append("url", url);
+        if (!(method.isEmpty() || method.equalsIgnoreCase("--")))
+                doc.append("method", method);
         if (og != -1)
             doc.append("og", og);
         if (fg != -1)
@@ -272,14 +272,14 @@ public class DetailedBeer extends Beer {
             doc.append("color", color);
         if (phMash != -1)
             doc.append("phMash", phMash);
-        if (!fermentables.isEmpty())
-            doc.append("fermentables", fermentables);
-        if (!hops.isEmpty())
-            doc.append("hops", hops);
-        if (!other.isEmpty())
-            doc.append("other", other);
-        if (!yeast.isEmpty())
-            doc.append("yeast", yeast);
+        if (!(fermentables.isEmpty() || fermentables.equalsIgnoreCase("--")))
+                doc.append("fermentables", fermentables);
+        if (!(hops.isEmpty() || hops.equalsIgnoreCase("--")))
+                doc.append("hops", hops);
+        if (!(other.isEmpty() || other.equalsIgnoreCase("--")))
+                doc.append("other", other);
+        if (!(yeast.isEmpty() || yeast.equalsIgnoreCase("--")))
+                doc.append("yeast", yeast);
         if (!reviews.isEmpty())
             doc.append("reviews", getReviewListDoc());
         return doc;

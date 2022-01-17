@@ -264,6 +264,15 @@ public class BreweryManagerGUI {
 
         JButton breweryStatsBtn = new JButton("Compute brewery score");
         prepareBreweryStatsBtn(breweryStatsBtn, containerPanel, responseField, b);
+        breweryStatsBtn.addActionListener(e ->{
+            double BreweryScore= BreweryManager.getInstance().getBreweryScore(b.getUserID());
+            if(BreweryScore!=-1)
+                responseField.setText("Brewery Score: " + BreweryScore);
+            else
+                responseField.setText("There are no review to compute a score!");
+            frame.repaint();
+            frame.setVisible(true);
+        });
 
         JTable breweryStatsTable = new JTable(data, colHeader);
         prepareBreweryStatsTable(breweryStatsTable, containerPanel);

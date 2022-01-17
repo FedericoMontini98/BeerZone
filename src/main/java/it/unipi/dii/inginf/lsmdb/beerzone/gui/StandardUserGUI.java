@@ -7,10 +7,8 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -344,6 +342,19 @@ public class StandardUserGUI {
         });
         beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+    }
+
+    private static void createStylePreview(JPanel stylePreviewContainer, Style style, JPanel rjp, JFrame frame, StandardUser s) {
+        JTextPane styleName = new JTextPane();
+        styleName.setEditable(false);
+        styleName.setText(style.getName());
+        styleName.setPreferredSize(new Dimension(150, 40));
+        stylePreviewContainer.add(styleName, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+        StyledDocument doc = styleName.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
     }
 
     /**
@@ -764,7 +775,7 @@ public class StandardUserGUI {
      */
     private static void browseTrending(JPanel rjp, JFrame frame, StandardUser s) {
         rjp.removeAll();
-        JButton[] btnArray = new JButton[3];
+        JButton[] btnArray = new JButton[4];
         btnArray[0] = new JButton("Browse most favorite beers of the month");
         btnArray[0].addActionListener(e -> BrowseMostFavoriteMonthly(rjp, frame, s));
 
@@ -773,6 +784,9 @@ public class StandardUserGUI {
 
         btnArray[2] = new JButton("Browse highest scored beers of the month");
         btnArray[2].addActionListener(e -> browseHighestAvgScoreMonthly(rjp, frame, s));
+
+        btnArray[3] = new JButton("See trending styles");
+        btnArray[3].addActionListener(e -> browseTrendingStyles(rjp, frame, s));
 
         setRightStandardUserButton(btnArray, rjp);
 
@@ -784,6 +798,27 @@ public class StandardUserGUI {
 
     }
 
+    /**
+     * @param rjp JPanel containing the Trending page
+     * @param frame frame used by the application
+     * @param s user that logged in
+     */
+    private static void browseTrendingStyles(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<Style> bestStyles;
+        bestStyles = BeerManager.getInstance().getTopStyleScore();
+        rjp.removeAll();
+        JPanel styleContainer = new JPanel(new GridBagLayout());
+        styleContainer.setBackground(BACKGROUND_COLOR);
+        createBestStyleSection(bestStyles, styleContainer, rjp, frame, s);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /**
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
     private static void browseHighestAvgScoreMonthly(JPanel rjp, JFrame frame, StandardUser s) {
         ArrayList<Beer> bestBeers;
         bestBeers=BeerManager.getInstance().getHighestAvgScoreBeers();
@@ -826,6 +861,39 @@ public class StandardUserGUI {
         frame.setVisible(true);
     }
 
+
+    /**
+     * @param bestStyles List of styles to show
+     * @param styleContainer Container of the style entity in gui
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
+    private static void createBestStyleSection(ArrayList<Style> bestStyles, JPanel styleContainer, JPanel rjp, JFrame frame, StandardUser s) {
+        styleContainer.removeAll();
+        //Empty trending section
+        if(bestStyles.size() == 0){
+            JTextField err = new JTextField("Not enough reviews to show something here! Try again later.");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            styleContainer.add(err);
+            rjp.add(styleContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        //print Results found
+        for(int j=0; j<bestStyles.size();j++){
+            JTextField position = new JTextField((j+1)+"° with score: " + bestStyles.get(j).getScore()+"/5");
+            JPanel stylePreviewContainer = new JPanel(new GridBagLayout());
+            prepareStylePreviewContainer(position, stylePreviewContainer, j, styleContainer);
+            createStylePreview(stylePreviewContainer, bestStyles.get(j), rjp, frame, s);
+        }
+        rjp.add(styleContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
     private static void createBestBeersSection(ArrayList<Beer> bestBeers, JPanel beerContainer, JPanel rjp,JFrame frame, StandardUser s){
         beerContainer.removeAll();
         //Empty trending section
@@ -842,7 +910,7 @@ public class StandardUserGUI {
         for(int j=0; j<bestBeers.size();j++){
             JTextField position = new JTextField((j+1)+"° with score: " + bestBeers.get(j).getScore()+"/5");
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, new FavoriteBeer(bestBeers.get(j),null), rjp, frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
@@ -851,7 +919,7 @@ public class StandardUserGUI {
         frame.setVisible(true);
     }
 
-    private static void prepareBeerPreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
+    private static void preparePreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
         position.setBackground(BACKGROUND_COLOR_LIGHT);
         position.setBorder(createEmptyBorder());
         beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
@@ -860,6 +928,18 @@ public class StandardUserGUI {
         beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         beerContainer.add(beerPreviewContainer, new GridBagConstraints(j%2, j/2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+    }
+
+    private static void prepareStylePreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
+        position.setBackground(BACKGROUND_COLOR_LIGHT);
+        position.setBorder(createEmptyBorder());
+        beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
+        beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        beerContainer.add(beerPreviewContainer, new GridBagConstraints(0, j,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
     }
 
@@ -885,7 +965,7 @@ public class StandardUserGUI {
         for(int j=0; j<reviewedBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, reviewedBeers.get(j));
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
@@ -917,7 +997,7 @@ public class StandardUserGUI {
         for(int j=0; j<trendingBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, trendingBeers.get(j), rjp, frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
@@ -936,6 +1016,8 @@ public class StandardUserGUI {
         rjp.add(btnArray[1], new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
         rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
+        rjp.add(btnArray[3], new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
     }
 }

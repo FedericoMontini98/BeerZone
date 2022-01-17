@@ -501,7 +501,7 @@ public class BeerDBManager {
     public void removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
-                            "DELETE B;",
+                            "DETACH DELETE B;",
                     parameters( "ID", beer.getBeerID()));
         }
         catch(Exception e){
@@ -520,7 +520,6 @@ public class BeerDBManager {
             //Check if user exists
             UserManager.getInstance().addStandardUser(review.getUsername());
             //Check if beer exists
-            System.out.println(beer.getBeerName());
             this.addBeer(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");

@@ -71,7 +71,7 @@ public class ReviewManager {
                 }
                 else {
                     if (num_rating <= 1) {
-                        newRating = 0;
+                        newRating = -1;
                         num_rating = 0;
                     }
                     else

@@ -20,7 +20,7 @@ public class Review {
     public Review(String username, Date reviewDate, String look, String smell,
                   String taste, String feel, String overall, String score) {
         //this.beerID = beerID;
-        this.username = username;
+        this.username = username.toLowerCase();
         this.reviewDate = reviewDate;
         this.look = Double.parseDouble(look);
         this.smell = Double.parseDouble(smell);

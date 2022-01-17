@@ -81,7 +81,7 @@ public class GeneralUserDBManager {
         Document doc = null;
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
-            doc = usersCollection.find(or(regex("email", "^" + user.getEmail() + "$", "i"),
+            doc = usersCollection.find(or(eq("email", user.getEmail().toLowerCase()),
                     and(eq("type", 0),
                             regex("username", "^" + user.getUsername() + "$", "i")))).first();
         } catch (Exception e) {

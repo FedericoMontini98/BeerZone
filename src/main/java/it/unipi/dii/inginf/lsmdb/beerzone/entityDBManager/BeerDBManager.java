@@ -171,9 +171,10 @@ public class BeerDBManager {
             String pattern = "^" + username + "$";
             String optionsRegEx = "i";
             UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
-                    Collections.singletonList(regex("item.username", pattern, optionsRegEx)));
+                    Collections.singletonList(eq("reviews.username", username.toLowerCase())));//regex("item.username", pattern, optionsRegEx)));
             UpdateResult updateResult = beersCollection.updateMany(
-                    regex("reviews.username", pattern, optionsRegEx),
+                    //regex("reviews.username", pattern, optionsRegEx),
+                    eq("reviews.username", username.toLowerCase()),
                     set("reviews.$[item].username", "deleted_user"), updateOptions);
             //System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
             return updateResult.getMatchedCount() == updateResult.getModifiedCount();
@@ -264,7 +265,7 @@ public class BeerDBManager {
                             .append("style", "$style")
                             .append("abv", "$abv")
                             .append("rating", "$rating"))
-                    .append("feature_score", new Document("$avg", "$reviews."+ feature)));
+                    .append("feature_score", new Document("$avg", "$reviews."+ feature.toLowerCase())));
             Bson projectRoundScore = project(new Document("feature_score",
                     new Document("$round", Arrays.asList("$feature_score", 2))));
             Bson matchBreweryScore = match(lt("feature_score", breweryScore));
@@ -287,7 +288,8 @@ public class BeerDBManager {
         Document doc = null;
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
-            Bson matchBrewery = match(and(eq("brewery_id", new ObjectId(breweryID)),gt("num_rating",0)));
+            Bson matchBrewery = match(and(eq("brewery_id", new ObjectId(breweryID)),
+                    gt("num_rating", 0)));
             Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
             Bson projectResult = project(new Document("brewery_score",
                     new Document("$round", Arrays.asList("$avg_score", 2))));

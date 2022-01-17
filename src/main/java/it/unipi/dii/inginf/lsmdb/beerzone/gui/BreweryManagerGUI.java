@@ -9,9 +9,11 @@ import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -253,8 +255,8 @@ public class BreweryManagerGUI {
      */
     private static void generateBreweryStatisticsMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
-        Object[][] data = {{"Look", "--"}, {"Smell", "--"}, {"Taste", "--"}, {"Feel", "--"}};
-        String[] colHeader = {"Feature", "Score"};
+        String[] colHeader = {"Beer"};
+        String [][] data={};
 
         JTextField breweryStatsTitle = new JTextField(b.getUsername());
         prepareBreweryStatsTitle(breweryStatsTitle, containerPanel);
@@ -277,8 +279,28 @@ public class BreweryManagerGUI {
         JTable breweryStatsTable = new JTable(data, colHeader);
         prepareBreweryStatsTable(breweryStatsTable, containerPanel);
 
+        JComboBox<String>[] featureSelection = new JComboBox[1];
+        String[] choices = {"Look", "Smell", "Taste", "Feel", "Overall"};
+        featureSelection[0] = new JComboBox<>(choices);
+        featureSelection[0].setVisible(true);
+        JComboBox<String> finalfeatureSelection=featureSelection[0];
+        int[] index = new int[1];
+        featureSelection[0].addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                index[0] = finalfeatureSelection.getSelectedIndex();
+                finalfeatureSelection.setForeground(Color.BLACK);
+            }
+        });
+        containerPanel.add(featureSelection[0],new GridBagConstraints(0, 2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+
         breweryStatsBtn = new JButton("Compute average score for features");
         setBreweryStatsBtn(breweryStatsBtn, breweryStatsTable, containerPanel, b);
+
+        breweryStatsBtn.addActionListener((e->{
+            String feature=choices[finalfeatureSelection.getSelectedIndex()];
+            ArrayList<Beer> beers=BeerManager.getInstance().getBeersUnderAvgFeatureScore(b,feature);
+        }));
 
         frame.repaint();
         frame.setVisible(true);
@@ -375,7 +397,7 @@ public class BreweryManagerGUI {
             breweryStatsTable.getModel().setValueAt(votes[4],4,1);*/
         });
 
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,2,2,1,0,0,
+        containerPanel.add(breweryStatsBtn, new GridBagConstraints(1,2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),0,0));
     }
 

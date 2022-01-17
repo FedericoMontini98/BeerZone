@@ -287,7 +287,7 @@ public class BeerDBManager {
         Document doc = null;
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
-            Bson matchBrewery = match(eq("brewery_id", new ObjectId(breweryID)));
+            Bson matchBrewery = match(and(eq("brewery_id", new ObjectId(breweryID)),gt("num_rating",0)));
             Bson groupBrewery = group("$brewery_id", avg("avg_score", "$rating"));
             Bson projectResult = project(new Document("brewery_score",
                     new Document("$round", Arrays.asList("$avg_score", 2))));

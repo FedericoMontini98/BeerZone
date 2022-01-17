@@ -14,8 +14,8 @@ public abstract class GeneralUser {
 
     public GeneralUser(@Nullable String id, String email, String username, String password, String location, int type) {
         this.userID = id != null ? id : new ObjectId().toString();
-        this.email = email;
-        this.username = username.toLowerCase();
+        this.email = email.toLowerCase();
+        this.username = username;
         this.password = password;
         this.location = location;
         this.type = type;

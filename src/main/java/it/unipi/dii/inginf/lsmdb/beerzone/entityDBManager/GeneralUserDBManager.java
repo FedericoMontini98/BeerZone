@@ -238,7 +238,7 @@ public class GeneralUserDBManager {
     /* Function used to remove a user and all its relationships from Neo4J graph DB */
     public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U {Username: $username})\n" +
+            session.run("MATCH (U:User{Username: $username})\n" +
                             "DETACH DELETE U",
                     parameters( "username", username));
             return true;

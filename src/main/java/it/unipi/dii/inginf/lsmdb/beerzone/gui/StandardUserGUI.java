@@ -461,7 +461,6 @@ public class StandardUserGUI {
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0, 0));
     }
-
     /**
      * function that creates the section that allows the user to review a beer
      *

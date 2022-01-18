@@ -361,17 +361,17 @@ public class BeerDBManager {
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */
     public boolean addBeer(Beer beer){
-        try(Session session = NeoDBMS.getDriver().session()){
+        try(Session session = NeoDBMS.getDriver().session()) {
             //I First have to see if the style node for this beer is already in the graph
-            session.run("MERGE (S:Style{nameStyle: $Style})\n" +
-                    "ON CREATE\n" +
-                    "SET S.nameStyle= $Style",parameters("Style",beer.getStyle()));
+            session.run("MERGE (S:Style{nameStyle: $Style})", parameters("Style", beer.getStyle()));
             //I then create the node for the new beer
             session.run("MERGE (B:Beer{ID: $BeerID, Name:$name})",
-                    parameters("BeerID",beer.getBeerID(),"name", beer.getBeerName()));
+                    parameters("BeerID", beer.getBeerID(), "name", beer.getBeerName()));
             //I create the relationship between the style node and the beer node
-            session.run("MERGE (B:Beer{ID: $BeerID})-[Ss:SameStyle]-(S:Style{nameStyle:$style})",
-                    parameters( "BeerID", beer.getBeerID(), "style", beer.getStyle()));
+            session.run("MATCH (B:Beer{ID: $BeerID}),\n" +
+                            "(S:Style{nameStyle:$style})\n" +
+                            "MERGE (B)-[Ss:SameStyle]->(S)",
+                    parameters( "BeerID", beer.getBeerID(),"BeerName",beer.getBeerName(), "style", beer.getStyle()));
             return true;
         }
         catch(Exception e){

@@ -280,10 +280,10 @@ public class BreweryManagerGUI {
         prepareBreweryStatsTitle(breweryStatsTitle, containerPanel);
 
         JTextField responseField = new JTextField("Not yet computed");
-        prepareResponseField(responseField, containerPanel);
 
         JButton breweryStatsBtn = new JButton("Compute brewery score");
         prepareBreweryStatsBtn(breweryStatsBtn, containerPanel);
+        prepareResponseField(responseField, breweryStatsBtn, containerPanel);
         breweryStatsBtn.addActionListener(e ->{
             double BreweryScore= BreweryManager.getInstance().getBreweryScore(b.getUserID());
             if(BreweryScore!=-1)
@@ -307,11 +307,13 @@ public class BreweryManagerGUI {
                 finalfeatureSelection.setForeground(Color.BLACK);
             }
         });
-        containerPanel.add(featureSelection[0],new GridBagConstraints(0, 2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+        JPanel featurePanel = new JPanel();
+        featurePanel.add(featureSelection[0], new GridBagConstraints(0, 0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         breweryStatsBtn = new JButton("find beers under average score by feature");
-        setBreweryStatsBtn(breweryStatsBtn, containerPanel);
+        breweryStatsBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        setBreweryStatsBtn(breweryStatsBtn, containerPanel, featurePanel);
 
         breweryStatsBtn.addActionListener((e->{
             String feature=choices[finalfeatureSelection.getSelectedIndex()];
@@ -379,11 +381,19 @@ public class BreweryManagerGUI {
      * @param responseField: JTextField where the average score of the brewery will be written
      * @param containerPanel: panel containing the "brewery statistics" section
      */
-    private static void prepareResponseField(JTextField responseField, JPanel containerPanel) {
+    private static void prepareResponseField(JTextField responseField, JButton breweryStatsBtn, JPanel containerPanel) {
+        JPanel breweryStats = new JPanel(new GridBagLayout());
+        breweryStats.setBackground(BACKGROUND_COLOR);
+        breweryStats.setBorder(createEmptyBorder());
         responseField.setHorizontalAlignment(JTextField.CENTER);
         responseField.setBackground(BACKGROUND_COLOR);
         responseField.setBorder(createEmptyBorder());
-        containerPanel.add(responseField, new GridBagConstraints(1,1,1,1,0,0,
+        responseField.setFont(new Font("Arial", Font.BOLD, 14));
+        breweryStatsBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        breweryStats.add(breweryStatsBtn, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 20),0,0));
+        breweryStats.add(responseField);
+        containerPanel.add(breweryStats, new GridBagConstraints(0,1,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
     }
 
@@ -394,8 +404,6 @@ public class BreweryManagerGUI {
      * @param containerPanel: panel containing the "brewery statistics" section
      */
     private static void prepareBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel) {
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
     }
 
     /**
@@ -416,7 +424,7 @@ public class BreweryManagerGUI {
         String[] col1 = {"--", "--", "--", "--", "--", "--", "--", "--"};
         tableModel.addColumn("Beer", col0);
         tableModel.addColumn("BeerID",col1);
-        breweryStatsTable.setRowHeight(15);
+        breweryStatsTable.setRowHeight(25);
         breweryStatsTable.setModel(tableModel);
         TableColumnModel tcm = breweryStatsTable.getColumnModel();
         tcm.removeColumn(tcm.getColumn(1));
@@ -425,7 +433,7 @@ public class BreweryManagerGUI {
         breweryStatsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 
         JScrollPane jsc = new JScrollPane(breweryStatsTable);
-        jsc.setPreferredSize(new Dimension(450, 150));
+        jsc.setPreferredSize(new Dimension(450, 225));
         containerPanel.add(jsc, new GridBagConstraints(0,3,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
@@ -444,13 +452,16 @@ public class BreweryManagerGUI {
     }
     /**
      * function that prepares the button that allows the brewery to compute all the statistics
-     *
-     * @param breweryStatsBtn: button that allows the brewery to compute all the statistics
-     * @param containerPanel: panel containing the "brewery statistics" section
+     *  @param breweryStatsBtn : button that allows the brewery to compute all the statistics
+     * @param containerPanel : panel containing the "brewery statistics" section
      */
-    private static void setBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel) {
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(1,2,2,1,0,0,
+    private static void setBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel, JPanel featurePanel) {
+        featurePanel.add(breweryStatsBtn, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),0,0));
+        featurePanel.setBorder(createEmptyBorder());
+        featurePanel.setBackground(BACKGROUND_COLOR);
+        containerPanel.add(featurePanel ,new GridBagConstraints(0, 2,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
     }
 
     /**

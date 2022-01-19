@@ -220,7 +220,7 @@ public class BeerZoneGUI {
         else{
             Component[] c = rjp.getComponents();
             for(Component comp: c){
-                if(comp instanceof JButton && (((JButton) comp).getText().equals(">") || ((JButton) comp).getText().equals("<")))
+                if(comp instanceof JButton && ((JButton) comp).getText().equals(">"))
                     comp.setEnabled(false);
             }
         }
@@ -254,6 +254,13 @@ public class BeerZoneGUI {
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
         if(breweryToShow.size() > 12){
             breweryToShow.remove(breweryToShow.size() - 1);
+        }
+        else{
+            Component[] c = rjp.getComponents();
+            for(Component comp: c){
+                if(comp instanceof JButton && ((JButton) comp).getText().equals(">"))
+                    comp.setEnabled(false);
+            }
         }
         for (Brewery brewery : breweryToShow) tableModel.addRow(breweryToStringArray(brewery));
 

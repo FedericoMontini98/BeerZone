@@ -503,6 +503,8 @@ public class StandardUserGUI {
         JPanel reviewTable = new JPanel();
         JPanel reviewTableButtons = new JPanel();
         JTable browseReviewTable = new JTable();
+        reviewTableButtons.setBackground(BACKGROUND_COLOR);
+        reviewTableButtons.setBorder(createEmptyBorder());
 
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
@@ -536,6 +538,8 @@ public class StandardUserGUI {
         JButton rightBtn = new JButton(">");
         JTextField page = new JTextField("1");
 
+        page.setBorder(createEmptyBorder());
+        page.setBackground(BACKGROUND_COLOR);
         reviewTableButtons.add(leftBtn, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         reviewTableButtons.add(page, new GridBagConstraints(1,0,1,1,0,0,
@@ -547,12 +551,33 @@ public class StandardUserGUI {
         rightBtn.setEnabled(reviews.size() > 12);
 
         leftBtn.addActionListener(e->{
+            rightBtn.setEnabled(true);
+            int currPage = Integer.parseInt(page.getText());
+            if(currPage == 2)
+                leftBtn.setEnabled(false);
+            prepareNewTablePage(tableModel, currPage, reviews);
+            currPage--;
 
+            page.setText(String.valueOf(currPage));
         });
 
         rightBtn.addActionListener(e->{
-
+            leftBtn.setEnabled(true);
+            int currPage = Integer.parseInt(page.getText());
+            currPage++;
+            if(currPage * 12 >= reviews.size())
+                rightBtn.setEnabled(false);
+            prepareNewTablePage(tableModel, currPage, reviews);
+            page.setText(String.valueOf(currPage));
         });
+    }
+
+    private static void prepareNewTablePage(DefaultTableModel tableModel, int currPage, ArrayList<Review> reviews) {
+        int numRow = tableModel.getRowCount();
+        for(int i = 0; i < numRow; i++)
+            tableModel.removeRow(i);
+        for(int i = 0; (i < 12 || (reviews.size() < currPage * 12 + i)); i++)
+            tableModel.addRow(reviewToStringArray(reviews.get(currPage * 12 + i)));
     }
 
     private static void setReviewTableSettings(JTable browseReviewTable, DefaultTableModel tableModel, JPanel reviewTableButtons) {
@@ -706,13 +731,14 @@ public class StandardUserGUI {
         description.setBorder(createEmptyBorder());
         description.setBackground(BACKGROUND_COLOR);
         avgContainer.add(description, new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 80, 0, 0),40, 5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),40, 5));
 
         reviewAvg.setEditable(false);
         reviewAvg.setHorizontalAlignment(JTextField.CENTER);
         reviewAvg.setFont(new Font("Arial", Font.BOLD, 15));
+        reviewAvg.setPreferredSize(new Dimension(70, 30));
         avgContainer.add(reviewAvg, new GridBagConstraints(1,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 80),40, 5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),40, 5));
 
 
         rjp.add(avgContainer, new GridBagConstraints(0,0,3,1,0,0,

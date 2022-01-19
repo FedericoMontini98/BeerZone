@@ -164,7 +164,8 @@ public class StandardUserGUI {
         beerContainer.setBackground(BACKGROUND_COLOR);
         ArrayList<FavoriteBeer> list = (Objects.equals(request, SUGGESTIONS)) ? suggBeer : favBeer;
         createFavoriteSuggestionSection(list, 0, beerContainer, rjp, frame, s, request);
-        createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s, request);
+        if(Objects.equals(request, FAVORITES))
+            createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s, request);
 
         frame.repaint();
         frame.setVisible(true);

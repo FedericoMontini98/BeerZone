@@ -133,7 +133,6 @@ public class StandardUserGUI {
         });
         rjp.add(deleteUser, new GridBagConstraints(0, 2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
-
         frame.repaint();
         frame.setVisible(true);
     }
@@ -287,12 +286,12 @@ public class StandardUserGUI {
      * function that creates the single beer infos
      *
      * @param beerPreviewContainer: JPanel containing the single beer
-     * @param BeerName: beer name
+     * @param beer: beer object
      */
-    private static void createBeerPreview(JPanel beerPreviewContainer, String BeerName) {
+    private static void createBeerPreview(JPanel beerPreviewContainer, Beer beer,JPanel rjp, JFrame frame, StandardUser s){
         JTextPane beerName = new JTextPane();
         beerName.setEditable(false);
-        beerName.setText(BeerName);
+        beerName.setText(beer.getBeerName());
         beerName.setPreferredSize(new Dimension(150, 40));
         StyledDocument doc = beerName.getStyledDocument();
         SimpleAttributeSet center = new SimpleAttributeSet();
@@ -301,6 +300,14 @@ public class StandardUserGUI {
 
         beerPreviewContainer.add(beerName, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+
+        JButton goToBeer = new JButton("To Beer Page");
+        goToBeer.addActionListener(e->{
+            DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(beer.getBeerID());
+            BeerZoneGUI.createBeerPage(rjp, frame, selBeer, s);
+        });
+        beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
     }
 
     /**
@@ -779,7 +786,7 @@ public class StandardUserGUI {
         btnArray[0].addActionListener(e -> BrowseMostFavoriteMonthly(rjp, frame, s));
 
         btnArray[1] = new JButton("Browse most reviewed beers of the month");
-        btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame));
+        btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame, s));
 
         btnArray[2] = new JButton("Browse highest scored beers of the month");
         btnArray[2].addActionListener(e -> browseHighestAvgScoreMonthly(rjp, frame, s));
@@ -833,13 +840,13 @@ public class StandardUserGUI {
      * @param rjp JPanel containing the Trending page
      * @param frame frame used by the application
      */
-    private static void browseMostReviewedMonthly(JPanel rjp, JFrame frame) {
-        ArrayList<String> ReviewedBeers;
+    private static void browseMostReviewedMonthly(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<Beer> ReviewedBeers;
         ReviewedBeers=ReviewManager.getInstance().mostReviewedBeers();
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createReviewedSection(ReviewedBeers, beerContainer, rjp, frame);
+        createReviewedSection(ReviewedBeers, beerContainer, rjp, frame, s);
         frame.repaint();
         frame.setVisible(true);
     }
@@ -948,7 +955,7 @@ public class StandardUserGUI {
      * @param rjp :JPanel containing the most favorite page
      * @param frame : frame used by the application
      */
-    private static void createReviewedSection(ArrayList<String> reviewedBeers, JPanel beerContainer, JPanel rjp, JFrame frame) {
+    private static void createReviewedSection(ArrayList<Beer> reviewedBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
         beerContainer.removeAll();
         //Empty trending section
         if(reviewedBeers.size() == 0){
@@ -965,7 +972,7 @@ public class StandardUserGUI {
             JTextField position = new JTextField("#"+ (j + 1));
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
             preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
-            createBeerPreview(beerPreviewContainer, reviewedBeers.get(j));
+            createBeerPreview(beerPreviewContainer, reviewedBeers.get(j),rjp,frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));

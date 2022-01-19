@@ -555,7 +555,7 @@ public class BeerDBManager {
     }
 
     /* Function used to calculate the IDs of the most reviewed beers this month */
-    public ArrayList<String> mostReviewedBeers(){
+    public ArrayList<Beer> mostReviewedBeers(){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
             LocalDateTime MyLDTObj = LocalDateTime.now();
@@ -571,12 +571,12 @@ public class BeerDBManager {
                                 "WITH collect(B) as Rw\n" +
                                 "MATCH ()-[R1:Reviewed]->(B1:Beer)\n" +
                                 "WHERE (B1) in Rw AND R1.date>=date($starting_Date)\n" +
-                                "RETURN COUNT(DISTINCT R1) AS Conta,B1.Name AS Name ORDER BY Conta DESC LIMIT 8",
+                                "RETURN COUNT(DISTINCT R1) AS Conta,B1.Name AS Name,B1.ID AS ID ORDER BY Conta DESC LIMIT 8",
                         parameters( "starting_Date", Starting_date));
-                ArrayList<String> MostReviewed= new ArrayList<>();
+                ArrayList<Beer> MostReviewed= new ArrayList<>();
                 while (result.hasNext()) {
                     Record r = result.next();
-                    MostReviewed.add(r.get("Name").asString());
+                    MostReviewed.add(new Beer(r.get("ID").asString(),r.get("Name").asString()));
                 }
                 return MostReviewed;
             });

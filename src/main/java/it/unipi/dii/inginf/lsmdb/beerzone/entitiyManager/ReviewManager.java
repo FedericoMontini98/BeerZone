@@ -1,5 +1,6 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Review;
 import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.BeerDBManager;
@@ -109,7 +110,7 @@ public class ReviewManager {
     /* *******************************************  Neo4J Section  ************************************************/
 
     /* Function used to calculate the IDs of the most reviewed beers this month */
-    public ArrayList<String> mostReviewedBeers() {
+    public ArrayList<Beer> mostReviewedBeers() {
         return beerManagerDB.mostReviewedBeers();
     }
 

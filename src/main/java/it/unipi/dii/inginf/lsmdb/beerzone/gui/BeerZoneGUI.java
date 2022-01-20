@@ -83,7 +83,7 @@ public class BeerZoneGUI {
         searchPanel.add(beerInput, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
-        JButton submitChoice1 = new JButton("<html><center>Search<br>Beer by<br>Name</center></html>");
+        JButton submitChoice1 = new JButton("<html><center>Search<br>Beer by<br>Name or Style</center></html>");
         submitChoice1.setPreferredSize(new Dimension(120, 50));
         submitChoice1.addActionListener(e -> {
             if(!Objects.equals(tableType[0], BEER_TABLE))
@@ -217,6 +217,13 @@ public class BeerZoneGUI {
 
         if(beerToShow.size() > 12)
             beerToShow.remove(beerToShow.size() - 1);
+        else{
+            Component[] c = rjp.getComponents();
+            for(Component comp: c){
+                if(comp instanceof JButton && ((JButton) comp).getText().equals(">"))
+                    comp.setEnabled(false);
+            }
+        }
 
         for (Beer beer : beerToShow) tableModel.addRow(beerToStringArray(beer));
 
@@ -247,6 +254,13 @@ public class BeerZoneGUI {
         setTableSettings(tableModel, browseTable, rjp, frame, user, tableType);
         if(breweryToShow.size() > 12){
             breweryToShow.remove(breweryToShow.size() - 1);
+        }
+        else{
+            Component[] c = rjp.getComponents();
+            for(Component comp: c){
+                if(comp instanceof JButton && ((JButton) comp).getText().equals(">"))
+                    comp.setEnabled(false);
+            }
         }
         for (Brewery brewery : breweryToShow) tableModel.addRow(breweryToStringArray(brewery));
 
@@ -281,8 +295,8 @@ public class BeerZoneGUI {
         beerInfo[0] = b.getBeerID();
         beerInfo[1] = b.getBeerName();
         beerInfo[2] = b.getStyle();
-        beerInfo[3] = (Objects.equals(b.getAbv(), "-1.0"))?"NaN" : b.getAbv();
-        beerInfo[4] = (Objects.equals(b.getScore(), "0.0"))? "NaN" : b.getScore();
+        beerInfo[3] = (Objects.equals(b.getAbv(), "-1.0"))?"-" : b.getAbv();
+        beerInfo[4] = (Objects.equals(b.getScore(), "-1.0"))? "-" : b.getScore();
 
         return beerInfo;
     }
@@ -416,9 +430,9 @@ public class BeerZoneGUI {
         recipeTexts[10] = selBeer.getOg();
         recipeTexts[11] = selBeer.getOther();
         recipeTexts[12] = selBeer.getPhMash();
-        recipeTexts[13] = selBeer.getUrl();
-        recipeTexts[14] = selBeer.getYeast();
-        recipeTexts[15] = selBeer.getRetired();
+        recipeTexts[13] = selBeer.getRetired();
+        recipeTexts[14] = selBeer.getUrl();
+        recipeTexts[15] = selBeer.getYeast();
     }
 
     /**
@@ -587,6 +601,7 @@ public class BeerZoneGUI {
         recipeTexts[recipeCB.getSelectedIndex()] = inputArea.getText();
         boolean recipeCorrect = BreweryManagerGUI.checkRecipe(recipeTexts);
         boolean inputsCorrect = BreweryManagerGUI.checkInfo(userInputs);
+        boolean retiredCorrect = (recipeTexts[13].equalsIgnoreCase("Yes") || recipeTexts[13].equalsIgnoreCase("No"));
         if(!recipeCorrect){
             errorMsg.setText("OG - FG - IBU - COLOR - PHMASH - ABV must be numbers");
             errorMsg.setBackground(BACKGROUND_COLOR);
@@ -598,28 +613,42 @@ public class BeerZoneGUI {
             frame.setVisible(true);
         }
         else {
-            errorMsg.setText("Beer Correctly Updated");
-            errorMsg.setForeground(new Color(0, 59, 16));
-            frame.repaint();
-            frame.setVisible(true);
-            if(inputsCorrect) {
-                selBeer.setBeerName(userInputs[0].getText());
-                selBeer.setStyle(userInputs[1].getText());
-                selBeer.setAbv(recipeTexts[1]);
-                selBeer.setAvailability(recipeTexts[2]);
-                selBeer.setColor(recipeTexts[3]);
-                selBeer.setFermentables(recipeTexts[4]);
-                selBeer.setFg(recipeTexts[5]);
-                selBeer.setHops(recipeTexts[6]);
-                selBeer.setIbu(recipeTexts[7]);
-                selBeer.setMethod(recipeTexts[8]);
-                selBeer.setNotes(recipeTexts[9]);
-                selBeer.setOg(recipeTexts[10]);
-                selBeer.setOther(recipeTexts[11]);
-                selBeer.setPhMash(recipeTexts[12]);
-                selBeer.setUrl(recipeTexts[13]);
-                selBeer.setYeast(recipeTexts[14]);
-                BeerManager.getInstance().updateBeer(selBeer);
+            if(!retiredCorrect){
+                errorMsg.setText("Retired field must be 'Yes' or 'No'");
+                rjp.remove(errorMsg);
+                errorMsg.setForeground(Color.RED);
+                errorMsg.setBackground(BACKGROUND_COLOR);
+                errorMsg.setBorder(createEmptyBorder());
+                rjp.add(errorMsg, new GridBagConstraints(0,7,2,1,0,0,
+                        GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
+                frame.repaint();
+                frame.setVisible(true);
+            }
+            else {
+                errorMsg.setText("Beer Correctly Updated");
+                errorMsg.setForeground(new Color(0, 59, 16));
+                frame.repaint();
+                frame.setVisible(true);
+                if (inputsCorrect) {
+                    selBeer.setBeerName(userInputs[0].getText());
+                    selBeer.setStyle(userInputs[1].getText());
+                    selBeer.setAbv(recipeTexts[1]);
+                    selBeer.setAvailability(recipeTexts[2]);
+                    selBeer.setColor(recipeTexts[3]);
+                    selBeer.setFermentables(recipeTexts[4]);
+                    selBeer.setFg(recipeTexts[5]);
+                    selBeer.setHops(recipeTexts[6]);
+                    selBeer.setIbu(recipeTexts[7]);
+                    selBeer.setMethod(recipeTexts[8]);
+                    selBeer.setNotes(recipeTexts[9]);
+                    selBeer.setOg(recipeTexts[10]);
+                    selBeer.setOther(recipeTexts[11]);
+                    selBeer.setPhMash(recipeTexts[12]);
+                    selBeer.setRetired(recipeTexts[13]);
+                    selBeer.setUrl(recipeTexts[14]);
+                    selBeer.setYeast(recipeTexts[15]);
+                    BeerManager.getInstance().updateBeer(selBeer);
+                }
             }
         }
     }
@@ -1098,7 +1127,7 @@ public class BeerZoneGUI {
         double width = screenSize.getWidth();
         double height = screenSize.getHeight();
 
-        frame.setSize((int)(width*0.60), (int)(height*0.70));
+        frame.setSize((int)(width*0.60), (int)(height*0.75));
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
         prepareLogRegister(frame);
         frame.setVisible(true);

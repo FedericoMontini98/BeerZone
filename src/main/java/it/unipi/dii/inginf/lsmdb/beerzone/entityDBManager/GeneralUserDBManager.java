@@ -241,11 +241,11 @@ public class GeneralUserDBManager {
             BeerManager.getInstance().addBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
             //Run the query
             session.run("MATCH\n" +
-                            "  (B:Beer{ID:$BeerID}),\n" +
+                            "  (B:Beer{ID:$BeerID, Name:$name}),\n" +
                             "  (U:User{Username:$Username})\n" +
                             "MERGE (U)-[F:Favorite]->(B)\n" +
                             " ON CREATE SET F.date=date($date)",
-                    parameters("Username",Username, "BeerID", fv.getBeerID(), "date", fv.getFavoriteDate()));
+                    parameters("name",fv.getBeerName(),"Username",Username, "BeerID", fv.getBeerID(), "date", fv.getFavoriteDate()));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -258,7 +258,8 @@ public class GeneralUserDBManager {
      *  favorites */
     public boolean removeFavorite(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U:User {Username: $Username})-[F:Favorites]-(B:Beer {ID: $BeerID}) \n" +
+            System.out.println(Username + "-" +BeerID);
+            session.run("MATCH (U:User {Username: $Username})-[F:Favorite]-(B:Beer {ID: $BeerID}) \n" +
                             "DELETE F",
                     parameters( "Username", Username, "BeerID", BeerID));
             return true;
@@ -272,7 +273,7 @@ public class GeneralUserDBManager {
     /* Function used to remove a user and all its relationships from Neo4J graph DB */
     public boolean removeUser(String username){
         try(Session session = NeoDBMS.getDriver().session()){
-            session.run("MATCH (U {Username: $username})\n" +
+            session.run("MATCH (U:User{Username: $username})\n" +
                             "DETACH DELETE U",
                     parameters( "username", username));
             return true;

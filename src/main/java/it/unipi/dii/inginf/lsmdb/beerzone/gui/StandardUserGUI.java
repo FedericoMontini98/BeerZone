@@ -7,6 +7,8 @@ import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.UserManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -131,7 +133,6 @@ public class StandardUserGUI {
         });
         rjp.add(deleteUser, new GridBagConstraints(0, 2,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0),0,0));
-
         frame.repaint();
         frame.setVisible(true);
     }
@@ -163,7 +164,8 @@ public class StandardUserGUI {
         beerContainer.setBackground(BACKGROUND_COLOR);
         ArrayList<FavoriteBeer> list = (Objects.equals(request, SUGGESTIONS)) ? suggBeer : favBeer;
         createFavoriteSuggestionSection(list, 0, beerContainer, rjp, frame, s, request);
-        createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s, request);
+        if(Objects.equals(request, FAVORITES))
+            createFavoriteSuggestionPageButtons(list, beerContainer, rjp, frame, s, request);
 
         frame.repaint();
         frame.setVisible(true);
@@ -285,12 +287,12 @@ public class StandardUserGUI {
      * function that creates the single beer infos
      *
      * @param beerPreviewContainer: JPanel containing the single beer
-     * @param BeerName: beer name
+     * @param beer: beer object
      */
-    private static void createBeerPreview(JPanel beerPreviewContainer, String BeerName) {
+    private static void createBeerPreview(JPanel beerPreviewContainer, Beer beer,JPanel rjp, JFrame frame, StandardUser s){
         JTextPane beerName = new JTextPane();
         beerName.setEditable(false);
-        beerName.setText(BeerName);
+        beerName.setText(beer.getBeerName());
         beerName.setPreferredSize(new Dimension(150, 40));
         StyledDocument doc = beerName.getStyledDocument();
         SimpleAttributeSet center = new SimpleAttributeSet();
@@ -299,6 +301,14 @@ public class StandardUserGUI {
 
         beerPreviewContainer.add(beerName, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+
+        JButton goToBeer = new JButton("To Beer Page");
+        goToBeer.addActionListener(e->{
+            DetailedBeer selBeer = BeerManager.getInstance().getDetailedBeer(beer.getBeerID());
+            BeerZoneGUI.createBeerPage(rjp, frame, selBeer, s);
+        });
+        beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
     }
 
     /**
@@ -340,6 +350,19 @@ public class StandardUserGUI {
         });
         beerPreviewContainer.add(goToBeer, new GridBagConstraints(0,2,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
+    }
+
+    private static void createStylePreview(JPanel stylePreviewContainer, Style style, JPanel rjp, JFrame frame, StandardUser s) {
+        JTextPane styleName = new JTextPane();
+        styleName.setEditable(false);
+        styleName.setText(style.getName());
+        styleName.setPreferredSize(new Dimension(150, 40));
+        stylePreviewContainer.add(styleName, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 5, 5, 5),0,0));
+        StyledDocument doc = styleName.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
     }
 
     /**
@@ -440,13 +463,12 @@ public class StandardUserGUI {
      * @param s: logged user
      */
     private static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, StandardUser s) {
-        JButton returnToBrowse = new JButton("Go Back");
+        JButton returnToBrowse = new JButton("Go To Browse");
         returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, s));
 
         jp.add(returnToBrowse, new GridBagConstraints(0,6,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0),0, 0));
     }
-
     /**
      * function that creates the section that allows the user to review a beer
      *
@@ -475,13 +497,146 @@ public class StandardUserGUI {
         JPanel btnPanel = new JPanel();
         btnPanel.setBorder(createEmptyBorder());
         btnPanel.setBackground(BACKGROUND_COLOR);
+        prepareReviewTable(frame, rjp, selBeer);
         prepareReturnToBeerButton(rjp, btnPanel, frame, selBeer, s);
         prepareSubmitReviewButton(btnPanel, spinners, reviewAvg, selBeer, s, rev == null);
-        rjp.add(btnPanel, new GridBagConstraints(0,4,2,1,0,0,
+        rjp.add(btnPanel, new GridBagConstraints(0,4,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0, 0));
 
         frame.repaint();
         frame.setVisible(true);
+    }
+
+    private static void prepareReviewTable(JFrame frame, JPanel rjp, DetailedBeer selBeer) {
+        JPanel reviewTable = new JPanel();
+        JPanel reviewTableButtons = new JPanel();
+        JTable browseReviewTable = new JTable();
+        reviewTableButtons.setBackground(BACKGROUND_COLOR);
+        reviewTableButtons.setBorder(createEmptyBorder());
+
+        DefaultTableModel tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column){
+                return false;
+            }
+        };
+        ArrayList<Review> reviews = selBeer.getReviewList();
+        setReviewTableSettings(browseReviewTable, tableModel, reviewTableButtons);
+        //12
+        int i = 0;
+        for(Review rev: reviews) {
+            if(i > 12)
+                break;
+            i++;
+            tableModel.addRow(reviewToStringArray(rev));
+        }
+
+        browseReviewTable.setPreferredSize(new Dimension(300, 400));
+        JScrollPane jsc = new JScrollPane(browseReviewTable);
+        rjp.add(jsc, new GridBagConstraints(0,5,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(30, 0, 0, 0),0,0));
+
+        setReviewButton(reviewTableButtons, tableModel, reviews);
+        rjp.add(reviewTableButtons, new GridBagConstraints(0,6,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 0, 0),0,0));
+    }
+
+    private static void setReviewButton(JPanel reviewTableButtons, DefaultTableModel tableModel, ArrayList<Review> reviews) {
+        JButton leftBtn = new JButton("<");
+        JButton rightBtn = new JButton(">");
+        JTextField page = new JTextField("1");
+
+        page.setBorder(createEmptyBorder());
+        page.setBackground(BACKGROUND_COLOR);
+        reviewTableButtons.add(leftBtn, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        reviewTableButtons.add(page, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        reviewTableButtons.add(rightBtn, new GridBagConstraints(2,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+
+        leftBtn.setEnabled(false);
+        rightBtn.setEnabled(reviews.size() > 12);
+
+        leftBtn.addActionListener(e->{
+            rightBtn.setEnabled(true);
+            int currPage = Integer.parseInt(page.getText());
+            if(currPage == 2)
+                leftBtn.setEnabled(false);
+            prepareNewTablePage(tableModel, currPage, reviews);
+            currPage--;
+
+            page.setText(String.valueOf(currPage));
+        });
+
+        rightBtn.addActionListener(e->{
+            leftBtn.setEnabled(true);
+            int currPage = Integer.parseInt(page.getText());
+            currPage++;
+            if(currPage * 12 >= reviews.size())
+                rightBtn.setEnabled(false);
+            prepareNewTablePage(tableModel, currPage, reviews);
+            page.setText(String.valueOf(currPage));
+        });
+    }
+
+    private static void prepareNewTablePage(DefaultTableModel tableModel, int currPage, ArrayList<Review> reviews) {
+        int numRow = tableModel.getRowCount();
+        for(int i = 0; i < numRow; i++)
+            tableModel.removeRow(i);
+        for(int i = 0; (i < 12 || (reviews.size() < currPage * 12 + i)); i++)
+            tableModel.addRow(reviewToStringArray(reviews.get(currPage * 12 + i)));
+    }
+
+    private static void setReviewTableSettings(JTable browseReviewTable, DefaultTableModel tableModel, JPanel reviewTableButtons) {
+        tableModel.addColumn("Username");
+        tableModel.addColumn("Review Date");
+        tableModel.addColumn("Look");
+        tableModel.addColumn("Smell");
+        tableModel.addColumn("Taste");
+        tableModel.addColumn("Feel");
+        tableModel.addColumn("Overall");
+        tableModel.addColumn("Score");
+
+        browseReviewTable.setModel(tableModel);
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+        browseReviewTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
+        browseReviewTable.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
+
+        browseReviewTable.setModel(tableModel);
+
+        browseReviewTable.getColumnModel().getColumn(0).setPreferredWidth(87);
+        browseReviewTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+        browseReviewTable.getColumnModel().getColumn(2).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(3).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(4).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(5).setPreferredWidth(10);
+        browseReviewTable.getColumnModel().getColumn(6).setPreferredWidth(13);
+        browseReviewTable.getColumnModel().getColumn(7).setPreferredWidth(10);
+
+
+        browseReviewTable.setRowHeight(30);
+    }
+
+    private static String[] reviewToStringArray(Review rev) {
+        String[] reviewInfo = new String[8];
+        reviewInfo[0] = rev.getUsername();
+        reviewInfo[1] = rev.getReviewDate();
+        reviewInfo[2] = rev.getLook();
+        reviewInfo[3] = rev.getSmell();
+        reviewInfo[4] = rev.getTaste();
+        reviewInfo[5] = rev.getFeel();
+        reviewInfo[6] = rev.getOverall();
+        reviewInfo[7] = rev.getScore();
+        return reviewInfo;
     }
 
     /**
@@ -494,7 +649,7 @@ public class StandardUserGUI {
      * @param s: logged user
      */
     private static void prepareReturnToBeerButton(JPanel rjp, JPanel btnPanel, JFrame frame, DetailedBeer selBeer, StandardUser s) {
-        JButton returnToBeer = new JButton("Go Back");
+        JButton returnToBeer = new JButton("Go To Beer");
         returnToBeer.setFont(new Font("Arial", Font.PLAIN, 16));
         returnToBeer.addActionListener(e -> BeerZoneGUI.createBeerPage(rjp, frame, selBeer, s));
 
@@ -563,7 +718,7 @@ public class StandardUserGUI {
         createBeerReviewFields("Feel", votesPanel, 1, 1, reviewAvg, spinners);
         createBeerReviewFields("Overall", votesPanel, 2, 0, reviewAvg, spinners);
 
-        rjp.add(votesPanel, new GridBagConstraints(0,1,2,1,0,0,
+        rjp.add(votesPanel, new GridBagConstraints(0,1,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),20, 20));
     }
 
@@ -574,20 +729,28 @@ public class StandardUserGUI {
      * @param rjp: JPanel that contains the review page
      */
     private static void prepareAverageSection(JTextField reviewAvg, JPanel rjp) {
-        reviewAvg.setEditable(false);
-        reviewAvg.setHorizontalAlignment(JTextField.CENTER);
-        reviewAvg.setFont(new Font("Arial", Font.BOLD, 15));
-        rjp.add(reviewAvg, new GridBagConstraints(1,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 10, 80),40, 5));
+        JPanel avgContainer = new JPanel();
+        avgContainer.setBorder(createEmptyBorder());
+        avgContainer.setBackground(BACKGROUND_COLOR);
 
         JTextField description = new JTextField("Average review score");
         description.setFont(new Font("Arial", Font.BOLD, 18));
         description.setEditable(false);
         description.setBorder(createEmptyBorder());
         description.setBackground(BACKGROUND_COLOR);
-        rjp.add(description, new GridBagConstraints(0,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 80, 10, 0),40, 5));
+        avgContainer.add(description, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),40, 5));
 
+        reviewAvg.setEditable(false);
+        reviewAvg.setHorizontalAlignment(JTextField.CENTER);
+        reviewAvg.setFont(new Font("Arial", Font.BOLD, 15));
+        reviewAvg.setPreferredSize(new Dimension(70, 30));
+        avgContainer.add(reviewAvg, new GridBagConstraints(1,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),40, 5));
+
+
+        rjp.add(avgContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 10, 0),0, 0));
     }
 
     /**
@@ -645,15 +808,18 @@ public class StandardUserGUI {
      */
     private static void browseTrending(JPanel rjp, JFrame frame, StandardUser s) {
         rjp.removeAll();
-        JButton[] btnArray = new JButton[3];
+        JButton[] btnArray = new JButton[4];
         btnArray[0] = new JButton("Browse most favorite beers of the month");
         btnArray[0].addActionListener(e -> BrowseMostFavoriteMonthly(rjp, frame, s));
 
         btnArray[1] = new JButton("Browse most reviewed beers of the month");
-        btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame));
+        btnArray[1].addActionListener(e -> browseMostReviewedMonthly(rjp, frame, s));
 
         btnArray[2] = new JButton("Browse highest scored beers of the month");
         btnArray[2].addActionListener(e -> browseHighestAvgScoreMonthly(rjp, frame, s));
+
+        btnArray[3] = new JButton("See trending styles");
+        btnArray[3].addActionListener(e -> browseTrendingStyles(rjp, frame, s));
 
         setRightStandardUserButton(btnArray, rjp);
 
@@ -665,6 +831,27 @@ public class StandardUserGUI {
 
     }
 
+    /**
+     * @param rjp JPanel containing the Trending page
+     * @param frame frame used by the application
+     * @param s user that logged in
+     */
+    private static void browseTrendingStyles(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<Style> bestStyles;
+        bestStyles = BeerManager.getInstance().getTopStyleScore();
+        rjp.removeAll();
+        JPanel styleContainer = new JPanel(new GridBagLayout());
+        styleContainer.setBackground(BACKGROUND_COLOR);
+        createBestStyleSection(bestStyles, styleContainer, rjp, frame, s);
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    /**
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
     private static void browseHighestAvgScoreMonthly(JPanel rjp, JFrame frame, StandardUser s) {
         ArrayList<Beer> bestBeers;
         bestBeers=BeerManager.getInstance().getHighestAvgScoreBeers();
@@ -680,13 +867,13 @@ public class StandardUserGUI {
      * @param rjp JPanel containing the Trending page
      * @param frame frame used by the application
      */
-    private static void browseMostReviewedMonthly(JPanel rjp, JFrame frame) {
-        ArrayList<String> ReviewedBeers;
+    private static void browseMostReviewedMonthly(JPanel rjp, JFrame frame, StandardUser s) {
+        ArrayList<Beer> ReviewedBeers;
         ReviewedBeers=ReviewManager.getInstance().mostReviewedBeers();
         rjp.removeAll();
         JPanel beerContainer = new JPanel(new GridBagLayout());
         beerContainer.setBackground(BACKGROUND_COLOR);
-        createReviewedSection(ReviewedBeers, beerContainer, rjp, frame);
+        createReviewedSection(ReviewedBeers, beerContainer, rjp, frame, s);
         frame.repaint();
         frame.setVisible(true);
     }
@@ -707,6 +894,39 @@ public class StandardUserGUI {
         frame.setVisible(true);
     }
 
+
+    /**
+     * @param bestStyles List of styles to show
+     * @param styleContainer Container of the style entity in gui
+     * @param rjp :JPanel containing the most favorite page
+     * @param frame : frame used by the application
+     * @param s : logged user
+     */
+    private static void createBestStyleSection(ArrayList<Style> bestStyles, JPanel styleContainer, JPanel rjp, JFrame frame, StandardUser s) {
+        styleContainer.removeAll();
+        //Empty trending section
+        if(bestStyles.size() == 0){
+            JTextField err = new JTextField("Not enough reviews to show something here! Try again later.");
+            err.setBackground(BACKGROUND_COLOR);
+            err.setBorder(createEmptyBorder());
+            styleContainer.add(err);
+            rjp.add(styleContainer,new GridBagConstraints(0,0,3,1,0,0,
+                    GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+            return;
+        }
+        //print Results found
+        for(int j=0; j<bestStyles.size();j++){
+            JTextField position = new JTextField((j+1)+"° with score: " + bestStyles.get(j).getScore()+"/5");
+            JPanel stylePreviewContainer = new JPanel(new GridBagLayout());
+            prepareStylePreviewContainer(position, stylePreviewContainer, j, styleContainer);
+            createStylePreview(stylePreviewContainer, bestStyles.get(j), rjp, frame, s);
+        }
+        rjp.add(styleContainer, new GridBagConstraints(0,0,3,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
     private static void createBestBeersSection(ArrayList<Beer> bestBeers, JPanel beerContainer, JPanel rjp,JFrame frame, StandardUser s){
         beerContainer.removeAll();
         //Empty trending section
@@ -723,7 +943,7 @@ public class StandardUserGUI {
         for(int j=0; j<bestBeers.size();j++){
             JTextField position = new JTextField((j+1)+"° with score: " + bestBeers.get(j).getScore()+"/5");
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, new FavoriteBeer(bestBeers.get(j),null), rjp, frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
@@ -732,7 +952,7 @@ public class StandardUserGUI {
         frame.setVisible(true);
     }
 
-    private static void prepareBeerPreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
+    private static void preparePreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
         position.setBackground(BACKGROUND_COLOR_LIGHT);
         position.setBorder(createEmptyBorder());
         beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
@@ -744,13 +964,25 @@ public class StandardUserGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
     }
 
+    private static void prepareStylePreviewContainer(JTextField position, JPanel beerPreviewContainer, int j, JPanel beerContainer) {
+        position.setBackground(BACKGROUND_COLOR_LIGHT);
+        position.setBorder(createEmptyBorder());
+        beerPreviewContainer.setBackground(BACKGROUND_COLOR_LIGHT);
+        beerPreviewContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        beerPreviewContainer.add(position, new GridBagConstraints(0,3,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        beerContainer.add(beerPreviewContainer, new GridBagConstraints(0, j,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 10, 10, 10),0,0));
+    }
+
     /** Create the section that shows the most reviewed beers
      * @param reviewedBeers : List of name of the beers
      * @param beerContainer : Cont
      * @param rjp :JPanel containing the most favorite page
      * @param frame : frame used by the application
      */
-    private static void createReviewedSection(ArrayList<String> reviewedBeers, JPanel beerContainer, JPanel rjp, JFrame frame) {
+    private static void createReviewedSection(ArrayList<Beer> reviewedBeers, JPanel beerContainer, JPanel rjp, JFrame frame, StandardUser s) {
         beerContainer.removeAll();
         //Empty trending section
         if(reviewedBeers.size() == 0){
@@ -766,8 +998,8 @@ public class StandardUserGUI {
         for(int j=0; j<reviewedBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
-            createBeerPreview(beerPreviewContainer, reviewedBeers.get(j));
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            createBeerPreview(beerPreviewContainer, reviewedBeers.get(j),rjp,frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
@@ -798,7 +1030,7 @@ public class StandardUserGUI {
         for(int j=0; j<trendingBeers.size();j++){
             JTextField position = new JTextField("#"+ (j + 1));
             JPanel beerPreviewContainer = new JPanel(new GridBagLayout());
-            prepareBeerPreviewContainer(position, beerPreviewContainer, j, beerContainer);
+            preparePreviewContainer(position, beerPreviewContainer, j, beerContainer);
             createBeerPreview(beerPreviewContainer, trendingBeers.get(j), rjp, frame, s);
         }
         rjp.add(beerContainer, new GridBagConstraints(0,0,3,1,0,0,
@@ -817,6 +1049,8 @@ public class StandardUserGUI {
         rjp.add(btnArray[1], new GridBagConstraints(0,1,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
         rjp.add(btnArray[2], new GridBagConstraints(0,2,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
+        rjp.add(btnArray[3], new GridBagConstraints(0,3,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 40, 0),25,30));
     }
 }

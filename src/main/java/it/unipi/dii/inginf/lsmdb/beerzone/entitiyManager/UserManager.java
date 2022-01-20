@@ -18,18 +18,30 @@ public class UserManager {
         return userManager;
     }
 
+    /** method to manage the deletion of a user from both databases
+     * @param user User to delete
+     * @return true if all operations were successful
+     * */
     public boolean deleteUser(StandardUser user) {
         boolean result_1=deleteStandardUser(user);
         boolean result_2=removeUser(user.getUsername());
         return (result_1&&result_2);
     }
 
-    /* Add a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    /** Add a favorite beer both on the StandardUser ArrayList and Neo4J, call it from the GUI
+     * @param fb FavoriteBeer to add
+     * @param s StandardUser who liked the beer
+     * @return true if alla operations were successful
+     * */
     public boolean addAFavorite(FavoriteBeer fb, StandardUser s){
         return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
     }
 
-    /* Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI */
+    /** Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI
+     * @param s StandardUser who removes the Beer from favorite list
+     * @param fb Beer to remove from favorite
+     * @return true if all operations were successful
+     * */
     public boolean removeAFavorite(StandardUser s, FavoriteBeer fb){
         return (s.removeFromFavorites(fb) && removeFavorite(s.getUsername(),fb.getBeerID()));
     }
@@ -40,10 +52,20 @@ public class UserManager {
     /* ************************************************************************************************************/
 
 
+    /** request to add a new user in the MongoDB database,
+     * called when a Standard User want to register to the application
+     * @param user User to add
+     * @return true if the operation was successful
+     * */
     public boolean addUser(StandardUser user) {
         return generalUserManagerDB.registerUser(user);
     }
 
+    /** method called when a user (Standard or Brewery) wants to sign in into the application
+     * @param email email of the user who wants to log in
+     * @param password password inserted by the user in the login form
+     * @return the User object of the user that requested access
+     * */
     public GeneralUser login(String email, String password) {
         try {
             Document doc = generalUserManagerDB.getUser(email, password);
@@ -63,6 +85,10 @@ public class UserManager {
         return null;
     }
 
+    /** method to manage the deletion of a user from all the reviews he wrote and from user collection in MongoDB
+     * @param user User who wants to delete its account
+     * @return true if all operations were successful
+     * */
     private boolean deleteStandardUser(StandardUser user) {
         try {
             boolean ok = ReviewManager.getInstance().deleteUserFromReviews(user.getUsername());
@@ -73,6 +99,10 @@ public class UserManager {
         return false;
     }
 
+    /** method to request an update of user information
+     * @param user StandardUser object containing the new values to update
+     * @return true if the operation was successful
+     * */
     public boolean updateUser(StandardUser user) {
         return generalUserManagerDB.updateUser(user.getUserDoc(), user.getUserID());
     }

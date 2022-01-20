@@ -22,10 +22,17 @@ public class BeerManager {
         return beerManager;
     }
 
+    /** method used when a new beer have to be added in the database
+     * @param beer Beer object that has to be inserted in the database
+     */
     public void addNewBeer(DetailedBeer beer) {
         beerManagerDB.addNewBeerMongo(beer);
     }
 
+    /** method that manages the deletion of a beer from both databases
+     * @param beer Beer object to remove from DBs
+     * @return true if operation on both DBs was successful
+     * */
     protected boolean removeBeer(Beer beer) {
         if(beerManagerDB.removeBeerMongo(beer)) {
             removeBeerFromNeo(beer);
@@ -34,6 +41,11 @@ public class BeerManager {
         return false;
     }
 
+    /** method used to send a request for browsing through the collection of beers in MongoDB
+     * @param page page of the table displayed in the Gui, used to skip the beers already shown
+     * @param name initial characters of beer name or style name
+     * @return a list of Beers object created with Documents found in the collection
+     * */
     public ArrayList<Beer> browseBeers(int page, @Nullable String name) {
         ArrayList<Beer> beerList = new ArrayList<>();
         FindIterable<Document> iterable = beerManagerDB.browseBeers(page, name);
@@ -43,6 +55,11 @@ public class BeerManager {
         }
         return beerList;
     }
+
+    /** method used to send a search request for a beer by ID in MongoDB
+     * @param beerID id of the required beer
+     * @return the Beer object required, null if no beer with that id is found
+     * */
     public Beer getBeer(String beerID) {
         Beer beer = null;
         Document doc = beerManagerDB.getBeer(beerID);
@@ -52,6 +69,10 @@ public class BeerManager {
         return beer;
     }
 
+    /** method used to send a search request for a detailed beer by ID in MongoDB
+     * @param beerID id of the required beer
+     * @return the DetailedBeer object required, null if no beer with that id is found
+     * */
     public DetailedBeer getDetailedBeer(String beerID) {
         DetailedBeer beer = null;
         Document doc = beerManagerDB.getDetailedBeer(beerID);
@@ -62,10 +83,17 @@ public class BeerManager {
         return beer;
     }
 
+    /** method used to request a deletion of the link between a Brewery and all its Beers
+     * @param breweryID id of the brewery to remove
+     * @return the number of beer of that brewery, -1 if no beers are found
+     * */
     public long deleteBreweryFromBeers(String breweryID) {
         return beerManagerDB.deleteBreweryFromBeers(breweryID);
     }
 
+    /** method to request the list of the best beers of the month
+     * @return a list of top beers
+     * */
     public ArrayList<Beer> getHighestAvgScoreBeers() {
         ArrayList<Beer> beers = new ArrayList<>();
         for (Document doc: beerManagerDB.getHighestAvgScoreBeers()) {
@@ -79,6 +107,10 @@ public class BeerManager {
         return beers;
     }
 
+    /** method to get the list of beers below the brewery score for a given feature
+     * @param brewery Brewery for which you want to know the beer list
+     * @return the list of beers required
+     * */
     public ArrayList<Beer> getBeersUnderAvgFeatureScore(Brewery brewery, String feature) {
         ArrayList<Beer> beers = new ArrayList<>();
         for (Document doc: beerManagerDB.getBeersUnderAvgFeatureScore(brewery.getUserID(), feature,
@@ -93,12 +125,20 @@ public class BeerManager {
         return beers;
     }
 
+    /** method to update beer information
+     * @param beer Beer object containing the new values
+     * @return true if the operation was successful
+     * */
     public boolean updateBeer(DetailedBeer beer) {
         return beerManagerDB.updateBeer(beer);
     }
 
+    /** method that can be used to compute and update the rating for a beer
+     * with the scores received in the reviews
+     * @param beer Beer you want to calculate the rating for
+     * */
     public void recomputeBeerRating(DetailedBeer beer) {
-        Document docRating = beerManagerDB.updateBeerRating(beer);
+        Document docRating = beerManagerDB.recomputeBeerRating(beer);
 
         if (docRating != null) {
             if (docRating.get("rating") != null)
@@ -108,6 +148,10 @@ public class BeerManager {
         }
     }
 
+    /** method to obtain the score for a Brewery
+     * @param breweryID id of the brewery you want the score
+     * @return the computed score
+     * */
     protected double getBreweryScore(String breweryID) {
         Document doc = beerManagerDB.getBreweryScore(breweryID);
         if (doc != null)
@@ -116,6 +160,9 @@ public class BeerManager {
         return -1;
     }
 
+    /** method to get the top 3 favorite styles, based on review scores
+     * @return the list of the styles found
+     * */
     public ArrayList<Style> getTopStyleScore() {
         ArrayList<Style> topStyles = new ArrayList<>();
         for (Document doc: beerManagerDB.getTopStyleScore()) {

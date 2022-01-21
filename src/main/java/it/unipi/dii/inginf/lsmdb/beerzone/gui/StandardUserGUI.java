@@ -569,24 +569,27 @@ public class StandardUserGUI {
         JTextField page = new JTextField("1");
 
         page.setBorder(createEmptyBorder());
+        page.setEditable(false);
         page.setBackground(BACKGROUND_COLOR);
+        page.setHorizontalAlignment(JTextField.CENTER);
+        page.setPreferredSize(new Dimension(50, 20));
         reviewTableButtons.add(leftBtn, new GridBagConstraints(0,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
         reviewTableButtons.add(page, new GridBagConstraints(1,0,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0, 0));
         reviewTableButtons.add(rightBtn, new GridBagConstraints(2,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         leftBtn.setEnabled(false);
-        rightBtn.setEnabled(reviews.size() > 12);
+        rightBtn.setEnabled(reviews.size() > 13);
 
         leftBtn.addActionListener(e->{
             rightBtn.setEnabled(true);
             int currPage = Integer.parseInt(page.getText());
             if(currPage == 2)
                 leftBtn.setEnabled(false);
-            prepareNewTablePage(tableModel, currPage, reviews);
             currPage--;
+            prepareNewTablePage(tableModel, currPage, reviews);
 
             page.setText(String.valueOf(currPage));
         });
@@ -595,7 +598,7 @@ public class StandardUserGUI {
             leftBtn.setEnabled(true);
             int currPage = Integer.parseInt(page.getText());
             currPage++;
-            if(currPage * 12 >= reviews.size())
+            if(currPage * 13 > reviews.size())
                 rightBtn.setEnabled(false);
             prepareNewTablePage(tableModel, currPage, reviews);
             page.setText(String.valueOf(currPage));
@@ -612,9 +615,10 @@ public class StandardUserGUI {
     private static void prepareNewTablePage(DefaultTableModel tableModel, int currPage, ArrayList<Review> reviews) {
         int numRow = tableModel.getRowCount();
         for(int i = 0; i < numRow; i++)
-            tableModel.removeRow(i);
-        for(int i = 0; (i < 12 || (reviews.size() < currPage * 12 + i)); i++)
-            tableModel.addRow(reviewToStringArray(reviews.get(currPage * 12 + i)));
+            tableModel.removeRow(0);
+
+        for(int i = 0; (i < 13 && (reviews.size() > (currPage - 1) * 13 + i)); i++)
+            tableModel.addRow(reviewToStringArray(reviews.get((currPage - 1) * 13 + i)));
     }
 
     /**

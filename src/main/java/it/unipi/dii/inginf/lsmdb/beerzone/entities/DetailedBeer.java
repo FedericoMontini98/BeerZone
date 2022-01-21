@@ -33,7 +33,7 @@ public class DetailedBeer extends Beer {
                         @Nullable String fg, @Nullable String ibu, @Nullable String color, @Nullable String phMash,
                         @Nullable String fermentables, @Nullable String hops, @Nullable String other, @Nullable String yeast) {
         super(beerID, beerName, style, abv, score);
-        this.breweryID = breweryID != null ? breweryID : "-";
+        this.breweryID = breweryID != null ? breweryID : "";
         this.numRating = 0;
         this.availability = availability != null ? availability : "";
         this.notes = notes != null ? notes : "";
@@ -67,7 +67,7 @@ public class DetailedBeer extends Beer {
                 beer.get("style") != null ? beer.getString("style") : "--",
                 beer.get("abv") != null ? beer.get("abv").toString() : "-1",
                 beer.get("rating") != null ? beer.get("rating").toString() : "0",
-                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "-",
+                beer.get("brewery_id") != null ? beer.getObjectId("brewery_id").toString() : "",
                 beer.get("availability") != null ? beer.getString("availability") : "--",
                 beer.get("notes") != null ? beer.getString("notes") : "--",
                 beer.get("url") != null ? beer.getString("url") : "--",
@@ -252,16 +252,16 @@ public class DetailedBeer extends Beer {
         else
             doc.append("retired", "f");
 
-        if (!breweryID.isEmpty() || breweryID.equals("-"))
+        if (!(breweryID.isEmpty() || breweryID.equalsIgnoreCase("--")))
             doc.append("brewery_id", new ObjectId(breweryID));
-        if (!availability.isEmpty())
-            doc.append("availability", availability);
-        if (!notes.isEmpty())
-            doc.append("notes", notes);
-        if (!url.isEmpty())
-            doc.append("url", url);
-        if (!method.isEmpty())
-            doc.append("method", method);
+        if (!(availability.isEmpty() || availability.equalsIgnoreCase("--")))
+                doc.append("availability", availability);
+        if (!(notes.isEmpty() || notes.equalsIgnoreCase("--")))
+                doc.append("notes", notes);
+        if (!(url.isEmpty() || url.equalsIgnoreCase("--")))
+                doc.append("url", url);
+        if (!(method.isEmpty() || method.equalsIgnoreCase("--")))
+                doc.append("method", method);
         if (og != -1)
             doc.append("og", og);
         if (fg != -1)
@@ -272,21 +272,16 @@ public class DetailedBeer extends Beer {
             doc.append("color", color);
         if (phMash != -1)
             doc.append("phMash", phMash);
-        if (!fermentables.isEmpty())
-            doc.append("fermentables", fermentables);
-        if (!hops.isEmpty())
-            doc.append("hops", hops);
-        if (!other.isEmpty())
-            doc.append("other", other);
-        if (!yeast.isEmpty())
-            doc.append("yeast", yeast);
+        if (!(fermentables.isEmpty() || fermentables.equalsIgnoreCase("--")))
+                doc.append("fermentables", fermentables);
+        if (!(hops.isEmpty() || hops.equalsIgnoreCase("--")))
+                doc.append("hops", hops);
+        if (!(other.isEmpty() || other.equalsIgnoreCase("--")))
+                doc.append("other", other);
+        if (!(yeast.isEmpty() || yeast.equalsIgnoreCase("--")))
+                doc.append("yeast", yeast);
         if (!reviews.isEmpty())
             doc.append("reviews", getReviewListDoc());
         return doc;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
     }
 }

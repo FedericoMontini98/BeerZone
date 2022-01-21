@@ -3,6 +3,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entities;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Review {
@@ -48,7 +49,8 @@ public class Review {
     }
 
     public String getReviewDate() {
-        return reviewDate.toString();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return formatter.format(this.reviewDate);
     }
 
     public Date getReviewDateNeo() {

@@ -1,17 +1,23 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.gui;
 
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.*;
-import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.*;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BeerManager;
+import it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager.BreweryManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -31,16 +37,16 @@ public class BreweryManagerGUI {
     private static final Integer RECIPE_SECTION_OG = 10;
     private static final Integer RECIPE_SECTION_OTHER = 11;
     private static final Integer RECIPE_SECTION_PHMASH = 12;
-    private static final Integer RECIPE_SECTION_URL = 12;
-    private static final Integer RECIPE_SECTION_YEAST = 14;
-    private static final Integer RECIPE_RECTION_RETIRED  = 15;
+    private static final Integer RECIPE_RECTION_RETIRED  = 13;
+    private static final Integer RECIPE_SECTION_URL = 14;
+    private static final Integer RECIPE_SECTION_YEAST = 15;
 
 
     /**
      * function that creates the brewery manager section
      *
      * @param frame: frame used by the application
-     * @param b: brewery informations
+     * @param b: brewery information
      */
     public static void breweryManagerSection(JFrame frame, Brewery b){
         JButton[] btnArray = new JButton[5];
@@ -102,6 +108,12 @@ public class BreweryManagerGUI {
             recipeTexts[recipeCB[0].getSelectedIndex()] = inputRecipe[0].getText();
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
+            boolean retiredCorrect;
+            if(recipeTexts[RECIPE_RECTION_RETIRED] == null)
+                retiredCorrect = false;
+            else
+                retiredCorrect = (recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("Yes") || recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("No"));
+
             if(!recipeCorrect){
                 errorMsg.setText("OG - FG - IBU - COLOR - PHMASH -ABV must be numbers");
                 errorMsg.setBackground(BACKGROUND_COLOR);
@@ -113,18 +125,32 @@ public class BreweryManagerGUI {
                 frame.setVisible(true);
             }
             else{
-                containerPanel.remove(errorMsg);
-                frame.repaint();
-                frame.setVisible(true);
-                if(infoCorrect){
-                    errorMsg.setText("Beer Correctly Added");
-                    errorMsg.setForeground(new Color(0, 59, 16));
-                    DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
-                                                        recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES], recipeTexts[RECIPE_SECTION_URL], recipeTexts[RECIPE_RECTION_RETIRED],
-                                                        recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
-                                                        recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
-                                                        recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                    BreweryManager.getInstance().addNewBeerToBrewery(b,db);
+                if(!retiredCorrect){
+                    errorMsg.setText("Retired field must be 'Yes' or 'No'");
+                    containerPanel.remove(errorMsg);
+                    errorMsg.setForeground(Color.RED);
+                    errorMsg.setBackground(BACKGROUND_COLOR);
+                    errorMsg.setBorder(createEmptyBorder());
+                    containerPanel.add(errorMsg, new GridBagConstraints(0,6,2,1,0,0,
+                            GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
+                    frame.repaint();
+                    frame.setVisible(true);
+                }
+                else{
+                    containerPanel.remove(errorMsg);
+                    frame.repaint();
+                    frame.setVisible(true);
+                    if(infoCorrect) {
+                        errorMsg.setText("Beer Correctly Added");
+                        errorMsg.setForeground(new Color(0, 59, 16));
+                        DetailedBeer db = new DetailedBeer(null, inputs[0].getText(), inputs[1].getText(), recipeTexts[RECIPE_SECTION_ABV], null, b.getUserID(),
+                                recipeTexts[RECIPE_SECTION_AVAILABILITY], recipeTexts[RECIPE_SECTION_NOTES], recipeTexts[RECIPE_SECTION_URL], recipeTexts[RECIPE_RECTION_RETIRED],
+                                recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
+                                recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
+                                recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
+                        if(BreweryManager.getInstance().addNewBeerToBrewery(b, db))
+                            btn.setEnabled(false);
+                    }
                 }
             }
         });
@@ -135,7 +161,7 @@ public class BreweryManagerGUI {
     }
 
     /**
-     * function that ccontrols if the textfields are correct
+     * function that controls if the textfields are correct
      *
      * @param inputs: all the beer info
      * @return correct: contains if the inputs are correct
@@ -163,7 +189,7 @@ public class BreweryManagerGUI {
      * function that checks if the recipe has numbers where numbers are mandatory
      *
      * @param recipeTexts: array containing the recipe infos
-     * @return corrrect: correctness of data
+     * @return correct: correctness of data
      */
     public static boolean checkRecipe(String[] recipeTexts) {
         boolean correct = true;
@@ -200,10 +226,11 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         JTextPane inputField = new JTextPane();
+        inputField.setPreferredSize(new Dimension(280,35));
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[0] = inputField;
         panel.add(inputField, new GridBagConstraints(1,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,5));
 
         description = new JTextField("Style");
         description.setFont(new Font("Arial", Font.PLAIN ,15));
@@ -214,10 +241,11 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         inputField = new JTextPane();
+        inputField.setPreferredSize(new Dimension(280, 35));
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[1] = inputField;
         panel.add(inputField, new GridBagConstraints(1,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,5));
     }
 
     /**
@@ -253,24 +281,90 @@ public class BreweryManagerGUI {
      */
     private static void generateBreweryStatisticsMenu(JPanel containerPanel, JFrame frame, Brewery b) {
         containerPanel.removeAll();
-        Object[][] data = {{"Look", "--"}, {"Smell", "--"}, {"Taste", "--"}, {"Feel", "--"}};
-        String[] colHeader = {"Feature", "Score"};
+        String[] colHeader = {"Beer"};
+        String [][] data={};
 
         JTextField breweryStatsTitle = new JTextField(b.getUsername());
         prepareBreweryStatsTitle(breweryStatsTitle, containerPanel);
 
         JTextField responseField = new JTextField("Not yet computed");
-        prepareResponseField(responseField, containerPanel);
 
         JButton breweryStatsBtn = new JButton("Compute brewery score");
-        prepareBreweryStatsBtn(breweryStatsBtn, containerPanel, responseField, b);
+        prepareBreweryStatsBtn(breweryStatsBtn, containerPanel);
+        prepareResponseField(responseField, breweryStatsBtn, containerPanel);
+        breweryStatsBtn.addActionListener(e ->{
+            double BreweryScore= BreweryManager.getInstance().getBreweryScore(b.getUserID());
+            if(BreweryScore!=-1)
+                responseField.setText(String.valueOf(BreweryScore));
+            else
+                responseField.setText("There are no review to compute a score!");
+            frame.repaint();
+            frame.setVisible(true);
+        });
 
         JTable breweryStatsTable = new JTable(data, colHeader);
-        prepareBreweryStatsTable(breweryStatsTable, containerPanel);
+        prepareBreweryStatsTable(breweryStatsTable, containerPanel, frame, b);
 
-        breweryStatsBtn = new JButton("Compute average score for features");
-        setBreweryStatsBtn(breweryStatsBtn, breweryStatsTable, containerPanel, b);
+        JComboBox<String>[] featureSelection = new JComboBox[1];
+        String[] choices = {"Look", "Smell", "Taste", "Feel", "Overall"};
+        featureSelection[0] = new JComboBox<>(choices);
+        featureSelection[0].setVisible(true);
+        JComboBox<String> finalfeatureSelection=featureSelection[0];
+        featureSelection[0].addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                finalfeatureSelection.setForeground(Color.BLACK);
+            }
+        });
+        JPanel featurePanel = new JPanel();
+        featurePanel.add(featureSelection[0], new GridBagConstraints(0, 0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
+        breweryStatsBtn = new JButton("find beers under average score by feature");
+        breweryStatsBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        setBreweryStatsBtn(breweryStatsBtn, containerPanel, featurePanel);
+
+        breweryStatsBtn.addActionListener((e->{
+            String feature=choices[finalfeatureSelection.getSelectedIndex()];
+            ArrayList<Beer> beers=BeerManager.getInstance().getBeersUnderAvgFeatureScore(b,feature.toLowerCase());
+            addResults(breweryStatsTable, frame,beers);
+        }));
+
+        frame.repaint();
+        frame.setVisible(true);
+    }
+
+    private static void addResults(JTable breweryStatsTable, Frame frame, ArrayList<Beer> beers) {
+        int n = breweryStatsTable.getModel().getRowCount();
+        for (int i=0;i<n;i++){
+            breweryStatsTable.getModel().setValueAt("--",i,0);
+            breweryStatsTable.getModel().setValueAt("--",i,1);
+        }
+        int i=0;
+        for (Beer beer : beers){
+            if(i<8){
+                breweryStatsTable.getModel().setValueAt(beer.getBeerName(),0,0);
+                breweryStatsTable.getModel().setValueAt(beer.getBeerID(),0,1);
+            }
+            else
+                break;
+            i++;
+        }
+
+        /*containerPanel.removeAll();
+        //DefaultTableModel tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        if(beers.size() > 12)
+            beers.remove(beers.size() - 1);
+        for (Beer beer : beers) tableModel.addRow(beerToStringArray(beer));
+        JScrollPane jsc = new JScrollPane(breweryStatsTable);
+        containerPanel.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
+        */
         frame.repaint();
         frame.setVisible(true);
     }
@@ -295,11 +389,19 @@ public class BreweryManagerGUI {
      * @param responseField: JTextField where the average score of the brewery will be written
      * @param containerPanel: panel containing the "brewery statistics" section
      */
-    private static void prepareResponseField(JTextField responseField, JPanel containerPanel) {
+    private static void prepareResponseField(JTextField responseField, JButton breweryStatsBtn, JPanel containerPanel) {
+        JPanel breweryStats = new JPanel(new GridBagLayout());
+        breweryStats.setBackground(BACKGROUND_COLOR);
+        breweryStats.setBorder(createEmptyBorder());
         responseField.setHorizontalAlignment(JTextField.CENTER);
         responseField.setBackground(BACKGROUND_COLOR);
         responseField.setBorder(createEmptyBorder());
-        containerPanel.add(responseField, new GridBagConstraints(1,1,1,1,0,0,
+        responseField.setFont(new Font("Arial", Font.BOLD, 14));
+        breweryStatsBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        breweryStats.add(breweryStatsBtn, new GridBagConstraints(0,0,1,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 20),0,0));
+        breweryStats.add(responseField);
+        containerPanel.add(breweryStats, new GridBagConstraints(0,1,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
     }
 
@@ -308,15 +410,8 @@ public class BreweryManagerGUI {
      *
      * @param breweryStatsBtn: button that allows the user to compute the brewery's average score
      * @param containerPanel: panel containing the "brewery statistics" section
-     * @param responseField: field where the average score will be written
      */
-    private static void prepareBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel, JTextField responseField, Brewery b) {
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
-        breweryStatsBtn.addActionListener(e -> {
-            //double avgScore = BreweryManager.getInstance().computeAvgScore(b);
-            //responseField.setText(String.valueOf(avgScore));
-        });
+    private static void prepareBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel) {
     }
 
     /**
@@ -325,7 +420,7 @@ public class BreweryManagerGUI {
      * @param breweryStatsTable: table where the vote's options will be written
      * @param containerPanel: panel containing the "brewery statistics" section
      */
-    private static void prepareBreweryStatsTable(JTable breweryStatsTable, JPanel containerPanel) {
+    private static void prepareBreweryStatsTable(JTable breweryStatsTable, JPanel containerPanel, JFrame frame, Brewery b) {
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -333,41 +428,48 @@ public class BreweryManagerGUI {
                 return false;
             }
         };
-        String[] col1 = {"Look", "Smell", "Taste", "Feel", "Overall"};
-        String[] col2 = {"--", "--", "--", "--", "--"};
-        tableModel.addColumn("Feature", col1);
-        tableModel.addColumn("Score", col2);
+        String[] col0 = {"--", "--", "--", "--", "--", "--", "--", "--"};
+        String[] col1 = {"--", "--", "--", "--", "--", "--", "--", "--"};
+        tableModel.addColumn("Beer", col0);
+        tableModel.addColumn("BeerID",col1);
+        breweryStatsTable.setRowHeight(25);
+        breweryStatsTable.setModel(tableModel);
+        TableColumnModel tcm = breweryStatsTable.getColumnModel();
+        tcm.removeColumn(tcm.getColumn(1));
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment( JLabel.CENTER );
-        breweryStatsTable.setModel(tableModel);
         breweryStatsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        breweryStatsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
         JScrollPane jsc = new JScrollPane(breweryStatsTable);
-        jsc.setPreferredSize(new Dimension(300, 87));
+        jsc.setPreferredSize(new Dimension(450, 225));
         containerPanel.add(jsc, new GridBagConstraints(0,3,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-    }
 
+        breweryStatsTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getClickCount() == 2){
+                    String id = breweryStatsTable.getModel().getValueAt(breweryStatsTable.getSelectedRow(),1).toString();
+                    if(!id.equals("--")){
+                        DetailedBeer beer= BeerManager.getInstance().getDetailedBeer(id);
+                        BeerZoneGUI.createBeerPage(containerPanel,frame,beer,b);
+                    }
+                }
+            }
+        });
+    }
     /**
      * function that prepares the button that allows the brewery to compute all the statistics
-     *
-     * @param breweryStatsBtn: button that allows the brewery to compute all the statistics
-     * @param breweryStatsTable: table where the vote's options will be written
-     * @param containerPanel: panel containing the "brewery statistics" section
+     *  @param breweryStatsBtn : button that allows the brewery to compute all the statistics
+     * @param containerPanel : panel containing the "brewery statistics" section
      */
-    private static void setBreweryStatsBtn(JButton breweryStatsBtn, JTable breweryStatsTable, JPanel containerPanel, Brewery b) {
-        breweryStatsBtn.addActionListener(e->{
-            /*double[] votes = BreweryManager.getInstance().computeAvgVotes(b);
-            breweryStatsTable.getModel().setValueAt(votes[0],0,1);
-            breweryStatsTable.getModel().setValueAt(votes[1],1,1);
-            breweryStatsTable.getModel().setValueAt(votes[2],2,1);
-            breweryStatsTable.getModel().setValueAt(votes[3],3,1);
-            breweryStatsTable.getModel().setValueAt(votes[4],4,1);*/
-        });
-
-        containerPanel.add(breweryStatsBtn, new GridBagConstraints(0,2,2,1,0,0,
+    private static void setBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel, JPanel featurePanel) {
+        featurePanel.add(breweryStatsBtn, new GridBagConstraints(1,0,1,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 10, 0),0,0));
+        featurePanel.setBorder(createEmptyBorder());
+        featurePanel.setBackground(BACKGROUND_COLOR);
+        containerPanel.add(featurePanel ,new GridBagConstraints(0, 2,2,1,0,0,
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 5, 0),0,0));
     }
 
     /**
@@ -378,7 +480,7 @@ public class BreweryManagerGUI {
      * @param user: logged user
      */
     public static void prepareReturnToBrowseButton(JPanel jp, JFrame frame, GeneralUser user) {
-        JButton returnToBrowse = new JButton("Go Back");
+        JButton returnToBrowse = new JButton("Go To Browse");
         Brewery b = (Brewery)user;
         returnToBrowse.addActionListener(e -> BeerZoneGUI.generateBrowseBeerMenu(jp, frame, b));
 
@@ -461,7 +563,10 @@ public class BreweryManagerGUI {
         deleteBrewery.setBackground(Color.RED);
         deleteBrewery.setPreferredSize(new Dimension(200, 40));
         deleteBrewery.setForeground(Color.WHITE);
-        deleteBrewery.addActionListener(e-> BreweryManager.getInstance().deleteBrewery(b));
+        deleteBrewery.addActionListener(e-> {
+            BreweryManager.getInstance().deleteBrewery(b);
+            BeerZoneGUI.prepareLogRegister(frame);
+        });
         if(su == null && editable) {
             containerPanel.add(deleteBrewery, new GridBagConstraints(0, 3, 2, 1, 0, 0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(10, 0, 15, 0), 0, 0));

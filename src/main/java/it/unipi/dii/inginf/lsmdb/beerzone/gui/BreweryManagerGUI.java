@@ -108,7 +108,12 @@ public class BreweryManagerGUI {
             recipeTexts[recipeCB[0].getSelectedIndex()] = inputRecipe[0].getText();
             boolean recipeCorrect = checkRecipe(recipeTexts);
             boolean infoCorrect = checkInfo(inputs);
-            boolean retiredCorrect = (recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("Yes") || recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("No"));
+            boolean retiredCorrect;
+            if(recipeTexts[RECIPE_RECTION_RETIRED] == null)
+                retiredCorrect = false;
+            else
+                retiredCorrect = (recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("Yes") || recipeTexts[RECIPE_RECTION_RETIRED].equalsIgnoreCase("No"));
+
             if(!recipeCorrect){
                 errorMsg.setText("OG - FG - IBU - COLOR - PHMASH -ABV must be numbers");
                 errorMsg.setBackground(BACKGROUND_COLOR);
@@ -143,7 +148,8 @@ public class BreweryManagerGUI {
                                 recipeTexts[RECIPE_SECTION_METHOD], recipeTexts[RECIPE_SECTION_OG], recipeTexts[RECIPE_SECTION_FG], recipeTexts[RECIPE_SECTION_IBU],
                                 recipeTexts[RECIPE_SECTION_COLOR], recipeTexts[RECIPE_SECTION_PHMASH], recipeTexts[RECIPE_SECTION_FERMENTABLES],
                                 recipeTexts[RECIPE_SECTION_HOPS], recipeTexts[RECIPE_SECTION_OTHER], recipeTexts[RECIPE_SECTION_YEAST]);
-                        BreweryManager.getInstance().addNewBeerToBrewery(b, db);
+                        if(BreweryManager.getInstance().addNewBeerToBrewery(b, db))
+                            btn.setEnabled(false);
                     }
                 }
             }
@@ -155,7 +161,7 @@ public class BreweryManagerGUI {
     }
 
     /**
-     * function that ccontrols if the textfields are correct
+     * function that controls if the textfields are correct
      *
      * @param inputs: all the beer info
      * @return correct: contains if the inputs are correct
@@ -183,7 +189,7 @@ public class BreweryManagerGUI {
      * function that checks if the recipe has numbers where numbers are mandatory
      *
      * @param recipeTexts: array containing the recipe infos
-     * @return corrrect: correctness of data
+     * @return correct: correctness of data
      */
     public static boolean checkRecipe(String[] recipeTexts) {
         boolean correct = true;
@@ -220,10 +226,11 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         JTextPane inputField = new JTextPane();
+        inputField.setPreferredSize(new Dimension(280,35));
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[0] = inputField;
         panel.add(inputField, new GridBagConstraints(1,1,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,5));
 
         description = new JTextField("Style");
         description.setFont(new Font("Arial", Font.PLAIN ,15));
@@ -234,10 +241,11 @@ public class BreweryManagerGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 10),0,0));
 
         inputField = new JTextPane();
+        inputField.setPreferredSize(new Dimension(280, 35));
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         inputs[1] = inputField;
         panel.add(inputField, new GridBagConstraints(1,2,1,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),180,5));
+                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,5));
     }
 
     /**

@@ -79,7 +79,7 @@ public class ReviewManager {
                         newRating = (oldTotalRating - review.getNumericScore()) / (--num_rating);
                 }
                 newRating = (double) (Math.round(newRating * 100)) / 100;
-                System.out.println("new rating: " + newRating);
+//                System.out.println("new rating: " + newRating);
                 beer.setNumRating(num_rating);
                 beer.setScore(newRating);
 

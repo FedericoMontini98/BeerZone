@@ -581,7 +581,11 @@ public class BeerZoneGUI {
             deleteBeer.setEnabled(true);
             btnPanel.add(deleteBeer, new GridBagConstraints(0,0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 5),0,0));
-            deleteBeer.addActionListener(e-> {Brewery br= (Brewery) b; BreweryManager.getInstance().removeBeer(selBeer,br);});
+            deleteBeer.addActionListener(e-> {
+                Brewery br= (Brewery) b;
+                BreweryManager.getInstance().removeBeer(selBeer,br);
+                BreweryManagerGUI.createBreweryPage(rjp, frame, b, b.getUserID(), true);
+            });
 
             JButton updateBeer = new JButton("Update Beer");
 

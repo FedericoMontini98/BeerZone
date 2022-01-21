@@ -22,8 +22,10 @@ import static com.mongodb.client.model.Updates.addToSet;
 import static com.mongodb.client.model.Updates.pull;
 import static org.neo4j.driver.Values.parameters;
 
+/** class to query for users in both databases
+ * users collection in MongoDB includes both Standar User (type 0) and Brewery (type 1)
+ * */
 public class GeneralUserDBManager {
-    // users collection include both standard users (type 0) and breweries (type 1)
     private static GeneralUserDBManager userManager;
     private final MongoManager mongoManager;
     private final Neo4jManager NeoDBMS;
@@ -31,7 +33,6 @@ public class GeneralUserDBManager {
     private GeneralUserDBManager() {
         NeoDBMS = Neo4jManager.getInstance();
         mongoManager = MongoManager.getInstance();
-        //usersCollection = MongoManager.getInstance().getCollection("users");
     }
 
     public static GeneralUserDBManager getInstance() {
@@ -47,6 +48,10 @@ public class GeneralUserDBManager {
 
 
     // use example: Brewery b = new Brewery(UserManager.getUser(email, type);
+    /** method to get a user by email and password
+     * @param email email of the user to search for
+     * @param password password of the user
+     * @return the document of the user found in the collection, null if no matching users is found*/
     public Document getUser(String email, String password) {
         Document doc = null;
         try {
@@ -60,6 +65,10 @@ public class GeneralUserDBManager {
         return doc;
     }
 
+    /** query for a user by id in MongoDB
+     * @param userID id of the user to search for
+     * @return the Document of the matched user, null if no user is found
+     * */
     public Document getUser(String userID) {
         Document doc = null;
         try {
@@ -72,7 +81,9 @@ public class GeneralUserDBManager {
         return doc;
     }
 
-    /* check if an email or a combination of an username/type=0 already exist in the users collection */
+    /** verify if an email or a combination of username and type=0 already exist in the user collection in MongoDB
+     * @param user GeneralUser to check for existence in the database
+     * @return true if the User already exist in the collection db*/
     public boolean userExists(GeneralUser user) {
         if (user.getUsername().equalsIgnoreCase("deletedUser")
                 || user.getUsername().equalsIgnoreCase("deleted_user")
@@ -90,12 +101,16 @@ public class GeneralUserDBManager {
         return !(doc == null || doc.isEmpty());
     }
 
+    /** query to insert a new user (Standard User or Brewery) in user collection in MongoDB
+     * @param user User to add in the collection
+     * @return true if the inserting operation was successful, false if the given user already exists */
     public boolean registerUser(GeneralUser user) {
         if (!userExists(user)) {
             try {
                 MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
                 Document doc = user.isStandard() ? user.getUserDoc() : ((Brewery) user).getBreweryDoc(false);
                 usersCollection.insertOne(doc);
+                user.setUserID(doc.getObjectId("_id").toString());
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -104,6 +119,11 @@ public class GeneralUserDBManager {
         return false;
     }
 
+    /** method to update a Document in the user collection
+     * @param userDoc document containing the new values of the user
+     * @param userID id of the user to update
+     * @return true if a user was found and updated
+     * */
     public boolean updateUser(Document userDoc, String userID) {
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
@@ -116,6 +136,9 @@ public class GeneralUserDBManager {
         return false;
     }
 
+    /** delete a document from user collection in MongoDB
+     * @param user User to delete
+     * @return true if the user was removed successfully */
     public boolean deleteUser (GeneralUser user) {
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
@@ -131,6 +154,11 @@ public class GeneralUserDBManager {
     /* ******************************************** Brewery Manager ********************************************** */
 
 
+    /** query for breweries in the user collection in MongoDB
+     * @param page page of the table displayed in the Gui, used to skip the breweries in the result
+     * @param name initial characters of brewery name
+     * @return a list of Documents found in the user collection
+     * */
     public FindIterable<Document> browseBreweries(int page, @Nullable String name) {
         name = name != null ? name : "";
         int limit = 13;
@@ -149,6 +177,10 @@ public class GeneralUserDBManager {
         return iterable;
     }
 
+    /** method to add a document into the nested list of beers of a brewery in the user collection
+     * @param beer Beer object ro add
+     * @return true if the brewery to add the document to has been found
+     * */
     public boolean addBeerToBrewery(DetailedBeer beer) {
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
@@ -162,6 +194,9 @@ public class GeneralUserDBManager {
         return false;
     }
 
+    /** delete a beer from brewery beer list
+     * @param beer Beer to remove from list, containing also the brewery id from which it must be removed
+     * */
     public boolean deleteBeerFromBrewery(DetailedBeer beer) {
         try {
             MongoCollection<Document> usersCollection = mongoManager.getCollection("users");

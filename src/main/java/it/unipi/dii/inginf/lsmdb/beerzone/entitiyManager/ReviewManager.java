@@ -23,6 +23,11 @@ public class ReviewManager {
 
     /* ****************************************  MongoDB Section  *************************************************/
 
+    /** method to get a review from the review list in the beer object, given a username
+     * @param username user who wrote the review
+     * @param beer Beer for which the review was written, that stores also a local list of reviews
+     * @return a Review object of found review, null if no matching
+     * */
     public Review getReview(String username, DetailedBeer beer) {
         for (Review r: beer.getReviewList()) {
             if (username.equalsIgnoreCase(r.getUsername()))
@@ -31,7 +36,12 @@ public class ReviewManager {
         return null;
     }
 
-    /* Add a new Review both on MongoDB and Neo4J */
+    /** method to manage adding of a review in both databases and in the review list of the local Beer object,
+     * computing also the new score of the beer
+     * @param review Review to add
+     * @param beer beer for which the review was written
+     * @return true if all operation was successful
+     * */
     public boolean addNewReview(Review review, DetailedBeer beer) {
         //if (addReviewMongo(review, beer)) {
         double new_rating = computeNewBeerRating(review, beer, true);
@@ -44,6 +54,11 @@ public class ReviewManager {
     }
 
     /* Delete a review both from MongoDB and Neo4J */
+    /** method to manage the deletion of a review from MongoDB and the corresponding relationship on Neo4J
+     * @param username user who wrote the review and want to delete it
+     * @param beer Beer for which the review was written
+     * @return true if all operations were successful
+     * */
     public boolean deleteReview(String username, DetailedBeer beer) {
         double rating = computeNewBeerRating(getReview(username, beer), beer, false);
         //if (deleteReviewMongo(username, beer.getBeerID())) {
@@ -55,10 +70,20 @@ public class ReviewManager {
         return false;
     }
 
+    /** method to request the deletion of the username in the reviews, when a user delete its own account
+     * @param username User to delete from reviews he wrote
+     * @return true if the operation was successful
+     * */
     protected boolean deleteUserFromReviews(String username) {
         return beerManagerDB.deleteUserFromReviews(username);
     }
 
+    /** method to calculate the new rating of a beer when a review is added or removed
+     * @param review Review object to add or to remove from which get the score for the computation
+     * @param beer Beer for which the review was written
+     * @param add a boolean that indicate if the operation is an addition or a deletion of the review
+     * @return the computed value, -1 if error or the beer no longer has reviews
+     * */
     private double computeNewBeerRating(Review review, DetailedBeer beer, boolean add) {
         try {
             Document doc = beerManagerDB.getDetailedBeer(beer.getBeerID());
@@ -90,22 +115,6 @@ public class ReviewManager {
         }
         return -1;
     }
-
-    // compute score from reviews in the beers collection
-    public boolean recomputeBeerScore(DetailedBeer beer) {
-        Document docRating = beerManagerDB.updateBeerRating(beer);
-
-        if (docRating != null) {
-            if (docRating.get("rating") != null)
-                beer.setScore(Double.parseDouble(docRating.get("rating").toString()));
-            if (docRating.get("num_rating") != null)
-                beer.setNumRating(docRating.getInteger("num_rating"));
-            return true;
-        }
-
-        return false;
-    }
-
 
     /* *******************************************  Neo4J Section  ************************************************/
 

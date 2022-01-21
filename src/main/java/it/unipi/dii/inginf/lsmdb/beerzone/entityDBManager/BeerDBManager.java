@@ -35,6 +35,7 @@ import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
+/** class to query for beers in both databases */
 public class BeerDBManager {
     private final MongoManager mongoManager;
     private final Neo4jManager NeoDBMS;
@@ -56,16 +57,23 @@ public class BeerDBManager {
     /* *********************************************************************************************************** */
 
 
+    /** add a new document in the Beer collection in MongoDB
+     * @param beer Beer object to insert in the collection
+     * */
     public void addNewBeerMongo(DetailedBeer beer) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
             Document beerDoc = beer.getBeerDoc();
             beersCollection.insertOne(beerDoc);
+            beer.setBeerID(beerDoc.getObjectId("_id").toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /** delete a document from beer collection in MongoDB
+     * @param beer beer to delete
+     * @return true if the beer was removed successfully */
     public boolean removeBeerMongo(Beer beer){
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
@@ -77,6 +85,11 @@ public class BeerDBManager {
         return false;
     }
 
+    /** method used to query for beers in the beer collection in MongoDB
+     * @param page page of the table displayed in the Gui, used to skip the beers in the result
+     * @param name initial characters of beer name or style name
+     * @return a list of Documents found in the collection
+     * */
     public FindIterable<Document> browseBeers(int page, @Nullable String name) {
         //check string
         name = name != null ? name : "";
@@ -99,6 +112,10 @@ public class BeerDBManager {
         return iterable;
     }
 
+    /** method used to get for only few fields of a beer in MongoDB
+     * @param beerID id of the required beer
+     * @return the Document found, null if no matching documents are found
+     * */
     public Document getBeer(String beerID) {
         Document beer = null;
         try {
@@ -111,6 +128,10 @@ public class BeerDBManager {
         return beer;
     }
 
+    /** method used to query for a beer by ID in MongoDB
+     * @param beerID id of the required beer
+     * @return the Document found, null if no matching documents are found
+     * */
     public Document getDetailedBeer(String beerID) {
         Document beer = null;
         try {
@@ -123,7 +144,10 @@ public class BeerDBManager {
         return beer;
     }
 
-    /* returned value: matched beers in the beersCollection */
+    /** method used to remove the brewery_id field in all beers by a specific brewery
+     * @param breweryID id of the brewery to remove
+     * @return the number of matched beer in the collection, -1 if no beers are found
+     * */
     public long deleteBreweryFromBeers(String breweryID) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
@@ -136,6 +160,10 @@ public class BeerDBManager {
         return -1;
     }
 
+    /** method to update a Document in the beer collection
+     * @param beer Beer object containing the new values
+     * @return true if a beer was found and updated
+     * */
     public boolean updateBeer(DetailedBeer beer) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
@@ -152,6 +180,11 @@ public class BeerDBManager {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Reviews manager ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
+    /** method to check for the existence of a review
+     * @param username user who wrote the review
+     * @param beer beer for which the review was written
+     * @return true if the user has already written a review for the given beer
+     * */
     private boolean existsReview(String username, Beer beer) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
@@ -165,14 +198,15 @@ public class BeerDBManager {
         return false;
     }
 
+    /** method to replace with "deleted_user" the username field in all the reviews written by the indicated user
+     * @param username user to replace in the reviews
+     * @return true if all matched reviews have been updated
+     * */
     public boolean deleteUserFromReviews(String username) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
-            String pattern = "^" + username + "$";
-            String optionsRegEx = "i";
             UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
-                    Collections.singletonList(eq("item.username", username)));//regex("item.username", pattern, optionsRegEx)));
-            //regex("reviews.username", pattern, optionsRegEx),
+                    Collections.singletonList(eq("item.username", username)));
             UpdateResult updateResult = beersCollection.updateMany(
                     eq("reviews.username", username),
                     set("reviews.$[item].username", "deleted_user"), updateOptions);
@@ -184,6 +218,13 @@ public class BeerDBManager {
         return false;
     }
 
+    /** insert a new review to beer collection, adding it to the nested list of reviews
+     * and update the beer rating with the new value
+     * @param review review to add
+     * @param beer beer for which the review was written
+     * @param newRating updated rating of the beer
+     * @return true if operation was successful
+     * */
     public boolean addReviewToBeersCollection(Review review, DetailedBeer beer, double newRating) {
         if (!existsReview(review.getUsername(), beer)) {
             try {
@@ -199,7 +240,13 @@ public class BeerDBManager {
         return false;
     }
 
-
+    /** delete a review from beer collection in MongoDB
+     * and update the rating of the given beer
+     * @param username user who wants to delete the review he wrote for a beer
+     * @param beer beer for which the review was written
+     * @param updatedRating updated rating for the beer
+     * @return true if operation was successful
+     * */
     public boolean deleteReviewMongo(String username, DetailedBeer beer, double updatedRating) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
@@ -217,6 +264,9 @@ public class BeerDBManager {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Aggregations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     // first aggregation on mongodb
+    /** query aggregation to get the best beers of the month
+     * @return a list of documents found
+     * */
     public AggregateIterable<Document> getHighestAvgScoreBeers() {
         AggregateIterable<Document> list = null;
         try {
@@ -250,13 +300,19 @@ public class BeerDBManager {
     }
 
     // second aggregation on mongodb
+    /** query aggregation to get the list of beers below the brewery score for a given feature
+     * @param breweryID Brewery for which you want to know the beer list
+     * @param feature characteristic to consider for calculating the score
+     * @param breweryScore score of the brewery to consider
+     * @return the list of documents of beers required
+     * */
     public AggregateIterable<Document> getBeersUnderAvgFeatureScore(String breweryID, String feature, double breweryScore){
         AggregateIterable<Document> list = null;
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
             LocalDateTime today = LocalDateTime.now();
-            LocalDateTime past = LocalDateTime.now().minusMonths(6);
-            Bson initialMatch = match(and(eq("brewery_id", new ObjectId(breweryID)),
+            LocalDateTime past = LocalDateTime.now().minusYears(1);
+            Bson dateMatch = match(and(eq("brewery_id", new ObjectId(breweryID)),
                     lt("reviews.date", today), gt("reviews.date", past)));
             Bson unwindReviews = unwind("$reviews");
             Bson groupBeer = new Document("$group", new Document("_id",
@@ -270,8 +326,8 @@ public class BeerDBManager {
                     new Document("$round", Arrays.asList("$feature_score", 2))));
             Bson matchBreweryScore = match(lt("feature_score", breweryScore));
             Bson sortResult = sort(ascending("feature_score"));
-            list = beersCollection.aggregate(Arrays.asList(initialMatch, unwindReviews, groupBeer, projectRoundScore,
-                    matchBreweryScore, sortResult));
+            list = beersCollection.aggregate(Arrays.asList(dateMatch, unwindReviews, dateMatch, groupBeer,
+                    projectRoundScore, matchBreweryScore, sortResult));
             /*for (Document d: list) {
                 System.out.println(d);
             }
@@ -284,6 +340,10 @@ public class BeerDBManager {
     }
 
     // third aggregation on mongodb
+    /** query aggregation for computing the score of a Brewery
+     * @param breweryID id of the brewery you want to calculate the score
+     * @return a document containing the score of the brewery
+     * */
     public Document getBreweryScore(String breweryID) {
         Document doc = null;
         try {
@@ -303,6 +363,9 @@ public class BeerDBManager {
     }
 
     // fourth aggregation on mongodb
+    /** query aggregation to get the top 3 favorite styles, based on review scores
+     * @return a list of document containing requested data
+     * */
     public AggregateIterable<Document> getTopStyleScore() {
         AggregateIterable<Document> list = null;
         try {
@@ -330,12 +393,19 @@ public class BeerDBManager {
         return list;
     }
 
-    // aggregation for updating beer rating from reviews score
-    public Document updateBeerRating(DetailedBeer beer) {
+    // aggregation for updating beer rating from reviews score of the last year
+    /** query aggregation that can be used to compute and update the rating for a beer
+     * with the scores received in the reviews only in the last year
+     * @param beer Beer you want to calculate the rating for
+     * */
+    public Document recomputeBeerRating(DetailedBeer beer) {
         Document doc = null;
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
-            Bson matchBeer = match(eq("_id", new ObjectId(beer.getBeerID())));
+            LocalDateTime today = LocalDateTime.now();
+            LocalDateTime past = LocalDateTime.now().minusYears(1);
+            Bson matchBeer = match(and(eq("_id", new ObjectId(beer.getBeerID())),
+                    lt("reviews.date", today), gt("reviews.date", past)));
             Bson unwindReviews = unwind("$reviews");
             Bson groupBeers = group("$_id", avg("avg_score", "$reviews.score"),
                     sum("num_rating", 1));

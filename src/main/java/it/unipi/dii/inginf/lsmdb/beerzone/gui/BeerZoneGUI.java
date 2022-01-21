@@ -67,12 +67,13 @@ public class BeerZoneGUI {
 
     /**
      * function that prepares the components that are inside the browse beer section
+     *
      * @param rjp : panel containing the table
      * @param frame : frame used by the application
      * @param user : logged user
      * @param tableContainer : panel containing the table
-     * @param beerInput
-     * @param searchPanel
+     * @param beerInput: user's search input
+     * @param searchPanel: JPanel containing the search section
      * @param browseTable : table containing the beers
      * @param tableType: type of the table to show, for Beers or for Brewery
      * @param currPage: page of the table to show
@@ -137,7 +138,7 @@ public class BeerZoneGUI {
      * @param browseTable: table containing the beers
      * @param user: logged user
      * @param tableType : type of table to show, Beer table or Brewery table
-     * @param beerInput
+     * @param beerInput: user's search input
      * @param currPage : page to show in the table
      */
     private static void addNavigationBar(JPanel rjp, JFrame frame, JPanel tableContainer, JTable browseTable, GeneralUser user, Integer[] tableType, JTextField beerInput, JTextField currPage) {
@@ -160,7 +161,7 @@ public class BeerZoneGUI {
     }
 
     /**
-     * function that sets the functionalities of the navigation arraws
+     * function that sets the functionalities of the navigation arrows
      *
      * @param leftArr: arrow that leads to the previous page
      * @param rightArr: arrow that leads to the next page
@@ -169,9 +170,9 @@ public class BeerZoneGUI {
      * @param tableContainer : panel containing the table
      * @param frame : frame used by the application
      * @param user : logged user
-     * @param rjp : right Jpanel containing the table
+     * @param rjp : right JPanel containing the table
      * @param tableType : type of table to show, for Beers or for Brewery
-     * @param beerInput
+     * @param beerInput: user's search input
      */
     private static void setNavButtonFunctionalities(JButton leftArr, JButton rightArr, JTextField currPage, JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, JPanel rjp, Integer[] tableType, JTextField beerInput) {
         leftArr.setEnabled(false);
@@ -214,12 +215,13 @@ public class BeerZoneGUI {
 
     /**
      * function that creates the table inside the "browse beers" section
+     *
      * @param browseTable : table containing beers
      * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
      * @param user : logged user
      * @param beerToShow : Beer list to show in the table
-     * @param rjp : right Jpanel containing the table
+     * @param rjp : right JPanel containing the table
      * @param tableType : type of table to show, Beer table or Brewery Table
      */
     private static void prepareBrowseTable(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, ArrayList<Beer> beerToShow, JPanel rjp, Integer[] tableType) {
@@ -255,12 +257,13 @@ public class BeerZoneGUI {
 
     /**
      * function that creates the table inside the "browse beers" section
+     *
      * @param browseTable : table containing beers
      * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
      * @param user : logged user
      * @param breweryToShow: list of breweries to show in the table
-     * @param rjp: right Jpanel containing the table
+     * @param rjp: right JPanel containing the table
      * @param tableType : type of the table to show, for beers of for breweries
      */
     private static void prepareBrowseTableBrewery(JTable browseTable, JPanel tableContainer, JFrame frame, GeneralUser user, ArrayList<Brewery> breweryToShow, JPanel rjp, Integer[] tableType) {
@@ -295,6 +298,8 @@ public class BeerZoneGUI {
     }
 
     /**
+     * function that converts a brewery object into a String array
+     *
      * @param b: beer info to put in an array
      * @return beerInfo: array of info
      */
@@ -308,6 +313,8 @@ public class BeerZoneGUI {
         return beerInfo;
     }
     /**
+     * function that converts a brewery object into a String array
+     *
      * @param b: beer info to put in an array
      * @return beerInfo: array of info
      */
@@ -326,8 +333,8 @@ public class BeerZoneGUI {
      * function that sets the table graphic settings and the actions that can be performed on it
      *
      * @param tableModel: table model
-     * @param browseTable: Jpanel with the table
-     * @param rjp: Jpanel that contains the section
+     * @param browseTable: JPanel with the table
+     * @param rjp: JPanel that contains the section
      * @param frame: frame used by the application
      * @param user : logged user
      * @param tableType : type of the table to show, for Beer or for Brewery
@@ -461,12 +468,12 @@ public class BeerZoneGUI {
     /**
      * function used to add a generic description-input element
      *
-     * @param containerPanel: Jpanel that will contain the elements
+     * @param containerPanel: JPanel that will contain the elements
      * @param description: description text
      * @param info: initial content of the input fields
      * @param row: row that will contain the elements
-     * @param inputs
-     * @param editable
+     * @param inputs: array containing the user input JTextPane
+     * @param editable: tells if the JTextPane is editable
      */
     public static void addGenericFields(JPanel containerPanel, String description, String info, int row, JTextPane[] inputs, boolean editable) {
         JTextField desc = new JTextField(description);
@@ -499,8 +506,8 @@ public class BeerZoneGUI {
      * @param containerPanel : panel containing the field
      * @param row: GridBagConstraint grid_y
      * @param column: GridBagConstraint grid_x
-     * @param enabled
-     * @param userInput
+     * @param enabled: tells if the JTextPane is editable
+     * @param userInput: array containing the user input JTextPane
      *
      */
     private static void createBeerFields(String fieldName, JPanel containerPanel, int row, int column, boolean enabled, JTextPane[] userInput) {
@@ -544,13 +551,13 @@ public class BeerZoneGUI {
      * @param panelRow: row where the panel will be located
      * @param recipeTexts: array containing the recipe text
      * @param userType: type of user requesting the section
-     * @param editable
-     * @param selBeer
-     * @param recipeCB
+     * @param editable: tells if the user can modify the recipe
+     * @param selBeer: selected beer
+     * @param recipeCB: JComboBox
      * @param frame : frame used by the application
      * @param inputRecipe
      * @param userInputs
-     * @param b
+     * @param b: logged user
      */
     public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs, GeneralUser b) {
         JPanel recipePanel = new JPanel();

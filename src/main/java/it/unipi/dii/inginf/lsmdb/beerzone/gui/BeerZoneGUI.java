@@ -555,8 +555,8 @@ public class BeerZoneGUI {
      * @param selBeer: selected beer
      * @param recipeCB: JComboBox
      * @param frame : frame used by the application
-     * @param inputRecipe
-     * @param userInputs
+     * @param inputRecipe: recipe user input
+     * @param userInputs: beer info user input
      * @param b: logged user
      */
     public static void createRecipeSection(JPanel rjp, int panelRow, String[] recipeTexts, Integer userType, boolean editable, DetailedBeer selBeer, JComboBox<String>[] recipeCB, JTextArea[] inputRecipe, JFrame frame, JTextPane[] userInputs, GeneralUser b) {
@@ -644,15 +644,18 @@ public class BeerZoneGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),30,10));
     }
 
-    /** function to update beer recipe
-     * @param selBeer
-     * @param recipeTexts
+    /**
+     * function to update beer recipe
+     *
+     * @param selBeer: selected beer
+     * @param recipeTexts: array containing the recipe informations
      * @param rjp : right Jpanel that contains the section
      * @param frame : frame used by the application
-     * @param userInputs
-     * @param recipeCB
-     * @param inputArea
-     * @param errorMsg */
+     * @param userInputs: beer info inserted by the user
+     * @param recipeCB: JComboBox that switches between recipe sections
+     * @param inputArea: recipe section user input
+     * @param errorMsg: error message
+     */
     private static void updateBeer(DetailedBeer selBeer, String[] recipeTexts, JPanel rjp, JFrame frame, JTextPane[] userInputs, JComboBox<String> recipeCB, JTextArea inputArea, JTextField errorMsg) {
         recipeTexts[recipeCB.getSelectedIndex()] = inputArea.getText();
         boolean recipeCorrect = BreweryManagerGUI.checkRecipe(recipeTexts);
@@ -1136,7 +1139,7 @@ public class BeerZoneGUI {
      *  @param jp : JPanel that contains the login components
      * @param frame : frame used by the application
      * @param loginButton : login button
-     * @param inputs
+     * @param inputs: user inputs
      */
     private static void createLoginButton(JPanel jp, JFrame frame, JButton loginButton, JTextField[] inputs) {
         GridBagConstraints gbc = new GridBagConstraints();

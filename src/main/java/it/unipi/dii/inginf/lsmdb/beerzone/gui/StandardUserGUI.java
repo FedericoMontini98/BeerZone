@@ -599,7 +599,7 @@ public class StandardUserGUI {
             leftBtn.setEnabled(true);
             int currPage = Integer.parseInt(page.getText());
             currPage++;
-            if(currPage * 10 > reviews.size())
+            if(currPage * 10 >= reviews.size())
                 rightBtn.setEnabled(false);
             prepareNewTablePage(tableModel, currPage, reviews);
             page.setText(String.valueOf(currPage));

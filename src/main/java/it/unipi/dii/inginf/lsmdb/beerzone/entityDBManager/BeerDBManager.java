@@ -185,13 +185,12 @@ public class BeerDBManager {
      * @param beer beer for which the review was written
      * @return true if the user has already written a review for the given beer
      * */
-    private boolean existsReview(String username, Beer beer) {
+    public boolean existsReview(String username, Beer beer) {
         try {
             MongoCollection<Document> beersCollection = mongoManager.getCollection("beers");
             Document doc = beersCollection.find(and(eq("_id", new ObjectId(beer.getBeerID())),
                     eq("reviews.username", username))).first();
-            if (doc != null)
-                return true;
+            return doc != null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -413,7 +412,7 @@ public class BeerDBManager {
                     new Document("$round", Arrays.asList("$avg_score", 2L))).append("num_rating", 1L));
             Bson mergeResult = merge("beers");
             doc = beersCollection.aggregate(Arrays.asList(matchBeer, unwindReviews, groupBeers,
-                    projectRoundScore, mergeResult)).first();
+                    projectRoundScore)).first();
 
         } catch (Exception e) {
             e.printStackTrace();

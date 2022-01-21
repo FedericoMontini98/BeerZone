@@ -46,7 +46,7 @@ public class BreweryManagerGUI {
      * function that creates the brewery manager section
      *
      * @param frame: frame used by the application
-     * @param b: brewery informations
+     * @param b: brewery information
      */
     public static void breweryManagerSection(JFrame frame, Brewery b){
         JButton[] btnArray = new JButton[5];

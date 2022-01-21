@@ -218,7 +218,7 @@ public class BeerZoneGUI {
      * @param tableContainer : panel containing browseTable
      * @param frame : frame used by the application
      * @param user : logged user
-     * @param beerToShow
+     * @param beerToShow : Beer list to show in the table
      * @param rjp : right Jpanel containing the table
      * @param tableType : type of table to show, Beer table or Brewery Table
      */

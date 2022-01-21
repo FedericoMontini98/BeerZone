@@ -1175,13 +1175,7 @@ public class BeerZoneGUI {
         JFrame frame = new JFrame("BeerZone");
         try{
             BufferedImage myPicture = ImageIO.read(new File("C:/images/logobeerzone.png"));
-            //BufferedImage myPicture = ImageIO.read(new File("./logobeerzone.png"));
             frame.setIconImage(myPicture);
-            /*ImageIcon image = new ImageIcon(
-                    (Objects.requireNonNull(this.getClass().getResource("/logobeerzone.png"))));
-
-            frame.setIconImage(frame.getIconImage());//Toolkit.getDefaultToolkit().getImage(BeerZoneGUI.class.getResource("/logobeerzone.png")));
-        */
         } catch (Exception e) {
             e.printStackTrace();
         }

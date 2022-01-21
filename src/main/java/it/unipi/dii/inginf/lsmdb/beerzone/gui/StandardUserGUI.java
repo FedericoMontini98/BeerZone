@@ -540,14 +540,15 @@ public class StandardUserGUI {
         //12
         int i = 0;
         for(Review rev: reviews) {
-            if(i > 12)
+            if(i > 9)
                 break;
             i++;
             tableModel.addRow(reviewToStringArray(rev));
         }
 
-        browseReviewTable.setPreferredSize(new Dimension(300, 400));
+        browseReviewTable.setPreferredSize(new Dimension(350, 315));
         JScrollPane jsc = new JScrollPane(browseReviewTable);
+        jsc.setPreferredSize(new Dimension(450, 340));
         rjp.add(jsc, new GridBagConstraints(0,5,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(30, 0, 0, 0),0,0));
 
@@ -581,7 +582,7 @@ public class StandardUserGUI {
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
 
         leftBtn.setEnabled(false);
-        rightBtn.setEnabled(reviews.size() > 13);
+        rightBtn.setEnabled(reviews.size() > 10);
 
         leftBtn.addActionListener(e->{
             rightBtn.setEnabled(true);
@@ -598,7 +599,7 @@ public class StandardUserGUI {
             leftBtn.setEnabled(true);
             int currPage = Integer.parseInt(page.getText());
             currPage++;
-            if(currPage * 13 > reviews.size())
+            if(currPage * 10 > reviews.size())
                 rightBtn.setEnabled(false);
             prepareNewTablePage(tableModel, currPage, reviews);
             page.setText(String.valueOf(currPage));
@@ -617,8 +618,8 @@ public class StandardUserGUI {
         for(int i = 0; i < numRow; i++)
             tableModel.removeRow(0);
 
-        for(int i = 0; (i < 13 && (reviews.size() > (currPage - 1) * 13 + i)); i++)
-            tableModel.addRow(reviewToStringArray(reviews.get((currPage - 1) * 13 + i)));
+        for(int i = 0; (i < 10 && (reviews.size() > (currPage - 1) * 10 + i)); i++)
+            tableModel.addRow(reviewToStringArray(reviews.get((currPage - 1) * 10 + i)));
     }
 
     /**

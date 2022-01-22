@@ -455,80 +455,24 @@ public class BeerDBManager {
     public ArrayList<String> getSuggested(StandardUser user){
         //Looking for how many style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
-            int n_style=0;
-            Result Style_records= session.run("match (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style) \n" +
-                    "return  distinct S.nameStyle as Style",parameters("Username",user.getUsername()));
-            String Style_1="",Style_2="";
-            if(Style_records.hasNext()) {
-                Style_1= Style_records.next().get("Style").asString();
-                if (Style_records.hasNext()) {
-                    Style_2 = Style_records.next().get("Style").asString();
-                    n_style = 2;
+            return session.readTransaction(tx -> {
+                Result result = tx.run("MATCH (U:User{Username:$Username})-[F:Favorite]->(B:Beer)-[Ss:SameStyle]->(S:Style)\n" +
+                    "WITH COLLECT(S.nameStyle) as StylesToChose, COLLECT(B.ID) as BeersToNotSuggest\n" +
+                    "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style)\n" +
+                    "WHERE (NOT B1.ID IN BeersToNotSuggest) AND (S.nameStyle IN StylesToChose)\n" +
+                    "WITH COLLECT(B1) as BeersWithSameStyle\n" +
+                    "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
+                    "WHERE (B1) in BeersWithSameStyle\n" +
+                    "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount\n" +
+                    "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Username",user.getUsername()));
+                ArrayList<String> Suggested = new ArrayList<>();
+                while (result.hasNext()) {
+                    Record r = result.next();
+                    Suggested.add(r.get("ID").asString());
                 }
-                else{
-                    n_style=1;
-                }
-            }
-            if(n_style==0){ //If the user haven't any favorites I return an empty list
-                return new ArrayList<>();
-            }
-            //If less than 4 I return two suggestions for that style
-            if(n_style==1){
-                String finalStyle_ = Style_1;
-                return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
-                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
-                            "WHERE (B1) in BeersWithSameStyle\n" +
-                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 4", parameters("Username",user.getUsername(),"Style", finalStyle_));
-                    ArrayList<String> Suggested = new ArrayList<>();
-                    while (result.hasNext()) {
-                        Record r = result.next();
-                        Suggested.add(r.get("ID").asString());
-                    }
-                    return Suggested;
+                return Suggested;
                 });
             }
-            //If more than 2 I take the two with most records and return suggestions on those two
-            else{
-                String finalStyle_1 = Style_1;
-                String finalStyle_2 = Style_2;
-                return session.readTransaction(tx -> {
-                    Result result = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
-                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
-                            "WHERE (B1) in BeersWithSameStyle\n" +
-                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_1));
-                    ArrayList<String> suggested = new ArrayList<>();
-                    while (result.hasNext()) {
-                        Record r = result.next();
-                        suggested.add(r.get("ID").asString());
-                    }
-                    Result result_2 = tx.run("MATCH (B:Beer)-[F:Favorite]-(U:User{Username:$Username}) \n"+
-                            "WITH COLLECT (B.ID) as BeersToNotSuggest\n" +
-                            "MATCH (B1:Beer)-[Ss:SameStyle]->(S:Style{nameStyle:$Style})\n"+
-                            "WHERE NOT B1.ID IN BeersToNotSuggest\n"  +
-                            "WITH COLLECT(B1) as BeersWithSameStyle\n" +
-                            "MATCH ()-[F:Favorite]->(B1:Beer)\n" +
-                            "WHERE (B1) in BeersWithSameStyle\n" +
-                            "RETURN B1.ID as ID,COUNT(DISTINCT F) as FavoritesCount \n" +
-                            "ORDER BY FavoritesCount DESC LIMIT 2", parameters("Username",user.getUsername(),"Style", finalStyle_2));
-                    while (result_2.hasNext()) {
-                        Record r = result_2.next();
-                        suggested.add(r.get("ID").asString());
-                    }
-                    return suggested;
-                });
-            }
-        }
         catch(Exception e){
             e.printStackTrace();
             return new ArrayList<>();

@@ -45,10 +45,9 @@ public class ReviewManager {
     public boolean addNewReview(Review review, DetailedBeer beer) {
         if (!beerManagerDB.existsReview(review.getUsername(), beer)) {
             double new_rating = computeNewBeerRating(review, beer, true);
-            System.out.println(beer.getNumRating() + " rev");
+            //System.out.println(beer.getNumRating() + " rev");
             if (beerManagerDB.addReviewToBeersCollection(review, beer, new_rating)) {
                 beer.addReviewToBeer(review);   // add review to local list in DetailedBeer
-                //updateBeerRating(beer);
                 return beerManagerDB.addReviewNeo(review, beer);
             }
         }
@@ -62,12 +61,12 @@ public class ReviewManager {
      * @return true if all operations were successful
      * */
     public boolean deleteReview(String username, DetailedBeer beer) {
-        double rating = computeNewBeerRating(getReview(username, beer), beer, false);
-        //if (deleteReviewMongo(username, beer.getBeerID())) {
-        if (beerManagerDB.deleteReviewMongo(username, beer, rating)) {
-            beer.removeReviewFromBeer(getReview(username, beer));   // remove review to local list in DetailedBeer
-            //updateBeerRating(beer);
-            return beerManagerDB.removeReviewNeo(username, beer.getBeerID());
+        if(beerManagerDB.existsReview(username, beer)) {
+            double rating = computeNewBeerRating(getReview(username, beer), beer, false);
+            if (beerManagerDB.deleteReviewMongo(username, beer, rating)) {
+                beer.removeReviewFromBeer(getReview(username, beer));   // remove review to local list in DetailedBeer
+                return beerManagerDB.removeReviewNeo(username, beer.getBeerID());
+            }
         }
         return false;
     }
@@ -105,7 +104,7 @@ public class ReviewManager {
                     else
                         newRating = (oldTotalRating - review.getNumericScore()) / (--num_rating);
                 }
-                newRating = (double) ((Math.round(newRating * 100)) / 100);
+                newRating = (double) (Math.round(newRating * 100)) / 100;
 //                System.out.println("new rating: " + newRating);
                 beer.setNumRating(num_rating);
                 beer.setScore(newRating);

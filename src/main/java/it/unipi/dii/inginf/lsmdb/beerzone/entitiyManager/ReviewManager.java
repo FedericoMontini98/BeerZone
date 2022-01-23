@@ -43,12 +43,14 @@ public class ReviewManager {
      * @return true if all operation was successful
      * */
     public boolean addNewReview(Review review, DetailedBeer beer) {
-        //if (addReviewMongo(review, beer)) {
-        double new_rating = computeNewBeerRating(review, beer, true);
-        if (beerManagerDB.addReviewToBeersCollection(review, beer, new_rating)) {
-            beer.addReviewToBeer(review);   // add review to local list in DetailedBeer
-            //updateBeerRating(beer);
-            return beerManagerDB.addReviewNeo(review, beer);
+        if (!beerManagerDB.existsReview(review.getUsername(), beer)) {
+            double new_rating = computeNewBeerRating(review, beer, true);
+            System.out.println(beer.getNumRating() + " rev");
+            if (beerManagerDB.addReviewToBeersCollection(review, beer, new_rating)) {
+                beer.addReviewToBeer(review);   // add review to local list in DetailedBeer
+                //updateBeerRating(beer);
+                return beerManagerDB.addReviewNeo(review, beer);
+            }
         }
         return false;
     }
@@ -103,7 +105,7 @@ public class ReviewManager {
                     else
                         newRating = (oldTotalRating - review.getNumericScore()) / (--num_rating);
                 }
-                newRating = (double) (Math.round(newRating * 100)) / 100;
+                newRating = (double) ((Math.round(newRating * 100)) / 100);
 //                System.out.println("new rating: " + newRating);
                 beer.setNumRating(num_rating);
                 beer.setScore(newRating);

@@ -286,11 +286,9 @@ public class BreweryManagerGUI {
 
         JTextField breweryStatsTitle = new JTextField(b.getUsername());
         prepareBreweryStatsTitle(breweryStatsTitle, containerPanel);
-
         JTextField responseField = new JTextField("Not yet computed");
 
         JButton breweryStatsBtn = new JButton("Compute brewery score");
-        prepareBreweryStatsBtn(breweryStatsBtn, containerPanel);
         prepareResponseField(responseField, breweryStatsBtn, containerPanel);
         breweryStatsBtn.addActionListener(e ->{
             double BreweryScore= BreweryManager.getInstance().getBreweryScore(b.getUserID());
@@ -350,21 +348,6 @@ public class BreweryManagerGUI {
             i++;
         }
 
-        /*containerPanel.removeAll();
-        //DefaultTableModel tableModel = new DefaultTableModel(){
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        if(beers.size() > 12)
-            beers.remove(beers.size() - 1);
-        for (Beer beer : beers) tableModel.addRow(beerToStringArray(beer));
-        JScrollPane jsc = new JScrollPane(breweryStatsTable);
-        containerPanel.add(jsc, new GridBagConstraints(0,0,0,1,0,0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0),0,0));
-        */
         frame.repaint();
         frame.setVisible(true);
     }
@@ -403,15 +386,6 @@ public class BreweryManagerGUI {
         breweryStats.add(responseField);
         containerPanel.add(breweryStats, new GridBagConstraints(0,1,2,1,0,0,
                 GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 60, 0),0,0));
-    }
-
-    /**
-     * function that set the parameters of the brewery's average score button
-     *
-     * @param breweryStatsBtn: button that allows the user to compute the brewery's average score
-     * @param containerPanel: panel containing the "brewery statistics" section
-     */
-    private static void prepareBreweryStatsBtn(JButton breweryStatsBtn, JPanel containerPanel) {
     }
 
     /**

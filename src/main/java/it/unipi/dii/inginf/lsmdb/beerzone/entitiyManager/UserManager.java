@@ -23,9 +23,10 @@ public class UserManager {
      * @return true if all operations were successful
      * */
     public boolean deleteUser(StandardUser user) {
-        boolean result_1=deleteStandardUser(user);
-        boolean result_2=removeUser(user.getUsername());
-        return (result_1&&result_2);
+        boolean result_2=false;
+        if (deleteStandardUser(user))
+            result_2=removeUser(user.getUsername());
+        return (result_2);
     }
 
     /** Add a favorite beer both on the StandardUser ArrayList and Neo4J, call it from the GUI
@@ -91,8 +92,8 @@ public class UserManager {
      * */
     private boolean deleteStandardUser(StandardUser user) {
         try {
-            boolean ok = ReviewManager.getInstance().deleteUserFromReviews(user.getUsername());
-            return ok && generalUserManagerDB.deleteUser(user);
+            if(ReviewManager.getInstance().deleteUserFromReviews(user.getUsername()))
+                return generalUserManagerDB.deleteUser(user);
         } catch (Exception e) {
             e.printStackTrace();
         }

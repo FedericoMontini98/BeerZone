@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static javax.swing.BorderFactory.createEmptyBorder;
 
@@ -336,12 +337,14 @@ public class BreweryManagerGUI {
         for (int i=0;i<n;i++){
             breweryStatsTable.getModel().setValueAt("--",i,0);
             breweryStatsTable.getModel().setValueAt("--",i,1);
+            breweryStatsTable.getModel().setValueAt("--",i, 2);
         }
         int i=0;
         for (Beer beer : beers){
             if(i<8){
                 breweryStatsTable.getModel().setValueAt(beer.getBeerName(),i,0);
-                breweryStatsTable.getModel().setValueAt(beer.getBeerID(),i,1);
+                breweryStatsTable.getModel().setValueAt(beer.getScore(),i,1);
+                breweryStatsTable.getModel().setValueAt(beer.getBeerID(), i, 2);
             }
             else
                 break;
@@ -404,15 +407,19 @@ public class BreweryManagerGUI {
         };
         String[] col0 = {"--", "--", "--", "--", "--", "--", "--", "--"};
         String[] col1 = {"--", "--", "--", "--", "--", "--", "--", "--"};
+        String[] col2 = {"--", "--", "--", "--", "--", "--", "--", "--"};
         tableModel.addColumn("Beer", col0);
-        tableModel.addColumn("BeerID",col1);
+        tableModel.addColumn("Feature Score",col1);
+        tableModel.addColumn("BeerID",col2);
         breweryStatsTable.setRowHeight(25);
         breweryStatsTable.setModel(tableModel);
         TableColumnModel tcm = breweryStatsTable.getColumnModel();
-        tcm.removeColumn(tcm.getColumn(1));
+        tcm.removeColumn(tcm.getColumn(2));
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment( JLabel.CENTER );
         breweryStatsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        breweryStatsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        breweryStatsTable.getColumnModel().getColumn(1).setPreferredWidth(20);
 
         JScrollPane jsc = new JScrollPane(breweryStatsTable);
         jsc.setPreferredSize(new Dimension(450, 225));
@@ -423,7 +430,7 @@ public class BreweryManagerGUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(e.getClickCount() == 2){
-                    String id = breweryStatsTable.getModel().getValueAt(breweryStatsTable.getSelectedRow(),1).toString();
+                    String id = breweryStatsTable.getModel().getValueAt(breweryStatsTable.getSelectedRow(),2).toString();
                     if(!id.equals("--")){
                         DetailedBeer beer= BeerManager.getInstance().getDetailedBeer(id);
                         BeerZoneGUI.createBeerPage(containerPanel,frame,beer,b);

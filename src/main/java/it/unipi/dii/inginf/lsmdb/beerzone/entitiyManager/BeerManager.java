@@ -129,8 +129,12 @@ public class BeerManager {
      * @param beer Beer object containing the new values
      * @return true if the operation was successful
      * */
-    public boolean updateBeer(DetailedBeer beer) {
-        return beerManagerDB.updateBeer(beer);
+    public boolean updateBeer(DetailedBeer beer, Brewery brewery) {
+        if(beerManagerDB.updateBeer(beer)) {
+           if(BreweryManager.getInstance().updateBeerInBrewery(beer, brewery))
+               return beerManagerDB.updateBeerNeo(beer);
+        }
+        return false;
     }
 
     /** method that can be used to compute and update the rating for a beer

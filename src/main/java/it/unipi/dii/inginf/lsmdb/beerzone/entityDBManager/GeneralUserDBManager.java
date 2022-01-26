@@ -2,6 +2,7 @@ package it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.lang.Nullable;
@@ -16,10 +17,10 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Updates.addToSet;
-import static com.mongodb.client.model.Updates.pull;
+import static com.mongodb.client.model.Updates.*;
 import static org.neo4j.driver.Values.parameters;
 
 /** class to query for users in both databases
@@ -203,6 +204,23 @@ public class GeneralUserDBManager {
             UpdateResult updateResult = usersCollection.updateOne(eq("_id", new ObjectId(beer.getBreweryID())),
                     pull("beers", eq("beer_id", new ObjectId(beer.getBeerID()))));
             return updateResult.getMatchedCount() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateBeerInBrewery(Beer beer, Brewery brewery) {
+        try {
+            MongoCollection<Document> usersCollection = mongoManager.getCollection("users");
+            UpdateOptions updateOptions = new UpdateOptions().arrayFilters(
+                    Collections.singletonList(eq("item.beer_id", new ObjectId(beer.getBeerID()))));
+            UpdateResult updateResult = usersCollection.updateOne(and(
+                    eq("_id", new ObjectId(brewery.getUserID())),
+                    eq("beers.beer_id", new ObjectId(beer.getBeerID()))),
+                    set("beers.$[item].beer_name", beer.getBeerName()), updateOptions);
+            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
+            return updateResult.getMatchedCount() == updateResult.getModifiedCount();
         } catch (Exception e) {
             e.printStackTrace();
         }

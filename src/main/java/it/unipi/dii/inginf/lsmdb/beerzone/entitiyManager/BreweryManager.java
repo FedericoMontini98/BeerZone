@@ -1,6 +1,7 @@
 package it.unipi.dii.inginf.lsmdb.beerzone.entitiyManager;
 
 import com.mongodb.lang.Nullable;
+import it.unipi.dii.inginf.lsmdb.beerzone.entities.Beer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.Brewery;
 import it.unipi.dii.inginf.lsmdb.beerzone.entities.DetailedBeer;
 import it.unipi.dii.inginf.lsmdb.beerzone.entityDBManager.GeneralUserDBManager;
@@ -120,6 +121,14 @@ public class BreweryManager {
     public boolean deleteBrewery(Brewery brewery) {
         long ret = BeerManager.getInstance().deleteBreweryFromBeers(brewery.getUserID());   // matched beers
         return generalUserManagerDB.deleteUser(brewery) && ret >= brewery.getBeers().size();
+    }
+
+    public boolean updateBeerInBrewery(Beer beer, Brewery brewery) {
+        if (generalUserManagerDB.updateBeerInBrewery(beer, brewery)) {
+            brewery = getBrewery(brewery.getUserID());
+            return brewery != null;
+        };
+        return false;
     }
 
 }

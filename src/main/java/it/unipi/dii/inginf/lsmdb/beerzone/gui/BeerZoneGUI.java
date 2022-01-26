@@ -600,12 +600,12 @@ public class BeerZoneGUI {
                 finalInputRecipe.setForeground(Color.BLACK);
                 finalInputRecipe.setText(recipeTexts[index[0]]);
                 if(index[0] == 0){
-                    finalInputRecipe.setEditable(false);
+                    finalInputRecipe.setEditable(editable);
                     finalInputRecipe.setText("'Choose an option' is not a valid recipe section");
                     finalInputRecipe.setForeground(Color.RED);
                 }
                 else
-                    finalInputRecipe.setEditable(true);
+                    finalInputRecipe.setEditable(editable);
             }
             if(e.getStateChange() == ItemEvent.DESELECTED){
                 if(index[0] != 0){
@@ -627,12 +627,15 @@ public class BeerZoneGUI {
             deleteBeer.addActionListener(e-> {
                 Brewery br= (Brewery) b;
                 BreweryManager.getInstance().removeBeer(selBeer,br);
-                BreweryManagerGUI.createBreweryPage(rjp, frame, b, b.getUserID(), true);
+                BreweryManagerGUI.createBreweryPage(rjp, frame, b, b.getUserID(), editable);
             });
 
             JButton updateBeer = new JButton("Update Beer");
 
-            updateBeer.addActionListener(e-> updateBeer(selBeer, recipeTexts, rjp, frame, userInputs, finalRecipeCB, finalInputRecipe, errorMsg));
+            updateBeer.addActionListener(e-> {
+                Brewery br = (Brewery) b;
+                updateBeer(selBeer, recipeTexts, rjp, frame, userInputs, finalRecipeCB, finalInputRecipe, errorMsg, br);
+            });
             btnPanel.add(updateBeer, new GridBagConstraints(1, 0,1,1,0,0,
                     GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 5, 0, 0),0,0));
 
@@ -656,7 +659,7 @@ public class BeerZoneGUI {
      * @param inputArea: recipe section user input
      * @param errorMsg: error message
      */
-    private static void updateBeer(DetailedBeer selBeer, String[] recipeTexts, JPanel rjp, JFrame frame, JTextPane[] userInputs, JComboBox<String> recipeCB, JTextArea inputArea, JTextField errorMsg) {
+    private static void updateBeer(DetailedBeer selBeer, String[] recipeTexts, JPanel rjp, JFrame frame, JTextPane[] userInputs, JComboBox<String> recipeCB, JTextArea inputArea, JTextField errorMsg, Brewery br) {
         recipeTexts[recipeCB.getSelectedIndex()] = inputArea.getText();
         boolean recipeCorrect = BreweryManagerGUI.checkRecipe(recipeTexts);
         boolean inputsCorrect = BreweryManagerGUI.checkInfo(userInputs);
@@ -706,7 +709,7 @@ public class BeerZoneGUI {
                     selBeer.setRetired(recipeTexts[13]);
                     selBeer.setUrl(recipeTexts[14]);
                     selBeer.setYeast(recipeTexts[15]);
-                    BeerManager.getInstance().updateBeer(selBeer);
+                    BeerManager.getInstance().updateBeer(selBeer, br);
                 }
             }
         }

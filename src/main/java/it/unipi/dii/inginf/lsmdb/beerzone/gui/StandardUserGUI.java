@@ -60,7 +60,7 @@ public class StandardUserGUI {
         btnArray[2] = new JButton("View Suggestions");
         btnArray[2].addActionListener(e -> browseUserFavoritesSuggestions(rjp, frame, s, SUGGESTIONS));
 
-        btnArray[3] = new JButton("View Trending Beers");
+        btnArray[3] = new JButton("View Trends");
         btnArray[3].addActionListener(e -> browseTrending(rjp, frame, s));
 
         btnArray[4] = new JButton("Browse Data");
@@ -390,7 +390,7 @@ public class StandardUserGUI {
         gbc.insets = new Insets(0,10,40,0);
         gbc.gridx = 1;
         jp.add(btnArray[2], gbc);
-        gbc.ipadx = 5;
+        gbc.ipadx = 55;
         gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.insets = new Insets(0,0,40,10);

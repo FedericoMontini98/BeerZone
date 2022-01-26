@@ -632,7 +632,8 @@ public class BeerDBManager {
             //Deletion of the SameStyle Relationship
             session.run("MATCH (B:Beer{ID:$ID})-[Ss:SameStyle]-() DELETE Ss", parameters("ID",beer.getBeerID()));
             //Check for the existence of the node
-            session.run("MERGE (S:Style{nameStyle:$style})",parameters("style",beer.getStyle()));
+            session.run("MERGE (S:Style{nameStyle:$style})" +
+                    "ON CREATE SET S.nameStyle=$style",parameters("style",beer.getStyle()));
             //I create the relationship
             session.run("MATCH (B:Beer{ID:$ID}), (S:Style{nameStyle:$style}) MERGE (B)-[Ss:SameStyle]-(S)",parameters("ID",beer.getBeerID(),"Name",beer.getBeerName()));
             return true;

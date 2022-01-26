@@ -426,9 +426,11 @@ public class BeerDBManager {
     /* ************************************************************************************************************/
 
 
-
-    /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
-     *  Both to reviews and beer's files */
+    /** Function used to add Beer Nodes in the graph, the only property that they have is id which is common
+     *  Both to reviews and beer's files
+     * @param beer beer to add
+     * @return result of the operation
+     */
     public boolean addBeer(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I First have to see if the style node for this beer is already in the graph
@@ -449,8 +451,11 @@ public class BeerDBManager {
         }
     }
 
-    /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
-     *  others users */
+    /** Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
+     *  others users
+     * @param user user to suggest
+     * @return suggestions
+     */
     public ArrayList<String> getSuggested(StandardUser user){
         //Looking for how many style this user have in his favorites
         try(Session session = NeoDBMS.getDriver().session()) {
@@ -477,7 +482,10 @@ public class BeerDBManager {
             return new ArrayList<>();
         }
     }
-    /* Function that calculate the most favorite beers in the past month */
+
+    /** Function that calculate the most favorite beers in the past month
+     * @return Most favorite beers of this month
+     */
     public ArrayList<FavoriteBeer> getMostFavoriteThisMonth (){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
@@ -511,6 +519,9 @@ public class BeerDBManager {
         }
     }
 
+    /** Remove a beer from Neo4J DB
+     * @param beer beer to remove
+     */
     public void removeBeerFromNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (B:Beer {ID: $ID})\n" +
@@ -525,9 +536,13 @@ public class BeerDBManager {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Reviews manager ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
-    /* Function used to add the relationship of 'reviewed' between a beer and a specific User.
+    /**Function used to add the relationship of 'reviewed' between a beer and a specific User.
      * This function has to be available only if the beer hasn't been reviewed from this user yet to avoid multiple
-     * reviews from the same user which can lead to inconsistency or fake values of the avg. score */
+     * reviews from the same user which can lead to inconsistency or fake values of the avg. score
+     * @param review review to add
+     * @param beer beer reviewed
+     * @return result of the operation
+     */
     public boolean addReviewNeo(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //Check if user exists
@@ -552,8 +567,12 @@ public class BeerDBManager {
         }
     }
 
-    /* Function used to remove the relationship of 'reviewed' between a beer and a specific User.
-     * This function has to be available only if the beer has been reviewed from this user */
+    /** Function used to remove the relationship of 'reviewed' between a beer and a specific User.
+     * This function has to be available only if the beer has been reviewed from this user
+     * @param Username User identifier
+     * @param BeerID Beer Identifier
+     * @return result of the operation
+     */
     public boolean removeReviewNeo(String Username, String BeerID){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User {Username: $Username})-[R:Reviewed]-(B:Beer {ID: $BeerID}) \n" +
@@ -567,7 +586,9 @@ public class BeerDBManager {
         }
     }
 
-    /* Function used to calculate the IDs of the most reviewed beers this month */
+    /** Function used to calculate the IDs of the most reviewed beers this month
+     * @return Most reviewed beers of this month
+     */
     public ArrayList<Beer> mostReviewedBeers(){
         try(Session session = NeoDBMS.getDriver().session()){
             //Get the current date
@@ -600,5 +621,25 @@ public class BeerDBManager {
         }
     }
 
+    /** Function that update beer information on Neo4J DB
+     * @param beer beer to update
+     * @return result of the operation
+     */
+    public boolean updateBeerNeo(Beer beer) {
+        try (Session session = NeoDBMS.getDriver().session()) {
+            //Update of the beer name
+            session.run("MATCH (B:Beer{ID:$ID}) SET B.Name=$Name", parameters("ID",beer.getBeerID(),"Name",beer.getBeerName()));
+            //Deletion of the SameStyle Relationship
+            session.run("MATCH (B:Beer{ID:$ID})-[Ss:SameStyle]-() DELETE Ss", parameters("ID",beer.getBeerID()));
+            //Check for the existence of the node
+            session.run("MERGE (S:Style{nameStyle:$style})",parameters("style",beer.getStyle()));
+            //I create the relationship
+            session.run("MATCH (B:Beer{ID:$ID}), (S:Style{nameStyle:$style}) MERGE (B)-[Ss:SameStyle]-(S)",parameters("ID",beer.getBeerID(),"Name",beer.getBeerName()));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
 

@@ -704,14 +704,6 @@ public class BeerZoneGUI {
                 frame.setVisible(true);
             }
             else {
-                errorMsg.setText("Beer Correctly Updated");
-                errorMsg.setForeground(new Color(0, 59, 16));
-                errorMsg.setBackground(BACKGROUND_COLOR);
-                errorMsg.setBorder(createEmptyBorder());
-                rjp.add(errorMsg, new GridBagConstraints(0,7,2,1,0,0,
-                        GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0),0,0));
-                frame.repaint();
-                frame.setVisible(true);
                 if (inputsCorrect) {
                     selBeer.setBeerName(userInputs[0].getText());
                     selBeer.setStyle(userInputs[1].getText());
@@ -730,7 +722,16 @@ public class BeerZoneGUI {
                     selBeer.setRetired(recipeTexts[13]);
                     selBeer.setUrl(recipeTexts[14]);
                     selBeer.setYeast(recipeTexts[15]);
-                    BeerManager.getInstance().updateBeer(selBeer, br);
+                    if(BeerManager.getInstance().updateBeer(selBeer, br)){
+                        errorMsg.setText("Beer Correctly Updated");
+                        errorMsg.setForeground(new Color(0, 59, 16));
+                        errorMsg.setBackground(BACKGROUND_COLOR);
+                        errorMsg.setBorder(createEmptyBorder());
+                        rjp.add(errorMsg, new GridBagConstraints(0, 7, 2, 1, 0, 0,
+                                GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(20, 0, 0, 0), 0, 0));
+                        frame.repaint();
+                        frame.setVisible(true);
+                    }
                 }
             }
         }

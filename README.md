@@ -1,5 +1,5 @@
 # BeerZone
-Project for Large-Scale and Multi-Structured Databases course at Univeristy of Pisa (CE &amp; AIDE Master Degree)
+Project for Large-Scale and Multi-Structured Databases course at University of Pisa (CE &amp; AIDE Master Degree)
 
 The application provides a service named “BeerZone”, in which a registered user can for example browse for beers, look for recipes, add new beer and review them.
 This application has been realized using Java as programming language and Java Swing for the GUI part.

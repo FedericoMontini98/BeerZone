@@ -44,7 +44,7 @@ public class Brewery extends GeneralUser {
         this.types = types;
     }
 
-    public void setBeers(ArrayList<Beer> beers) {
+    public void setBeers(List<Beer> beers) {
         this.beers = beers;
     }
 

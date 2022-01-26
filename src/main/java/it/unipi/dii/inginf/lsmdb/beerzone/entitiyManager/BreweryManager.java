@@ -125,8 +125,9 @@ public class BreweryManager {
 
     public boolean updateBeerInBrewery(Beer beer, Brewery brewery) {
         if (generalUserManagerDB.updateBeerInBrewery(beer, brewery)) {
-            brewery = getBrewery(brewery.getUserID());
-            return brewery != null;
+            Brewery brewery2 = getBrewery(brewery.getUserID());
+            if(brewery2 != null)
+                brewery.setBeers(brewery2.getBeers());
         }
         return false;
     }

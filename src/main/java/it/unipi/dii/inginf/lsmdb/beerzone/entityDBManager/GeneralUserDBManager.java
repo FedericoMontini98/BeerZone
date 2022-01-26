@@ -219,7 +219,6 @@ public class GeneralUserDBManager {
                     eq("_id", new ObjectId(brewery.getUserID())),
                     eq("beers.beer_id", new ObjectId(beer.getBeerID()))),
                     set("beers.$[item].beer_name", beer.getBeerName()), updateOptions);
-            System.out.println(updateResult.getMatchedCount() + ", modified: " + updateResult.getModifiedCount());
             return updateResult.getMatchedCount() == updateResult.getModifiedCount();
         } catch (Exception e) {
             e.printStackTrace();

@@ -451,7 +451,10 @@ public class StandardUserGUI {
      */
     private static void setFavoriteButtonAction(JButton addFav, FavoriteBeer foundBeer, DetailedBeer selBeer, StandardUser s) {
         if(foundBeer != null) {
-            addFav.addActionListener(e -> UserManager.getInstance().removeAFavorite(s, foundBeer));
+            addFav.addActionListener(e -> {
+                UserManager.getInstance().removeAFavorite(s, foundBeer);
+                addFav.setEnabled(false);
+            });
         }
         else{
             addFav.addActionListener(e -> {
@@ -460,6 +463,7 @@ public class StandardUserGUI {
                 String dateStr = dateFormat.format(dateFav);
                 FavoriteBeer fb = new FavoriteBeer(selBeer.getBeerID(), selBeer.getBeerName(), dateStr);
                 UserManager.getInstance().addAFavorite(fb, s);
+                addFav.setEnabled(false);
             });
         }
     }

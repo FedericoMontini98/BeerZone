@@ -23,10 +23,9 @@ public class UserManager {
      * @return true if all operations were successful
      * */
     public boolean deleteUser(StandardUser user) {
-        boolean result_2=false;
         if (deleteStandardUser(user))
-            result_2=removeUser(user.getUsername());
-        return (result_2);
+            return generalUserManagerDB.removeUserNeo(user.getUsername());
+        return false;
     }
 
     /** Add a favorite beer both on the StandardUser ArrayList and Neo4J, call it from the GUI
@@ -35,7 +34,7 @@ public class UserManager {
      * @return true if alla operations were successful
      * */
     public boolean addAFavorite(FavoriteBeer fb, StandardUser s){
-        return (s.addToFavorites(fb) && addFavorite(s.getUsername(),fb));
+        return (s.addToFavorites(fb) && generalUserManagerDB.addFavorite(s.getUsername(),fb));
     }
 
     /** Remove a favorite both on the StandardUser ArrayList and Neo4J, call it from the GUI
@@ -44,7 +43,7 @@ public class UserManager {
      * @return true if all operations were successful
      * */
     public boolean removeAFavorite(StandardUser s, FavoriteBeer fb){
-        return (s.removeFromFavorites(fb) && removeFavorite(s.getUsername(),fb.getBeerID()));
+        return (s.removeFromFavorites(fb) && generalUserManagerDB.removeFavorite(s.getUsername(),fb.getBeerID()));
     }
 
 
@@ -115,28 +114,9 @@ public class UserManager {
 
     /* Function used to add StandardUser Nodes in the graph, the only property that they have is Username which is common
      *  Both to reviews and User's files */
-    public boolean addStandardUser(String Username){
+    public boolean addStandardUserNeo(String Username){
         return generalUserManagerDB.addStandardUser(Username);
 
-    }
-
-    /* Function used to add a favorite beer from the users favorites list. To identify a relationship we need the
-     *  Username and the BeerID, this functionality has to be available on a specific beer only if a User hasn't
-     *  it already in its favorites */
-    private boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
-        return generalUserManagerDB.addFavorite(Username, fv);
-    }
-
-    /* Function used to remove a favorite beer from the users favorites list. To identify a relationship we need the
-     *  Username and the BeerID, this functionality has to be available on a specific beer only if a User has it in its
-     *  favorites */
-    private boolean removeFavorite(String Username, String BeerID){
-        return generalUserManagerDB.removeFavorite(Username, BeerID);
-    }
-
-    /* Function used to remove a user and all its relationships from Neo4J graph DB */
-    private boolean removeUser(String username){
-        return generalUserManagerDB.removeUser(username);
     }
 
     /* Function used to return to GUI a list of beers that the user has in its favorites */

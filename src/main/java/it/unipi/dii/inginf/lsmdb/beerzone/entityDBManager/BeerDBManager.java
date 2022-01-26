@@ -431,7 +431,7 @@ public class BeerDBManager {
      * @param beer beer to add
      * @return result of the operation
      */
-    public boolean addBeer(Beer beer){
+    public boolean addBeerNeo(Beer beer){
         try(Session session = NeoDBMS.getDriver().session()) {
             //I First have to see if the style node for this beer is already in the graph
             session.run("MERGE (S:Style{nameStyle: $Style})", parameters("Style", beer.getStyle()));
@@ -546,9 +546,9 @@ public class BeerDBManager {
     public boolean addReviewNeo(Review review, Beer beer){
         try(Session session = NeoDBMS.getDriver().session()){
             //Check if user exists
-            UserManager.getInstance().addStandardUser(review.getUsername());
+            UserManager.getInstance().addStandardUserNeo(review.getUsername());
             //Check if beer exists
-            this.addBeer(beer);
+            this.addBeerNeo(beer);
             //Put the date in the right format
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String str = formatter.format(review.getReviewDateNeo());

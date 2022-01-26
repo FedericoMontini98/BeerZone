@@ -253,7 +253,7 @@ public class GeneralUserDBManager {
     public boolean addFavorite(String Username, FavoriteBeer fv) { //Correct it
         try (Session session = NeoDBMS.getDriver().session()) {
             //Check if user exists
-            UserManager.getInstance().addStandardUser(Username);
+            addStandardUser(Username);
             //Check if beer exists
             BeerManager.getInstance().addBeer(BeerManager.getInstance().getBeer(fv.getBeerID()));
             //Run the query
@@ -288,7 +288,7 @@ public class GeneralUserDBManager {
     }
 
     /* Function used to remove a user and all its relationships from Neo4J graph DB */
-    public boolean removeUser(String username){
+    public boolean removeUserNeo(String username){
         try(Session session = NeoDBMS.getDriver().session()){
             session.run("MATCH (U:User{Username: $username})\n" +
                             "DETACH DELETE U",

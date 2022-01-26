@@ -35,7 +35,7 @@ public class BeerManager {
      * */
     protected boolean removeBeer(Beer beer) {
         if(beerManagerDB.removeBeerMongo(beer)) {
-            removeBeerFromNeo(beer);
+            beerManagerDB.removeBeerFromNeo(beer);
             return true;
         }
         return false;
@@ -186,7 +186,7 @@ public class BeerManager {
     /* Function used to add Beer Nodes in the graph, the only property that they have is id which is common
      *  Both to reviews and beer's files */
     public boolean addBeer(Beer beer) {
-        return beerManagerDB.addBeer(beer);
+        return beerManagerDB.addBeerNeo(beer);
     }
 
     /* Function that based on the user current research find some beers to suggest him based on the beer style and favorites of
@@ -198,10 +198,6 @@ public class BeerManager {
     /* Function that calculate the most favorite beers in the past month */
     public ArrayList<FavoriteBeer> getMostFavoriteThisMonth () {
         return beerManagerDB.getMostFavoriteThisMonth();
-    }
-
-    protected void removeBeerFromNeo(Beer beer) {
-        beerManagerDB.removeBeerFromNeo(beer);
     }
 
 }

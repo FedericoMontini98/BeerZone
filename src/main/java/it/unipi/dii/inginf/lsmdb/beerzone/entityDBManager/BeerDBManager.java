@@ -329,8 +329,7 @@ public class BeerDBManager {
                     projectRoundScore, matchBreweryScore, sortResult));
             /*for (Document d: list) {
                 System.out.println(d);
-            }
-             */
+            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -340,8 +340,8 @@ public class BreweryManagerGUI {
         int i=0;
         for (Beer beer : beers){
             if(i<8){
-                breweryStatsTable.getModel().setValueAt(beer.getBeerName(),0,0);
-                breweryStatsTable.getModel().setValueAt(beer.getBeerID(),0,1);
+                breweryStatsTable.getModel().setValueAt(beer.getBeerName(),i,0);
+                breweryStatsTable.getModel().setValueAt(beer.getBeerID(),i,1);
             }
             else
                 break;

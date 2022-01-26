@@ -128,6 +128,7 @@ public class BreweryManager {
             Brewery brewery2 = getBrewery(brewery.getUserID());
             if(brewery2 != null)
                 brewery.setBeers(brewery2.getBeers());
+            return true;
         }
         return false;
     }

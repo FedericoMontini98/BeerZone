@@ -127,7 +127,7 @@ public class BreweryManager {
         if (generalUserManagerDB.updateBeerInBrewery(beer, brewery)) {
             brewery = getBrewery(brewery.getUserID());
             return brewery != null;
-        };
+        }
         return false;
     }
 

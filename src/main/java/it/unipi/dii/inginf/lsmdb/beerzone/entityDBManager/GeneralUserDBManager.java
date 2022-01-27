@@ -219,7 +219,7 @@ public class GeneralUserDBManager {
                     eq("_id", new ObjectId(brewery.getUserID())),
                     eq("beers.beer_id", new ObjectId(beer.getBeerID()))),
                     set("beers.$[item].beer_name", beer.getBeerName()), updateOptions);
-            return updateResult.getMatchedCount() == updateResult.getModifiedCount();
+            return updateResult.getMatchedCount() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
